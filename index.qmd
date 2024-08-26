@@ -1,0 +1,20 @@
+---
+title: "Avid Afzal"
+image: media/headshot.jpeg
+toc: false
+about: 
+  template: trestles
+  image-shape: round
+  image-width: 20em
+  links:
+    - text: LinkedIn
+      href: https://www.linkedin.com/in/avid-afzal-60761115a/
+    - text: GitHub
+      href: https://github.com/avidaa
+    - text: Email
+      href: mailto:avid.afzal@gmail.com
+---
+
+I'm a Data Scientist with a background in computer engineering, bioinformatics, and cheminformatics.
+
+My interests lie in Bayesian statistics, experimental design, deep learning, and the fusion of these disciplines to create innovative solutions.
