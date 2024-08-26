@@ -1,37 +1,26 @@
-## Welcome to GitHub Pages
+# Avid Afzal's GitHub Pages
 
-You can use the [editor on GitHub](https://github.com/avidaa/avidaa.github.io/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+Welcome to my GitHub Pages site! This site is a personal portfolio where I showcase my work as a Data Scientist with a background in computer engineering, bioinformatics, and cheminformatics.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+## About the Site
 
-### Markdown
+The site includes:
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+- **Home Page:** An introduction to who I am and my professional background.
+- **Blogs:** A collection of blog posts where I share what I am learning on topics like Bayesian statistics, experimental design, deep learning, and more.
 
-```markdown
-Syntax highlighted code block
+## Technologies Used
 
-# Header 1
-## Header 2
-### Header 3
+- **HTML & CSS:** The core structure and styling of the site.
+- **Quarto:** For generating the site content.
+- **GitHub Pages:** For hosting the site.
 
-- Bulleted
-- List
+## How to View the Site
 
-1. Numbered
-2. List
+You can view the live site at: [https://avidaa.github.io](https://avidaa.github.io)
 
-**Bold** and _Italic_ and `Code` text
+## Contact
 
-[Link](url) and ![Image](src)
-```
+Feel free to connect with me on [LinkedIn](https://www.linkedin.com/in/avid-afzal-60761115a/) or check out my projects on [GitHub](https://github.com/avidaa).
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/avidaa/avidaa.github.io/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+Thank you for visiting!
