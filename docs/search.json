@@ -12,5 +12,26 @@
     "title": "About",
     "section": "",
     "text": "About this site\n\n1 + 1\n\n[1] 2"
+  },
+  {
+    "objectID": "blogs.html",
+    "href": "blogs.html",
+    "title": "Blogs",
+    "section": "",
+    "text": "Welcome to my blog page! Here you’ll find previews of my latest blog posts. Click on “Read more” to explore each post in detail.\n\n\n\nPublished on: 2024-08-26\nThis is a brief preview of my first blog post. It discusses interesting topics such as Bayesian statistics, deep learning, and more.\nRead more\n\n\n\n\n\nPublished on: 2024-08-20\nIn this post, I explore the applications of experimental design in bioinformatics, with real-world examples and case studies.\nRead more"
+  },
+  {
+    "objectID": "blogs.html#blog-post-title-1",
+    "href": "blogs.html#blog-post-title-1",
+    "title": "Blogs",
+    "section": "",
+    "text": "Published on: 2024-08-26\nThis is a brief preview of my first blog post. It discusses interesting topics such as Bayesian statistics, deep learning, and more.\nRead more"
+  },
+  {
+    "objectID": "blogs.html#blog-post-title-2",
+    "href": "blogs.html#blog-post-title-2",
+    "title": "Blogs",
+    "section": "",
+    "text": "Published on: 2024-08-20\nIn this post, I explore the applications of experimental design in bioinformatics, with real-world examples and case studies.\nRead more"
   }
 ]
