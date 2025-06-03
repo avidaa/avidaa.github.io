@@ -1,0 +1,219 @@
+---
+title: "Introduction to differential equations and their application in generative AI"
+format: 
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    self-contained: false
+    code-fold: true
+    highlight-style: github
+    theme: cosmo    
+execute:
+  echo: false
+  warning: false
+  message: false
+  freeze: auto
+  fig-format: png
+  fig-dpi: 300
+  fig-width: 8
+  fig-height: 6
+  matplotlib: inline
+---
+
+# What is a differential equation?
+
+Differential equation is a mathematical equation that **relates a function to its derivative**.
+
+::: fragment
+What does a **derivative of a function** tell us?
+:::
+
+::: fragment
+-   It tells us the **rate of change** of the function.
+:::
+
+::: fragment
+Example:
+:::
+
+::: fragment
+-   A function $f$ represents some quantity of interest, e.g., temperature, cell count or concentration of a drug.
+:::
+
+::: fragment
+-   The derivative of $f$ represents the rate of change of that quantity. That is, **how fast a temperature is rising or how fast a population is growing**.
+:::
+
+## What are the types of differential equations?
+
+-   Ordinary Differential Equations (ODEs)
+-   Stochastic Differential Equations (SDEs)
+-   Partial Differential Equations (PDEs)
+
+### ODEs
+
+-   ODEs involve **functions of a single variable** and **their derivatives** (such as time or space).
+
+-   For example, consider a process where a variable $x$ changes over time: $$ \frac{dx(t)}{dt} = f(x(t), t, \theta)$$
+
+    -   This equation means that a small change in $x$ (denoted $dx$) over a small time interval $dt$ is determined by a function $f(x(t), t, \theta)$.
+    -   The function $f$, parameterised by $\theta$, depends on the current value of $x(t)$ and the current time $t$.
+    -   If we know the starting value of $x$ at time $t_0$, we can use this equation repeatedly to calculate the value of $x$ at later times, such as $x(t_1)$. $$x(t_1) = x(t_0) + \int_{t_0}^{t_1} f(x(t), t, \theta) dt$$
+
+#### ODE Solvers
+
+Sometimes <font color="green">we can analytically integrate</font> $\int_{t_0}^{t_1} f(x(t), t, \theta)dt$ term.
+
+For example:
+
+Let's solve the initial value problem:
+
+$$
+\frac{dx}{dt} = 4t^3 + 2t;\quad x(0) = 0;\quad {Find } x(2)
+$$
+
+Here, $f(x(t), t)=4t^3 + 2t$. The solution is:
+
+\begin{aligned}
+x(2) &= x(0) + \textcolor{green}{\int_0^2 (4t^3 + 2t)\, dt} \\
+     &= 0 + \int_0^2 4t^3\, dt + \int_0^2 2t\, dt \\
+     &= 0 + \int_0^2 4t^3\, dt + \int_0^2 2t\, dt \\
+     &= 4 \left[\frac{t^4}{4}\right]_0^2 + 2 \left[\frac{t^2}{2}\right]_0^2 \\
+     &= \left[t^4\right]_0^2 + \left[t^2\right]_0^2 \\
+     &= (16 - 0) + (4 - 0) \\
+     &= \boxed{20}
+\end{aligned}
+
+But, in some cases <font color="red">we can not analytically integrate</font> $\int_{t_0}^{t_1} f(x(t), t, \theta) dt$ term.
+
+For example:
+
+$$
+\frac{dx}{dt} = \cos(t^2);\quad x(0) = 0;\quad \text{Find } x(2)
+$$
+
+Here, $f(x(t), t) = \cos(t^2)$. Hence, to solve for\$x(2), we the following equation:
+
+\begin{aligned}
+x(2) &= x(0) + \textcolor{red}{\int_0^2 \cos(t^2)\, dt}
+\end{aligned}
+
+But, the $\int \cos(t^2) dt$ does not have a closed-form solution.
+
+In cases where the $\int_{t_0}^{t_1} f(x(t), t, \theta) dt$ cannot be solved analytically, we can use approximation methods to estimate the integral, such as:
+
+-   Euler method
+-   Runge-Kutta mathods
+
+### SDEs
+
+-   SDEs extend ODEs by incorporating randomness into the dynamics.
+-   The ODE equation can be written as: $$
+    dx(t) = f(x(t), t, \theta)dt
+    $$
+-   SDE adds a second term to this equation to introduces randomness: $$
+    dx(t) = f(x(t), t, \theta)dt + g(x(t), t, \theta) dW(t)
+    $$
+    -   In this equation the first term, $f(x(t), t, \theta)dt$ is the drift term, same as ODE.
+    -   The second term, $g(x(t), t, \theta) dW(t)$ is the diffusion term, that introduces the randomness into the dynamics.
+        -   $dW(t)$ represents an increment of a Wiener process, also known as Brownian motion. It can be thought of as a random variable drawn from a normal distribution, such as:
+
+            $$dW(t) \sim \mathcal{N}(0, dt)$$
+
+#### Example of SDE
+
+- Langevin equation is an example of an SDE, developed by Paul Langevin to explore movements (<font color="green"> that, is dynamic</font>) of individual particles suspended (<font color="green">that is, in equilibrium</font>) in a fluid at a fix temperature.
+
+$$
+dx(t) = - \nabla_x U(x(t))dt + \sigma dW(t)   
+$$  
+
+  - In this equation, $U(x(t))$ is a potential energy field. $\nabla_x$ is the gradient of the potential energy field and $\sigma$ is the diffusion term or diffusion strength. 
+  - $\sigma$ is set to $\sqrt{2}$ due to **Fluctuation-Dissipation Theorem (FDT)**, which states that <font color="green">the amount of random fluctuation (noise) in a system must be balanced by its dissipative forces (like friction or drag)</font> <font color="#0080FE">if the system is to reach thermal equilibrium</font>.
+    - The **fluctuations term** is the $\sigma dW(t)$
+    - The **dissipation term** is the $- \nabla_x U(x(t))dt$
+    - When the diffusion strength, $\sigma$ match the drift term, $- \nabla_x U(x(t))$, then the system reach thermal equilibrium.
+    - In thermal equilibrium, the stationary distribution (<font color="green">that is, the probability distribution that remains unchanged over time as the system evolves</font>), of the particle is known as the **Gibbs (Boltzmann) distribution**.
+    - The Gibbs distribution has the following form:
+    $$p(x) \propto e^{-U(x)}$$
+    and it tells us if a particle is governed by the SDE:
+    $$dx(t) = - \nabla_x U(x(t))dt + \sqrt{2} dW(t)   $$
+    then, in a long run, that is $t=\infty$, the position of a particle $x(t=\infty)$ will converge to the Gibbs distribution. In other words, Gibbs distribution tells us <font color="green">where the particle is most likely to be found in the long run</font>. 
+
+
+### PDEs
+
+Partial Differential Equations (PDEs):
+
+-   Involve functions of **multiple variables** and their partial derivatives (e.g. space and time)
+
+<font color="red"> \*\* This should be the Fokker-Planck Equation \*\* </font>
+
+# How are differential equations used in generative AI?
+
+## Modelling the dynamics of data
+
+That is a **continuous transformation** between simple distributions e.g. Guassian to a complex data distribution, e.g. image or RNA structure.
+
+![](media/videos/gaussian_to_complex/480p15/GaussianToMoon.mp4){fig-align="center"}
+
+## Diffusion models
+
+It has two steps, forward process and reverse process.
+
+### Forward process
+
+In the forward process we introduce noise. This noise is drawn from a normal distribution, with the following parameters: $$\Sigma_t = \beta_t \mathbf I$$ $$\mu_t = \sqrt{1-\beta_t} X_{t-1}$$
+
+That is:
+
+$$
+q(X_t|X_{t-1}) = \mathcal{N}(\sqrt{1-\beta_t} X_{t-1};\quad \beta_t \mathbf I)
+$$
+
+There are $1, ..., T$ steps between $X_0$ to $X_1$. Each added noise is independent from other added noises in other steps. Hence:
+
+$$
+q(X_{1:T} | X_0) = \prod_{t=1}^T q(X_t | X_{t-1})
+$$
+
+The symbol $\textcolor{red}{:}$ in $q(X_{1\textcolor{red}{:}T} | X_0)$, means that we appy $q$ repeatedly from $t=1$ to $t=T$. This is also called <font color="gree"> trajectory</font>.
+
+Let's assume $t=100$, as it stands, to compute $X_{100}$, we should compute $q(X)$, 100 times to get to $X_{100}$. Reparametrisation trick can help here.
+
+### Reverse process
+
+How does SDE, SGM and DDPM are related to Diffusion model?
+
+1.  Denoising Diffusion Probabilistic Models (DDPMs): DDPMs are a popular formulation of diffusion models introduced around 2020. They define a forward diffusion process that gradually adds Gaussian noise to data over discrete time steps and a learned reverse process that denoises step-by-step to generate samples. The reverse process is parameterized by a neural network predicting the mean and variance of the denoised data at each step. DDPMs use variational inference to train this reverse denoising process.
+
+2.  Score-Based Generative Models (SGMs): SGMs view diffusion models through the lens of score matching. Instead of explicitly modeling the reverse conditional distributions as in DDPMs, SGMs learn the score function — the gradient of the log probability density of noisy data at different noise levels. The generation process then solves a reverse-time stochastic differential equation (SDE) guided by these learned scores. SGMs have shown high synthesis quality and are applied in various domains like image and speech synthesis.
+
+3.  Stochastic Differential Equations (SDEs): SDEs provide a continuous-time formulation of diffusion models. Instead of discrete noise steps, the forward noising process is modeled as an SDE, and the reverse generative process is another SDE that depends on the learned score function. This continuous approach generalizes DDPMs and SGMs, allowing infinitely many noise scales and principled sampling methods. The reverse SDE can be solved numerically to generate samples. This connection was formalized by Song, Kingma, et al. (2021), who showed that both DDPMs and SGMs can be seen as discretizations or special cases of these continuous-time SDE formulations
+
+## Flow Matching models
+
+## Common Types of Generative AI Models
+
+-   Generative Adversarial Networks (GANs)
+
+## Bibliography
+
+1.  [Continuous Normalizing Flows. Vikram Voleti.](https://voletiv.github.io/docs/presentations/20200901_Mila_CNF_Vikram_Voleti.pdf)
+
+2.  [ICLR Blogpost by Ayan Das](https://iclr-blogposts.github.io/2024/blog/diffusion-theory-from-scratch/)
+
+3.  [An Intro to Diffusion Probabilistic Models by Ayan Das](https://ayandas.me/blogs/2021-12-04-diffusion-prob-models.html)
+
+4.  [Stochastic Differential Equations and Diffusion Models by Tanmaya Shekhar Dabral](https://www.vanillabug.com/posts/sde/)
+
+5.  [Song, Kingma 2021](https://arxiv.org/pdf/2011.13456)
+
+6.  [Langevin equation](https://www.peterholderrieth.com/blog/2023/Langevin-Dynamics-An-introduction-for-Machine-Learning-Engineers/)
+
+Maybe these:
+
+1.  [General intro 1](https://www.superannotate.com/blog/diffusion-models#:~:text=Diffusion%20model%20techniques,-Central%20to%20the&text=These%20include%20score%2Dbased%20generative,process%20and%20generate%20complex%20data.)
+
+2.  [General intro 2](https://theaisummer.com/diffusion-models/)
