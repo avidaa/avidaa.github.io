@@ -133,13 +133,24 @@ $$
   - $\sigma$ is set to $\sqrt{2}$ due to **Fluctuation-Dissipation Theorem (FDT)**, which states that <font color="green">the amount of random fluctuation (noise) in a system must be balanced by its dissipative forces (like friction or drag)</font> <font color="#0080FE">if the system is to reach thermal equilibrium</font>.
     - The **fluctuations term** is the $\sigma dW(t)$
     - The **dissipation term** is the $- \nabla_x U(x(t))dt$
-    - When the diffusion strength, $\sigma$ match the drift term, $- \nabla_x U(x(t))$, then the system reach thermal equilibrium.
+    - When the diffusion strength, $\sigma$, match the drift term, $- \nabla_x U(x(t))$, then the system reach thermal equilibrium.
     - In thermal equilibrium, the stationary distribution (<font color="green">that is, the probability distribution that remains unchanged over time as the system evolves</font>), of the particle is known as the **Gibbs (Boltzmann) distribution**.
-    - The Gibbs distribution has the following form:
-    $$p(x) \propto e^{-U(x)}$$
-    and it tells us if a particle is governed by the SDE:
-    $$dx(t) = - \nabla_x U(x(t))dt + \sqrt{2} dW(t)   $$
-    then, in a long run, that is $t=\infty$, the position of a particle $x(t=\infty)$ will converge to the Gibbs distribution. In other words, Gibbs distribution tells us <font color="green">where the particle is most likely to be found in the long run</font>. 
+    - The Gibbs distribution is given by:
+    $$
+    p(x) \propto e^{-U(x)}
+    $$
+    If a particle moves according to the (overdamped) Langevin dynamics, where the noise and friction are balanced (as described by the SDE below),
+    $$
+    dx(t) = - \nabla_x U(x(t))dt + \sqrt{2} dW(t)
+    $$
+    then, as time goes to infinity ($t \to \infty$), the probability of finding the particle at position $x$ approaches the Gibbs distribution. In other words, the Gibbs distribution describes the locations where the particle is most likely to be found in the long run.
+
+TODO: 
+1) Explain the discrete approximation and how is that related to gradient decent. 
+1.1) stochastic gradient descent is a stochastic approximation of gradient descent optimization. The stochasticity comes from mini-batching the data. At the end of the day it finds a point estimate (minimum).
+1.2) Stochastic Gradient Langevin Dynamics (SGLD) is the discrete approximation of the Langevin equation. The discrete approximation of the Langevin equation is also called Euler–Maruyama method.
+2) notice that sigma = sqrt{2} is called overdamped langevin equatuin: it is not sqrt{2} that leads to overdamped, it is including or excluding inertia that cause underdamped or overdamped system.
+
 
 
 ### PDEs
