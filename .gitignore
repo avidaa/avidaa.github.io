@@ -2,3 +2,7 @@
 .Rproj.user
 .Rhistory
 .DS_Store
+
+/.quarto/
+_freeze/
+blogs/ODE_Gen_AI/

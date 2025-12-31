@@ -8,13 +8,16 @@ website:
     left:
       - href: index.qmd
         text: Home
+      - href: blogs.qmd
+        text: Blogs
 
 format:
   html:
-    theme: cosmo
+    theme: litera
     css: styles.css
     toc: true
     page-layout: full
+    main-container: "container-xxl"
 
 editor: visual
 

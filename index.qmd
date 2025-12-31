@@ -15,6 +15,4 @@ about:
       href: mailto:avid.afzal@gmail.com
 ---
 
-I'm a Data Scientist with a background in computer engineering, bioinformatics, and cheminformatics.
-
-My interests lie in Bayesian statistics, experimental design, deep learning, and the fusion of these disciplines to create innovative solutions.
+I am a Data Scientist specializing in computer engineering, bioinformatics, and cheminformatics. My work centers on leveraging Bayesian statistics, experimental design, and deep learning to address complex problems in data science. By integrating these domains, I aim to develop robust, innovative solutions for challenging real-world applications.
