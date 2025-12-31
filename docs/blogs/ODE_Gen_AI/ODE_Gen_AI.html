@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.40">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Introduction to differential equations and their application in generative AI</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-86daaaaad7353f9cc0c554efc1dd6d94.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-55c119cbca0847612369e51c8a5413ad.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Avid Afzal</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blogs.html"> 
+<span class="menu-text">Blogs</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#what-is-a-differential-equation" id="toc-what-is-a-differential-equation" class="nav-link active" data-scroll-target="#what-is-a-differential-equation">What is a differential equation?</a>
+  <ul class="collapse">
+  <li><a href="#what-are-the-types-of-differential-equations" id="toc-what-are-the-types-of-differential-equations" class="nav-link" data-scroll-target="#what-are-the-types-of-differential-equations">What are the types of differential equations?</a>
+  <ul class="collapse">
+  <li><a href="#odes" id="toc-odes" class="nav-link" data-scroll-target="#odes">ODEs</a></li>
+  <li><a href="#sdes" id="toc-sdes" class="nav-link" data-scroll-target="#sdes">SDEs</a></li>
+  <li><a href="#pdes" id="toc-pdes" class="nav-link" data-scroll-target="#pdes">PDEs</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#how-are-differential-equations-used-in-generative-ai" id="toc-how-are-differential-equations-used-in-generative-ai" class="nav-link" data-scroll-target="#how-are-differential-equations-used-in-generative-ai">How are differential equations used in generative AI?</a>
+  <ul class="collapse">
+  <li><a href="#modelling-the-dynamics-of-data" id="toc-modelling-the-dynamics-of-data" class="nav-link" data-scroll-target="#modelling-the-dynamics-of-data">Modelling the dynamics of data</a></li>
+  <li><a href="#diffusion-models" id="toc-diffusion-models" class="nav-link" data-scroll-target="#diffusion-models">Diffusion models</a>
+  <ul class="collapse">
+  <li><a href="#forward-process" id="toc-forward-process" class="nav-link" data-scroll-target="#forward-process">Forward process</a></li>
+  <li><a href="#reverse-process" id="toc-reverse-process" class="nav-link" data-scroll-target="#reverse-process">Reverse process</a></li>
+  </ul></li>
+  <li><a href="#flow-matching-models" id="toc-flow-matching-models" class="nav-link" data-scroll-target="#flow-matching-models">Flow Matching models</a></li>
+  <li><a href="#common-types-of-generative-ai-models" id="toc-common-types-of-generative-ai-models" class="nav-link" data-scroll-target="#common-types-of-generative-ai-models">Common Types of Generative AI Models</a></li>
+  <li><a href="#bibliography" id="toc-bibliography" class="nav-link" data-scroll-target="#bibliography">Bibliography</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content column-page-left" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Introduction to differential equations and their application in generative AI</h1>
+</div>
+
+
+
+<div class="quarto-title-meta column-page-left">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="what-is-a-differential-equation" class="level1">
+<h1>What is a differential equation?</h1>
+<p>Differential equation is a mathematical equation that <strong>relates a function to its derivative</strong>.</p>
+<div class="fragment">
+<p>What does a <strong>derivative of a function</strong> tell us?</p>
+</div>
+<div class="fragment">
+<ul>
+<li>It tells us the <strong>rate of change</strong> of the function.</li>
+</ul>
+</div>
+<div class="fragment">
+<p>Example:</p>
+</div>
+<div class="fragment">
+<ul>
+<li>A function <span class="math inline">\(f\)</span> represents some quantity of interest, e.g., temperature, cell count or concentration of a drug.</li>
+</ul>
+</div>
+<div class="fragment">
+<ul>
+<li>The derivative of <span class="math inline">\(f\)</span> represents the rate of change of that quantity. That is, <strong>how fast a temperature is rising or how fast a population is growing</strong>.</li>
+</ul>
+</div>
+<section id="what-are-the-types-of-differential-equations" class="level2">
+<h2 class="anchored" data-anchor-id="what-are-the-types-of-differential-equations">What are the types of differential equations?</h2>
+<ul>
+<li>Ordinary Differential Equations (ODEs)</li>
+<li>Stochastic Differential Equations (SDEs)</li>
+<li>Partial Differential Equations (PDEs)</li>
+</ul>
+<section id="odes" class="level3">
+<h3 class="anchored" data-anchor-id="odes">ODEs</h3>
+<ul>
+<li><p>ODEs involve <strong>functions of a single variable</strong> and <strong>their derivatives</strong> (such as time or space).</p></li>
+<li><p>For example, consider a process where a variable <span class="math inline">\(x\)</span> changes over time: <span class="math display">\[ \frac{dx(t)}{dt} = f(x(t), t, \theta)\]</span></p>
+<ul>
+<li>This equation means that a small change in <span class="math inline">\(x\)</span> (denoted <span class="math inline">\(dx\)</span>) over a small time interval <span class="math inline">\(dt\)</span> is determined by a function <span class="math inline">\(f(x(t), t, \theta)\)</span>.</li>
+<li>The function <span class="math inline">\(f\)</span>, parameterised by <span class="math inline">\(\theta\)</span>, depends on the current value of <span class="math inline">\(x(t)\)</span> and the current time <span class="math inline">\(t\)</span>.</li>
+<li>If we know the starting value of <span class="math inline">\(x\)</span> at time <span class="math inline">\(t_0\)</span>, we can use this equation repeatedly to calculate the value of <span class="math inline">\(x\)</span> at later times, such as <span class="math inline">\(x(t_1)\)</span>. <span class="math display">\[x(t_1) = x(t_0) + \int_{t_0}^{t_1} f(x(t), t, \theta) dt\]</span></li>
+</ul></li>
+</ul>
+<section id="ode-solvers" class="level4">
+<h4 class="anchored" data-anchor-id="ode-solvers">ODE Solvers</h4>
+<p>Sometimes <font color="green">we can analytically integrate</font> <span class="math inline">\(\int_{t_0}^{t_1} f(x(t), t, \theta)dt\)</span> term.</p>
+<p>For example:</p>
+<p>Let’s solve the initial value problem:</p>
+<p><span class="math display">\[
+\frac{dx}{dt} = 4t^3 + 2t;\quad x(0) = 0;\quad {Find } x(2)
+\]</span></p>
+<p>Here, <span class="math inline">\(f(x(t), t)=4t^3 + 2t\)</span>. The solution is:</p>
+<span class="math display">\[\begin{aligned}
+x(2) &amp;= x(0) + \textcolor{green}{\int_0^2 (4t^3 + 2t)\, dt} \\
+     &amp;= 0 + \int_0^2 4t^3\, dt + \int_0^2 2t\, dt \\
+     &amp;= 0 + \int_0^2 4t^3\, dt + \int_0^2 2t\, dt \\
+     &amp;= 4 \left[\frac{t^4}{4}\right]_0^2 + 2 \left[\frac{t^2}{2}\right]_0^2 \\
+     &amp;= \left[t^4\right]_0^2 + \left[t^2\right]_0^2 \\
+     &amp;= (16 - 0) + (4 - 0) \\
+     &amp;= \boxed{20}
+\end{aligned}\]</span>
+<p>But, in some cases <font color="red">we can not analytically integrate</font> <span class="math inline">\(\int_{t_0}^{t_1} f(x(t), t, \theta) dt\)</span> term.</p>
+<p>For example:</p>
+<p><span class="math display">\[
+\frac{dx}{dt} = \cos(t^2);\quad x(0) = 0;\quad \text{Find } x(2)
+\]</span></p>
+<p>Here, <span class="math inline">\(f(x(t), t) = \cos(t^2)\)</span>. Hence, to solve for$x(2), we the following equation:</p>
+<span class="math display">\[\begin{aligned}
+x(2) &amp;= x(0) + \textcolor{red}{\int_0^2 \cos(t^2)\, dt}
+\end{aligned}\]</span>
+<p>But, the <span class="math inline">\(\int \cos(t^2) dt\)</span> does not have a closed-form solution.</p>
+<p>In cases where the <span class="math inline">\(\int_{t_0}^{t_1} f(x(t), t, \theta) dt\)</span> cannot be solved analytically, we can use approximation methods to estimate the integral, such as:</p>
+<ul>
+<li>Euler method</li>
+<li>Runge-Kutta mathods</li>
+</ul>
+</section>
+</section>
+<section id="sdes" class="level3">
+<h3 class="anchored" data-anchor-id="sdes">SDEs</h3>
+<ul>
+<li>SDEs extend ODEs by incorporating randomness into the dynamics.</li>
+<li>The ODE equation can be written as: <span class="math display">\[
+dx(t) = f(x(t), t, \theta)dt
+\]</span></li>
+<li>SDE adds a second term to this equation to introduces randomness: <span class="math display">\[
+dx(t) = f(x(t), t, \theta)dt + g(x(t), t, \theta) dW(t)
+\]</span>
+<ul>
+<li>In this equation the first term, <span class="math inline">\(f(x(t), t, \theta)dt\)</span> is the drift term, same as ODE.</li>
+<li>The second term, <span class="math inline">\(g(x(t), t, \theta) dW(t)\)</span> is the diffusion term, that introduces the randomness into the dynamics.
+<ul>
+<li><p><span class="math inline">\(dW(t)\)</span> represents an increment of a Wiener process, also known as Brownian motion. It can be thought of as a random variable drawn from a normal distribution, such as:</p>
+<p><span class="math display">\[dW(t) \sim \mathcal{N}(0, dt)\]</span></p></li>
+</ul></li>
+</ul></li>
+</ul>
+<section id="example-of-sde" class="level4">
+<h4 class="anchored" data-anchor-id="example-of-sde">Example of SDE</h4>
+<ul>
+<li>Langevin equation is an example of an SDE, developed by Paul Langevin to explore movements (<font color="green"> that, is dynamic</font>) of individual particles suspended (<font color="green">that is, in equilibrium</font>) in a fluid at a fix temperature.</li>
+</ul>
+<p><span class="math display">\[
+dx(t) = - \nabla_x U(x(t))dt + \sigma dW(t)   
+\]</span></p>
+<ul>
+<li>In this equation, <span class="math inline">\(U(x(t))\)</span> is a potential energy field. <span class="math inline">\(\nabla_x\)</span> is the gradient of the potential energy field and <span class="math inline">\(\sigma\)</span> is the diffusion term or diffusion strength.</li>
+<li><span class="math inline">\(\sigma\)</span> is set to <span class="math inline">\(\sqrt{2}\)</span> due to <strong>Fluctuation-Dissipation Theorem (FDT)</strong>, which states that <font color="green">the amount of random fluctuation (noise) in a system must be balanced by its dissipative forces (like friction or drag)</font> <font color="#0080FE">if the system is to reach thermal equilibrium</font>.
+<ul>
+<li>The <strong>fluctuations term</strong> is the <span class="math inline">\(\sigma dW(t)\)</span></li>
+<li>The <strong>dissipation term</strong> is the <span class="math inline">\(- \nabla_x U(x(t))dt\)</span></li>
+<li>When the diffusion strength, <span class="math inline">\(\sigma\)</span>, match the drift term, <span class="math inline">\(- \nabla_x U(x(t))\)</span>, then the system reach thermal equilibrium.</li>
+<li>In thermal equilibrium, the stationary distribution (<font color="green">that is, the probability distribution that remains unchanged over time as the system evolves</font>), of the particle is known as the <strong>Gibbs (Boltzmann) distribution</strong>.</li>
+<li>The Gibbs distribution is given by: <span class="math display">\[
+p(x) \propto e^{-U(x)}
+\]</span> If a particle moves according to the (overdamped) Langevin dynamics, where the noise and friction are balanced (as described by the SDE below), <span class="math display">\[
+dx(t) = - \nabla_x U(x(t))dt + \sqrt{2} dW(t)
+\]</span> then, as time goes to infinity (<span class="math inline">\(t \to \infty\)</span>), the probability of finding the particle at position <span class="math inline">\(x\)</span> approaches the Gibbs distribution. In other words, the Gibbs distribution describes the locations where the particle is most likely to be found in the long run.</li>
+</ul></li>
+</ul>
+<p>TODO: 1) Explain the discrete approximation and how is that related to gradient decent. 1.1) stochastic gradient descent is a stochastic approximation of gradient descent optimization. The stochasticity comes from mini-batching the data. At the end of the day it finds a point estimate (minimum). 1.2) Stochastic Gradient Langevin Dynamics (SGLD) is the discrete approximation of the Langevin equation. The discrete approximation of the Langevin equation is also called Euler–Maruyama method. 2) notice that sigma = sqrt{2} is called overdamped langevin equatuin: it is not sqrt{2} that leads to overdamped, it is including or excluding inertia that cause underdamped or overdamped system.</p>
+</section>
+</section>
+<section id="pdes" class="level3">
+<h3 class="anchored" data-anchor-id="pdes">PDEs</h3>
+<p>Partial Differential Equations (PDEs):</p>
+<ul>
+<li>Involve functions of <strong>multiple variables</strong> and their partial derivatives (e.g.&nbsp;space and time)</li>
+</ul>
+<p><font color="red"> ** This should be the Fokker-Planck Equation ** </font></p>
+</section>
+</section>
+</section>
+<section id="how-are-differential-equations-used-in-generative-ai" class="level1">
+<h1>How are differential equations used in generative AI?</h1>
+<section id="modelling-the-dynamics-of-data" class="level2">
+<h2 class="anchored" data-anchor-id="modelling-the-dynamics-of-data">Modelling the dynamics of data</h2>
+<p>That is a <strong>continuous transformation</strong> between simple distributions e.g.&nbsp;Guassian to a complex data distribution, e.g.&nbsp;image or RNA structure.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><video src="media/videos/gaussian_to_complex/480p15/GaussianToMoon.mp4" class="img-fluid quarto-figure quarto-figure-center" controls=""><a href="media/videos/gaussian_to_complex/480p15/GaussianToMoon.mp4">Video</a></video></p>
+</figure>
+</div>
+</section>
+<section id="diffusion-models" class="level2">
+<h2 class="anchored" data-anchor-id="diffusion-models">Diffusion models</h2>
+<p>It has two steps, forward process and reverse process.</p>
+<section id="forward-process" class="level3">
+<h3 class="anchored" data-anchor-id="forward-process">Forward process</h3>
+<p>In the forward process we introduce noise. This noise is drawn from a normal distribution, with the following parameters: <span class="math display">\[\Sigma_t = \beta_t \mathbf I\]</span> <span class="math display">\[\mu_t = \sqrt{1-\beta_t} X_{t-1}\]</span></p>
+<p>That is:</p>
+<p><span class="math display">\[
+q(X_t|X_{t-1}) = \mathcal{N}(\sqrt{1-\beta_t} X_{t-1};\quad \beta_t \mathbf I)
+\]</span></p>
+<p>There are <span class="math inline">\(1, ..., T\)</span> steps between <span class="math inline">\(X_0\)</span> to <span class="math inline">\(X_1\)</span>. Each added noise is independent from other added noises in other steps. Hence:</p>
+<p><span class="math display">\[
+q(X_{1:T} | X_0) = \prod_{t=1}^T q(X_t | X_{t-1})
+\]</span></p>
+<p>The symbol <span class="math inline">\(\textcolor{red}{:}\)</span> in <span class="math inline">\(q(X_{1\textcolor{red}{:}T} | X_0)\)</span>, means that we appy <span class="math inline">\(q\)</span> repeatedly from <span class="math inline">\(t=1\)</span> to <span class="math inline">\(t=T\)</span>. This is also called <font color="gree"> trajectory</font>.</p>
+<p>Let’s assume <span class="math inline">\(t=100\)</span>, as it stands, to compute <span class="math inline">\(X_{100}\)</span>, we should compute <span class="math inline">\(q(X)\)</span>, 100 times to get to <span class="math inline">\(X_{100}\)</span>. Reparametrisation trick can help here.</p>
+</section>
+<section id="reverse-process" class="level3">
+<h3 class="anchored" data-anchor-id="reverse-process">Reverse process</h3>
+<p>How does SDE, SGM and DDPM are related to Diffusion model?</p>
+<ol type="1">
+<li><p>Denoising Diffusion Probabilistic Models (DDPMs): DDPMs are a popular formulation of diffusion models introduced around 2020. They define a forward diffusion process that gradually adds Gaussian noise to data over discrete time steps and a learned reverse process that denoises step-by-step to generate samples. The reverse process is parameterized by a neural network predicting the mean and variance of the denoised data at each step. DDPMs use variational inference to train this reverse denoising process.</p></li>
+<li><p>Score-Based Generative Models (SGMs): SGMs view diffusion models through the lens of score matching. Instead of explicitly modeling the reverse conditional distributions as in DDPMs, SGMs learn the score function — the gradient of the log probability density of noisy data at different noise levels. The generation process then solves a reverse-time stochastic differential equation (SDE) guided by these learned scores. SGMs have shown high synthesis quality and are applied in various domains like image and speech synthesis.</p></li>
+<li><p>Stochastic Differential Equations (SDEs): SDEs provide a continuous-time formulation of diffusion models. Instead of discrete noise steps, the forward noising process is modeled as an SDE, and the reverse generative process is another SDE that depends on the learned score function. This continuous approach generalizes DDPMs and SGMs, allowing infinitely many noise scales and principled sampling methods. The reverse SDE can be solved numerically to generate samples. This connection was formalized by Song, Kingma, et al.&nbsp;(2021), who showed that both DDPMs and SGMs can be seen as discretizations or special cases of these continuous-time SDE formulations</p></li>
+</ol>
+</section>
+</section>
+<section id="flow-matching-models" class="level2">
+<h2 class="anchored" data-anchor-id="flow-matching-models">Flow Matching models</h2>
+</section>
+<section id="common-types-of-generative-ai-models" class="level2">
+<h2 class="anchored" data-anchor-id="common-types-of-generative-ai-models">Common Types of Generative AI Models</h2>
+<ul>
+<li>Generative Adversarial Networks (GANs)</li>
+</ul>
+</section>
+<section id="bibliography" class="level2">
+<h2 class="anchored" data-anchor-id="bibliography">Bibliography</h2>
+<ol type="1">
+<li><p><a href="https://voletiv.github.io/docs/presentations/20200901_Mila_CNF_Vikram_Voleti.pdf">Continuous Normalizing Flows. Vikram Voleti.</a></p></li>
+<li><p><a href="https://iclr-blogposts.github.io/2024/blog/diffusion-theory-from-scratch/">ICLR Blogpost by Ayan Das</a></p></li>
+<li><p><a href="https://ayandas.me/blogs/2021-12-04-diffusion-prob-models.html">An Intro to Diffusion Probabilistic Models by Ayan Das</a></p></li>
+<li><p><a href="https://www.vanillabug.com/posts/sde/">Stochastic Differential Equations and Diffusion Models by Tanmaya Shekhar Dabral</a></p></li>
+<li><p><a href="https://arxiv.org/pdf/2011.13456">Song, Kingma 2021</a></p></li>
+<li><p><a href="https://www.peterholderrieth.com/blog/2023/Langevin-Dynamics-An-introduction-for-Machine-Learning-Engineers/">Langevin equation</a></p></li>
+</ol>
+<p>Maybe these:</p>
+<ol type="1">
+<li><p><a href="https://www.superannotate.com/blog/diffusion-models#:~:text=Diffusion%20model%20techniques,-Central%20to%20the&amp;text=These%20include%20score%2Dbased%20generative,process%20and%20generate%20complex%20data.">General intro 1</a></p></li>
+<li><p><a href="https://theaisummer.com/diffusion-models/">General intro 2</a></p></li>
+</ol>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

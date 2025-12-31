@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "Avid Afzal",
     "section": "",
-    "text": "I’m a Data Scientist with a background in computer engineering, bioinformatics, and cheminformatics.\nMy interests lie in Bayesian statistics, experimental design, deep learning, and the fusion of these disciplines to create innovative solutions."
+    "text": "I am a Data Scientist specializing in computer engineering, bioinformatics, and cheminformatics. My work centers on leveraging Bayesian statistics, experimental design, and deep learning to address complex problems in data science. By integrating these domains, I aim to develop robust, innovative solutions for challenging real-world applications."
   },
   {
     "objectID": "about.html",
@@ -18,7 +18,7 @@
     "href": "blogs.html",
     "title": "Blogs",
     "section": "",
-    "text": "Welcome to my blog page! Here you’ll find previews of my latest blog posts. Click on “Read more” to explore each post in detail.\n\n\n\nPublished on: 2024-08-26\nThis is a brief preview of my first blog post. It discusses interesting topics such as Bayesian statistics, deep learning, and more.\nRead more\n\n\n\n\n\nPublished on: 2024-08-20\nIn this post, I explore the applications of experimental design in bioinformatics, with real-world examples and case studies.\nRead more"
+    "text": "Here I share posts about topics that interest me—ranging from statistics and machine learning/AI to the drug discovery process. Click “Read more” to explore each post in detail."
   },
   {
     "objectID": "blogs.html#blog-post-title-1",
@@ -33,5 +33,159 @@
     "title": "Blogs",
     "section": "",
     "text": "Published on: 2024-08-20\nIn this post, I explore the applications of experimental design in bioinformatics, with real-world examples and case studies.\nRead more"
+  },
+  {
+    "objectID": "blogs/ODE_Gen_AI.html",
+    "href": "blogs/ODE_Gen_AI.html",
+    "title": "Introduction to differential equations and their application in generative AI",
+    "section": "",
+    "text": "Differential equation is a mathematical equation that relates a function to its derivative.\n\nWhat does a derivative of a function tell us?\n\n\n\nIt tells us the rate of change of the function.\n\n\n\nExample:\n\n\n\nA function \\(f\\) represents some quantity of interest, e.g., temperature, cell count or concentration of a drug.\n\n\n\n\nThe derivative of \\(f\\) represents the rate of change of that quantity. That is, how fast a temperature is rising or how fast a population is growing.\n\n\n\n\n\nOrdinary Differential Equations (ODEs)\nStochastic Differential Equations (SDEs)\nPartial Differential Equations (PDEs)\n\n\n\n\nODEs involve functions of a single variable and their derivatives (such as time or space).\nFor example, consider a process where a variable \\(x\\) changes over time: \\[ \\frac{dx(t)}{dt} = f(x(t), t, \\theta)\\]\n\nThis equation means that a small change in \\(x\\) (denoted \\(dx\\)) over a small time interval \\(dt\\) is determined by a function \\(f(x(t), t, \\theta)\\).\nThe function \\(f\\), parameterised by \\(\\theta\\), depends on the current value of \\(x(t)\\) and the current time \\(t\\).\nIf we know the starting value of \\(x\\) at time \\(t_0\\), we can use this equation repeatedly to calculate the value of \\(x\\) at later times, such as \\(x(t_1)\\). \\[x(t_1) = x(t_0) + \\int_{t_0}^{t_1} f(x(t), t, \\theta) dt\\]\n\n\n\n\nSometimes we can analytically integrate \\(\\int_{t_0}^{t_1} f(x(t), t, \\theta)dt\\) term.\nFor example:\nLet’s solve the initial value problem:\n\\[\n\\frac{dx}{dt} = 4t^3 + 2t;\\quad x(0) = 0;\\quad {Find } x(2)\n\\]\nSolution:\n\\[\\begin{aligned}\nx(2) &= x(0) + \\textcolor{green}{\\int_0^2 (4t^3 + 2t)\\, dt} \\\\\n     &= 0 + \\int_0^2 4t^3\\, dt + \\int_0^2 2t\\, dt \\\\\n     &= 0 + \\int_0^2 4t^3\\, dt + \\int_0^2 2t\\, dt \\\\\n     &= 4 \\left[\\frac{t^4}{4}\\right]_0^2 + 2 \\left[\\frac{t^2}{2}\\right]_0^2 \\\\\n     &= \\left[t^4\\right]_0^2 + \\left[t^2\\right]_0^2 \\\\\n     &= (16 - 0) + (4 - 0) \\\\\n     &= \\boxed{20}\n\\end{aligned}\\]\nBut, in some cases we can not analytically integrate \\(\\int_{t_0}^{t_1} f(x(t), t, \\theta) dt\\) term.\nFor example:\n\\[\n\\frac{dx}{dt} = \\cos(t^2);\\quad x(0) = 0;\\quad \\text{Find } x(2)\n\\]\n\\[\\begin{aligned}\nx(2) &= x(0) + \\textcolor{red}{\\int_0^2 \\cos(t^2)\\, dt}\n\\end{aligned}\\]\nBut, the \\(\\int \\cos(t^2) dt\\) does not have a closed-form solution.\nIn cases where the \\(\\int_{t_0}^{t_1} f(x(t), t, \\theta) dt\\) cannot be solved analytically, we can use approximation methods to estimate the integral, such as:\n\nEuler method\nRunge-Kutta mathods\n\n\n\n\n\n\nSDEs extend ODEs by incorporating randomness into the dynamics.\nThe ODE equation can be written as: \\[\ndx(t) = f(x(t), t, \\theta)dt\n\\]\nSDE adds a second term to this equation to introduces randomness: \\[\ndx(t) = f(x(t), t, \\theta)dt + g(x(t), t, \\theta) dW(t)\n\\]\n\nIn this equation $$\n\n\n\n\n\nPartial Differential Equations (PDEs):\n\nInvolve functions of multiple variables and their partial derivatives (e.g. space and time)"
+  },
+  {
+    "objectID": "blogs/ODE_Gen_AI.html#what-are-the-types-of-differential-equations",
+    "href": "blogs/ODE_Gen_AI.html#what-are-the-types-of-differential-equations",
+    "title": "Introduction to differential equations and their application in generative AI",
+    "section": "",
+    "text": "Ordinary Differential Equations (ODEs)\nStochastic Differential Equations (SDEs)\nPartial Differential Equations (PDEs)\n\n\n\n\nODEs involve functions of a single variable and their derivatives (such as time or space).\nFor example, consider a process where a variable \\(x\\) changes over time: \\[ \\frac{dx(t)}{dt} = f(x(t), t, \\theta)\\]\n\nThis equation means that a small change in \\(x\\) (denoted \\(dx\\)) over a small time interval \\(dt\\) is determined by a function \\(f(x(t), t, \\theta)\\).\nThe function \\(f\\), parameterised by \\(\\theta\\), depends on the current value of \\(x(t)\\) and the current time \\(t\\).\nIf we know the starting value of \\(x\\) at time \\(t_0\\), we can use this equation repeatedly to calculate the value of \\(x\\) at later times, such as \\(x(t_1)\\). \\[x(t_1) = x(t_0) + \\int_{t_0}^{t_1} f(x(t), t, \\theta) dt\\]\n\n\n\n\nSometimes we can analytically integrate \\(\\int_{t_0}^{t_1} f(x(t), t, \\theta)dt\\) term.\nFor example:\nLet’s solve the initial value problem:\n\\[\n\\frac{dx}{dt} = 4t^3 + 2t;\\quad x(0) = 0;\\quad {Find } x(2)\n\\]\nSolution:\n\\[\\begin{aligned}\nx(2) &= x(0) + \\textcolor{green}{\\int_0^2 (4t^3 + 2t)\\, dt} \\\\\n     &= 0 + \\int_0^2 4t^3\\, dt + \\int_0^2 2t\\, dt \\\\\n     &= 0 + \\int_0^2 4t^3\\, dt + \\int_0^2 2t\\, dt \\\\\n     &= 4 \\left[\\frac{t^4}{4}\\right]_0^2 + 2 \\left[\\frac{t^2}{2}\\right]_0^2 \\\\\n     &= \\left[t^4\\right]_0^2 + \\left[t^2\\right]_0^2 \\\\\n     &= (16 - 0) + (4 - 0) \\\\\n     &= \\boxed{20}\n\\end{aligned}\\]\nBut, in some cases we can not analytically integrate \\(\\int_{t_0}^{t_1} f(x(t), t, \\theta) dt\\) term.\nFor example:\n\\[\n\\frac{dx}{dt} = \\cos(t^2);\\quad x(0) = 0;\\quad \\text{Find } x(2)\n\\]\n\\[\\begin{aligned}\nx(2) &= x(0) + \\textcolor{red}{\\int_0^2 \\cos(t^2)\\, dt}\n\\end{aligned}\\]\nBut, the \\(\\int \\cos(t^2) dt\\) does not have a closed-form solution.\nIn cases where the \\(\\int_{t_0}^{t_1} f(x(t), t, \\theta) dt\\) cannot be solved analytically, we can use approximation methods to estimate the integral, such as:\n\nEuler method\nRunge-Kutta mathods\n\n\n\n\n\n\nSDEs extend ODEs by incorporating randomness into the dynamics.\nThe ODE equation can be written as: \\[\ndx(t) = f(x(t), t, \\theta)dt\n\\]\nSDE adds a second term to this equation to introduces randomness: \\[\ndx(t) = f(x(t), t, \\theta)dt + g(x(t), t, \\theta) dW(t)\n\\]\n\nIn this equation $$\n\n\n\n\n\nPartial Differential Equations (PDEs):\n\nInvolve functions of multiple variables and their partial derivatives (e.g. space and time)"
+  },
+  {
+    "objectID": "blogs/ODE_Gen_AI.html#modelling-the-dynamics-of-data",
+    "href": "blogs/ODE_Gen_AI.html#modelling-the-dynamics-of-data",
+    "title": "Introduction to differential equations and their application in generative AI",
+    "section": "Modelling the dynamics of data",
+    "text": "Modelling the dynamics of data\nThat is a continuous transformation between simple distributions e.g. Guassian to a complex data distribution, e.g. image or RNA structure.\n\n\nVideo"
+  },
+  {
+    "objectID": "blogs/ODE_Gen_AI.html#diffusion-models",
+    "href": "blogs/ODE_Gen_AI.html#diffusion-models",
+    "title": "Introduction to differential equations and their application in generative AI",
+    "section": "Diffusion models",
+    "text": "Diffusion models"
+  },
+  {
+    "objectID": "blogs/ODE_Gen_AI.html#flow-matching-models",
+    "href": "blogs/ODE_Gen_AI.html#flow-matching-models",
+    "title": "Introduction to differential equations and their application in generative AI",
+    "section": "Flow Matching models",
+    "text": "Flow Matching models"
+  },
+  {
+    "objectID": "blogs/ODE_Gen_AI.html#common-types-of-generative-ai-models",
+    "href": "blogs/ODE_Gen_AI.html#common-types-of-generative-ai-models",
+    "title": "Introduction to differential equations and their application in generative AI",
+    "section": "Common Types of Generative AI Models",
+    "text": "Common Types of Generative AI Models\n\nGenerative Adversarial Networks (GANs)"
+  },
+  {
+    "objectID": "blogs/ODE_Gen_AI.html#bibliography",
+    "href": "blogs/ODE_Gen_AI.html#bibliography",
+    "title": "Introduction to differential equations and their application in generative AI",
+    "section": "Bibliography",
+    "text": "Bibliography\n\nContinuous Normalizing Flows. Vikram Voleti."
+  },
+  {
+    "objectID": "blogs/ODE_Gen_AI/ODE_Gen_AI.html",
+    "href": "blogs/ODE_Gen_AI/ODE_Gen_AI.html",
+    "title": "Introduction to differential equations and their application in generative AI",
+    "section": "",
+    "text": "Differential equation is a mathematical equation that relates a function to its derivative.\n\nWhat does a derivative of a function tell us?\n\n\n\nIt tells us the rate of change of the function.\n\n\n\nExample:\n\n\n\nA function \\(f\\) represents some quantity of interest, e.g., temperature, cell count or concentration of a drug.\n\n\n\n\nThe derivative of \\(f\\) represents the rate of change of that quantity. That is, how fast a temperature is rising or how fast a population is growing.\n\n\n\n\n\nOrdinary Differential Equations (ODEs)\nStochastic Differential Equations (SDEs)\nPartial Differential Equations (PDEs)\n\n\n\n\nODEs involve functions of a single variable and their derivatives (such as time or space).\nFor example, consider a process where a variable \\(x\\) changes over time: \\[ \\frac{dx(t)}{dt} = f(x(t), t, \\theta)\\]\n\nThis equation means that a small change in \\(x\\) (denoted \\(dx\\)) over a small time interval \\(dt\\) is determined by a function \\(f(x(t), t, \\theta)\\).\nThe function \\(f\\), parameterised by \\(\\theta\\), depends on the current value of \\(x(t)\\) and the current time \\(t\\).\nIf we know the starting value of \\(x\\) at time \\(t_0\\), we can use this equation repeatedly to calculate the value of \\(x\\) at later times, such as \\(x(t_1)\\). \\[x(t_1) = x(t_0) + \\int_{t_0}^{t_1} f(x(t), t, \\theta) dt\\]\n\n\n\n\nSometimes we can analytically integrate \\(\\int_{t_0}^{t_1} f(x(t), t, \\theta)dt\\) term.\nFor example:\nLet’s solve the initial value problem:\n\\[\n\\frac{dx}{dt} = 4t^3 + 2t;\\quad x(0) = 0;\\quad {Find } x(2)\n\\]\nHere, \\(f(x(t), t)=4t^3 + 2t\\). The solution is:\n\\[\\begin{aligned}\nx(2) &= x(0) + \\textcolor{green}{\\int_0^2 (4t^3 + 2t)\\, dt} \\\\\n     &= 0 + \\int_0^2 4t^3\\, dt + \\int_0^2 2t\\, dt \\\\\n     &= 0 + \\int_0^2 4t^3\\, dt + \\int_0^2 2t\\, dt \\\\\n     &= 4 \\left[\\frac{t^4}{4}\\right]_0^2 + 2 \\left[\\frac{t^2}{2}\\right]_0^2 \\\\\n     &= \\left[t^4\\right]_0^2 + \\left[t^2\\right]_0^2 \\\\\n     &= (16 - 0) + (4 - 0) \\\\\n     &= \\boxed{20}\n\\end{aligned}\\]\nBut, in some cases we can not analytically integrate \\(\\int_{t_0}^{t_1} f(x(t), t, \\theta) dt\\) term.\nFor example:\n\\[\n\\frac{dx}{dt} = \\cos(t^2);\\quad x(0) = 0;\\quad \\text{Find } x(2)\n\\]\nHere, \\(f(x(t), t) = \\cos(t^2)\\). Hence, to solve for$x(2), we the following equation:\n\\[\\begin{aligned}\nx(2) &= x(0) + \\textcolor{red}{\\int_0^2 \\cos(t^2)\\, dt}\n\\end{aligned}\\]\nBut, the \\(\\int \\cos(t^2) dt\\) does not have a closed-form solution.\nIn cases where the \\(\\int_{t_0}^{t_1} f(x(t), t, \\theta) dt\\) cannot be solved analytically, we can use approximation methods to estimate the integral, such as:\n\nEuler method\nRunge-Kutta mathods\n\n\n\n\n\n\nSDEs extend ODEs by incorporating randomness into the dynamics.\nThe ODE equation can be written as: \\[\ndx(t) = f(x(t), t, \\theta)dt\n\\]\nSDE adds a second term to this equation to introduces randomness: \\[\ndx(t) = f(x(t), t, \\theta)dt + g(x(t), t, \\theta) dW(t)\n\\]\n\nIn this equation the first term, \\(f(x(t), t, \\theta)dt\\) is the drift term, same as ODE.\nThe second term, \\(g(x(t), t, \\theta) dW(t)\\) is the diffusion term, that introduces the randomness into the dynamics.\n\n\\(dW(t)\\) represents an increment of a Wiener process, also known as Brownian motion. It can be thought of as a random variable drawn from a normal distribution, such as:\n\\[dW(t) \\sim \\mathcal{N}(0, dt)\\]\n\n\n\n\n\n\nLangevin equation is an example of an SDE, developed by Paul Langevin to explore movements ( that, is dynamic) of individual particles suspended (that is, in equilibrium) in a fluid at a fix temperature.\n\n\\[\ndx(t) = - \\nabla_x U(x(t))dt + \\sigma dW(t)   \n\\]\n\nIn this equation, \\(U(x(t))\\) is a potential energy field. \\(\\nabla_x\\) is the gradient of the potential energy field and \\(\\sigma\\) is the diffusion term or diffusion strength.\n\\(\\sigma\\) is set to \\(\\sqrt{2}\\) due to Fluctuation-Dissipation Theorem (FDT), which states that the amount of random fluctuation (noise) in a system must be balanced by its dissipative forces (like friction or drag) if the system is to reach thermal equilibrium.\n\nThe fluctuations term is the \\(\\sigma dW(t)\\)\nThe dissipation term is the \\(- \\nabla_x U(x(t))dt\\)\nWhen the diffusion strength, \\(\\sigma\\), match the drift term, \\(- \\nabla_x U(x(t))\\), then the system reach thermal equilibrium.\nIn thermal equilibrium, the stationary distribution (that is, the probability distribution that remains unchanged over time as the system evolves), of the particle is known as the Gibbs (Boltzmann) distribution.\nThe Gibbs distribution is given by: \\[\np(x) \\propto e^{-U(x)}\n\\] If a particle moves according to the (overdamped) Langevin dynamics, where the noise and friction are balanced (as described by the SDE below), \\[\ndx(t) = - \\nabla_x U(x(t))dt + \\sqrt{2} dW(t)\n\\] then, as time goes to infinity (\\(t \\to \\infty\\)), the probability of finding the particle at position \\(x\\) approaches the Gibbs distribution. In other words, the Gibbs distribution describes the locations where the particle is most likely to be found in the long run.\n\n\nTODO: 1) Explain the discrete approximation and how is that related to gradient decent. 1.1) stochastic gradient descent is a stochastic approximation of gradient descent optimization. The stochasticity comes from mini-batching the data. At the end of the day it finds a point estimate (minimum). 1.2) Stochastic Gradient Langevin Dynamics (SGLD) is the discrete approximation of the Langevin equation. The discrete approximation of the Langevin equation is also called Euler–Maruyama method. 2) notice that sigma = sqrt{2} is called overdamped langevin equatuin: it is not sqrt{2} that leads to overdamped, it is including or excluding inertia that cause underdamped or overdamped system.\n\n\n\n\nPartial Differential Equations (PDEs):\n\nInvolve functions of multiple variables and their partial derivatives (e.g. space and time)\n\n ** This should be the Fokker-Planck Equation **",
+    "crumbs": [
+      "Home",
+      "Blog",
+      "ODE Gen AI"
+    ]
+  },
+  {
+    "objectID": "blogs/ODE_Gen_AI/ODE_Gen_AI.html#what-are-the-types-of-differential-equations",
+    "href": "blogs/ODE_Gen_AI/ODE_Gen_AI.html#what-are-the-types-of-differential-equations",
+    "title": "Introduction to differential equations and their application in generative AI",
+    "section": "",
+    "text": "Ordinary Differential Equations (ODEs)\nStochastic Differential Equations (SDEs)\nPartial Differential Equations (PDEs)\n\n\n\n\nODEs involve functions of a single variable and their derivatives (such as time or space).\nFor example, consider a process where a variable \\(x\\) changes over time: \\[ \\frac{dx(t)}{dt} = f(x(t), t, \\theta)\\]\n\nThis equation means that a small change in \\(x\\) (denoted \\(dx\\)) over a small time interval \\(dt\\) is determined by a function \\(f(x(t), t, \\theta)\\).\nThe function \\(f\\), parameterised by \\(\\theta\\), depends on the current value of \\(x(t)\\) and the current time \\(t\\).\nIf we know the starting value of \\(x\\) at time \\(t_0\\), we can use this equation repeatedly to calculate the value of \\(x\\) at later times, such as \\(x(t_1)\\). \\[x(t_1) = x(t_0) + \\int_{t_0}^{t_1} f(x(t), t, \\theta) dt\\]\n\n\n\n\nSometimes we can analytically integrate \\(\\int_{t_0}^{t_1} f(x(t), t, \\theta)dt\\) term.\nFor example:\nLet’s solve the initial value problem:\n\\[\n\\frac{dx}{dt} = 4t^3 + 2t;\\quad x(0) = 0;\\quad {Find } x(2)\n\\]\nHere, \\(f(x(t), t)=4t^3 + 2t\\). The solution is:\n\\[\\begin{aligned}\nx(2) &= x(0) + \\textcolor{green}{\\int_0^2 (4t^3 + 2t)\\, dt} \\\\\n     &= 0 + \\int_0^2 4t^3\\, dt + \\int_0^2 2t\\, dt \\\\\n     &= 0 + \\int_0^2 4t^3\\, dt + \\int_0^2 2t\\, dt \\\\\n     &= 4 \\left[\\frac{t^4}{4}\\right]_0^2 + 2 \\left[\\frac{t^2}{2}\\right]_0^2 \\\\\n     &= \\left[t^4\\right]_0^2 + \\left[t^2\\right]_0^2 \\\\\n     &= (16 - 0) + (4 - 0) \\\\\n     &= \\boxed{20}\n\\end{aligned}\\]\nBut, in some cases we can not analytically integrate \\(\\int_{t_0}^{t_1} f(x(t), t, \\theta) dt\\) term.\nFor example:\n\\[\n\\frac{dx}{dt} = \\cos(t^2);\\quad x(0) = 0;\\quad \\text{Find } x(2)\n\\]\nHere, \\(f(x(t), t) = \\cos(t^2)\\). Hence, to solve for$x(2), we the following equation:\n\\[\\begin{aligned}\nx(2) &= x(0) + \\textcolor{red}{\\int_0^2 \\cos(t^2)\\, dt}\n\\end{aligned}\\]\nBut, the \\(\\int \\cos(t^2) dt\\) does not have a closed-form solution.\nIn cases where the \\(\\int_{t_0}^{t_1} f(x(t), t, \\theta) dt\\) cannot be solved analytically, we can use approximation methods to estimate the integral, such as:\n\nEuler method\nRunge-Kutta mathods\n\n\n\n\n\n\nSDEs extend ODEs by incorporating randomness into the dynamics.\nThe ODE equation can be written as: \\[\ndx(t) = f(x(t), t, \\theta)dt\n\\]\nSDE adds a second term to this equation to introduces randomness: \\[\ndx(t) = f(x(t), t, \\theta)dt + g(x(t), t, \\theta) dW(t)\n\\]\n\nIn this equation the first term, \\(f(x(t), t, \\theta)dt\\) is the drift term, same as ODE.\nThe second term, \\(g(x(t), t, \\theta) dW(t)\\) is the diffusion term, that introduces the randomness into the dynamics.\n\n\\(dW(t)\\) represents an increment of a Wiener process, also known as Brownian motion. It can be thought of as a random variable drawn from a normal distribution, such as:\n\\[dW(t) \\sim \\mathcal{N}(0, dt)\\]\n\n\n\n\n\n\nLangevin equation is an example of an SDE, developed by Paul Langevin to explore movements ( that, is dynamic) of individual particles suspended (that is, in equilibrium) in a fluid at a fix temperature.\n\n\\[\ndx(t) = - \\nabla_x U(x(t))dt + \\sigma dW(t)   \n\\]\n\nIn this equation, \\(U(x(t))\\) is a potential energy field. \\(\\nabla_x\\) is the gradient of the potential energy field and \\(\\sigma\\) is the diffusion term or diffusion strength.\n\\(\\sigma\\) is set to \\(\\sqrt{2}\\) due to Fluctuation-Dissipation Theorem (FDT), which states that the amount of random fluctuation (noise) in a system must be balanced by its dissipative forces (like friction or drag) if the system is to reach thermal equilibrium.\n\nThe fluctuations term is the \\(\\sigma dW(t)\\)\nThe dissipation term is the \\(- \\nabla_x U(x(t))dt\\)\nWhen the diffusion strength, \\(\\sigma\\), match the drift term, \\(- \\nabla_x U(x(t))\\), then the system reach thermal equilibrium.\nIn thermal equilibrium, the stationary distribution (that is, the probability distribution that remains unchanged over time as the system evolves), of the particle is known as the Gibbs (Boltzmann) distribution.\nThe Gibbs distribution is given by: \\[\np(x) \\propto e^{-U(x)}\n\\] If a particle moves according to the (overdamped) Langevin dynamics, where the noise and friction are balanced (as described by the SDE below), \\[\ndx(t) = - \\nabla_x U(x(t))dt + \\sqrt{2} dW(t)\n\\] then, as time goes to infinity (\\(t \\to \\infty\\)), the probability of finding the particle at position \\(x\\) approaches the Gibbs distribution. In other words, the Gibbs distribution describes the locations where the particle is most likely to be found in the long run.\n\n\nTODO: 1) Explain the discrete approximation and how is that related to gradient decent. 1.1) stochastic gradient descent is a stochastic approximation of gradient descent optimization. The stochasticity comes from mini-batching the data. At the end of the day it finds a point estimate (minimum). 1.2) Stochastic Gradient Langevin Dynamics (SGLD) is the discrete approximation of the Langevin equation. The discrete approximation of the Langevin equation is also called Euler–Maruyama method. 2) notice that sigma = sqrt{2} is called overdamped langevin equatuin: it is not sqrt{2} that leads to overdamped, it is including or excluding inertia that cause underdamped or overdamped system.\n\n\n\n\nPartial Differential Equations (PDEs):\n\nInvolve functions of multiple variables and their partial derivatives (e.g. space and time)\n\n ** This should be the Fokker-Planck Equation **",
+    "crumbs": [
+      "Home",
+      "Blog",
+      "ODE Gen AI"
+    ]
+  },
+  {
+    "objectID": "blogs/ODE_Gen_AI/ODE_Gen_AI.html#modelling-the-dynamics-of-data",
+    "href": "blogs/ODE_Gen_AI/ODE_Gen_AI.html#modelling-the-dynamics-of-data",
+    "title": "Introduction to differential equations and their application in generative AI",
+    "section": "Modelling the dynamics of data",
+    "text": "Modelling the dynamics of data\nThat is a continuous transformation between simple distributions e.g. Guassian to a complex data distribution, e.g. image or RNA structure.\n\n\nVideo",
+    "crumbs": [
+      "Home",
+      "Blog",
+      "ODE Gen AI"
+    ]
+  },
+  {
+    "objectID": "blogs/ODE_Gen_AI/ODE_Gen_AI.html#diffusion-models",
+    "href": "blogs/ODE_Gen_AI/ODE_Gen_AI.html#diffusion-models",
+    "title": "Introduction to differential equations and their application in generative AI",
+    "section": "Diffusion models",
+    "text": "Diffusion models\nIt has two steps, forward process and reverse process.\n\nForward process\nIn the forward process we introduce noise. This noise is drawn from a normal distribution, with the following parameters: \\[\\Sigma_t = \\beta_t \\mathbf I\\] \\[\\mu_t = \\sqrt{1-\\beta_t} X_{t-1}\\]\nThat is:\n\\[\nq(X_t|X_{t-1}) = \\mathcal{N}(\\sqrt{1-\\beta_t} X_{t-1};\\quad \\beta_t \\mathbf I)\n\\]\nThere are \\(1, ..., T\\) steps between \\(X_0\\) to \\(X_1\\). Each added noise is independent from other added noises in other steps. Hence:\n\\[\nq(X_{1:T} | X_0) = \\prod_{t=1}^T q(X_t | X_{t-1})\n\\]\nThe symbol \\(\\textcolor{red}{:}\\) in \\(q(X_{1\\textcolor{red}{:}T} | X_0)\\), means that we appy \\(q\\) repeatedly from \\(t=1\\) to \\(t=T\\). This is also called  trajectory.\nLet’s assume \\(t=100\\), as it stands, to compute \\(X_{100}\\), we should compute \\(q(X)\\), 100 times to get to \\(X_{100}\\). Reparametrisation trick can help here.\n\n\nReverse process\nHow does SDE, SGM and DDPM are related to Diffusion model?\n\nDenoising Diffusion Probabilistic Models (DDPMs): DDPMs are a popular formulation of diffusion models introduced around 2020. They define a forward diffusion process that gradually adds Gaussian noise to data over discrete time steps and a learned reverse process that denoises step-by-step to generate samples. The reverse process is parameterized by a neural network predicting the mean and variance of the denoised data at each step. DDPMs use variational inference to train this reverse denoising process.\nScore-Based Generative Models (SGMs): SGMs view diffusion models through the lens of score matching. Instead of explicitly modeling the reverse conditional distributions as in DDPMs, SGMs learn the score function — the gradient of the log probability density of noisy data at different noise levels. The generation process then solves a reverse-time stochastic differential equation (SDE) guided by these learned scores. SGMs have shown high synthesis quality and are applied in various domains like image and speech synthesis.\nStochastic Differential Equations (SDEs): SDEs provide a continuous-time formulation of diffusion models. Instead of discrete noise steps, the forward noising process is modeled as an SDE, and the reverse generative process is another SDE that depends on the learned score function. This continuous approach generalizes DDPMs and SGMs, allowing infinitely many noise scales and principled sampling methods. The reverse SDE can be solved numerically to generate samples. This connection was formalized by Song, Kingma, et al. (2021), who showed that both DDPMs and SGMs can be seen as discretizations or special cases of these continuous-time SDE formulations",
+    "crumbs": [
+      "Home",
+      "Blog",
+      "ODE Gen AI"
+    ]
+  },
+  {
+    "objectID": "blogs/ODE_Gen_AI/ODE_Gen_AI.html#flow-matching-models",
+    "href": "blogs/ODE_Gen_AI/ODE_Gen_AI.html#flow-matching-models",
+    "title": "Introduction to differential equations and their application in generative AI",
+    "section": "Flow Matching models",
+    "text": "Flow Matching models",
+    "crumbs": [
+      "Home",
+      "Blog",
+      "ODE Gen AI"
+    ]
+  },
+  {
+    "objectID": "blogs/ODE_Gen_AI/ODE_Gen_AI.html#common-types-of-generative-ai-models",
+    "href": "blogs/ODE_Gen_AI/ODE_Gen_AI.html#common-types-of-generative-ai-models",
+    "title": "Introduction to differential equations and their application in generative AI",
+    "section": "Common Types of Generative AI Models",
+    "text": "Common Types of Generative AI Models\n\nGenerative Adversarial Networks (GANs)",
+    "crumbs": [
+      "Home",
+      "Blog",
+      "ODE Gen AI"
+    ]
+  },
+  {
+    "objectID": "blogs/ODE_Gen_AI/ODE_Gen_AI.html#bibliography",
+    "href": "blogs/ODE_Gen_AI/ODE_Gen_AI.html#bibliography",
+    "title": "Introduction to differential equations and their application in generative AI",
+    "section": "Bibliography",
+    "text": "Bibliography\n\nContinuous Normalizing Flows. Vikram Voleti.\nICLR Blogpost by Ayan Das\nAn Intro to Diffusion Probabilistic Models by Ayan Das\nStochastic Differential Equations and Diffusion Models by Tanmaya Shekhar Dabral\nSong, Kingma 2021\nLangevin equation\nMIT Course of FM and Diffusion\n\nMaybe these:\n\nGeneral intro 1\nGeneral intro 2\n\nI think this is important:\n\nVAE Challenges:\n• Optimization can be difficult for large models\n• The ELBO enforces an information bottleneck (through its loss function) at the latent variables ‘z’, making VAE optimization prone to bad local minima.\n• Posterior collapse is a dreaded bad local minimum where the latents do not transmit any information Source: https://cs231n.stanford.edu/slides/2023/lecture_15.pdf",
+    "crumbs": [
+      "Home",
+      "Blog",
+      "ODE Gen AI"
+    ]
+  },
+  {
+    "objectID": "blogs.html#vae-and-cvae-derivation",
+    "href": "blogs.html#vae-and-cvae-derivation",
+    "title": "Blogs",
+    "section": "",
+    "text": "Published on: 2024-08-26\nThis is a brief preview of my first blog post. It discusses interesting topics such as Bayesian statistics, deep learning, and more.\nRead more"
+  },
+  {
+    "objectID": "blogs.html#mathematical-derivation-of-vae-and-conditional-vae-cvae",
+    "href": "blogs.html#mathematical-derivation-of-vae-and-conditional-vae-cvae",
+    "title": "Blogs",
+    "section": "Mathematical Derivation of VAE and Conditional VAE (cVAE)",
+    "text": "Mathematical Derivation of VAE and Conditional VAE (cVAE)\nPublished on: Jan 2026\nA concise walkthrough of the mathematical foundations behind Variational Autoencoders (VAE) and their conditional extension (cVAE), highlighting key derivations and concepts for understanding how they work.\nRead more"
+  },
+  {
+    "objectID": "blogs/VAE_and_cVAE_derivation/VAE_and_cVAE_derivation.html",
+    "href": "blogs/VAE_and_cVAE_derivation/VAE_and_cVAE_derivation.html",
+    "title": "Mathematical Derivation of VAE and Conditional VAE (cVAE)",
+    "section": "",
+    "text": "Mathematical Derivation of VAE and Conditional VAE (cVAE)"
   }
 ]

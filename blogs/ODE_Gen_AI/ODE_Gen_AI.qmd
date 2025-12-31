@@ -223,8 +223,26 @@ How does SDE, SGM and DDPM are related to Diffusion model?
 
 6.  [Langevin equation](https://www.peterholderrieth.com/blog/2023/Langevin-Dynamics-An-introduction-for-Machine-Learning-Engineers/)
 
+7.  [MIT Course of FM and Diffusion](https://diffusion.csail.mit.edu/)
+
 Maybe these:
 
 1.  [General intro 1](https://www.superannotate.com/blog/diffusion-models#:~:text=Diffusion%20model%20techniques,-Central%20to%20the&text=These%20include%20score%2Dbased%20generative,process%20and%20generate%20complex%20data.)
 
 2.  [General intro 2](https://theaisummer.com/diffusion-models/)
+
+I think this is important:
+
+### VAE Challenges:
+
+• Optimization can be difficult for large models
+
+• The ELBO enforces an information bottleneck
+(through its loss function) at the latent variables 'z',
+making VAE optimization prone to bad local
+minima.
+
+• Posterior collapse is a dreaded bad local
+minimum where the latents do not transmit any
+information
+Source: https://cs231n.stanford.edu/slides/2023/lecture_15.pdf
