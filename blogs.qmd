@@ -2,7 +2,7 @@
 title: "Blogs"
 ---
 
-Here I share posts about topics that interest me—ranging from statistics and machine learning/AI to the drug discovery process. Click "Read more" to explore each post in detail.
+Here I share posts about topics that interest me and I am trying to learn, ranging from statistics and machine learning/AI to the drug discovery process. Click "Read more" to explore each post in detail.
 
 <!-- Preview of Blog Post 1 -->
 
