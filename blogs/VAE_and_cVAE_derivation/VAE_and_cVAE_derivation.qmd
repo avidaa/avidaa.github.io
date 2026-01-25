@@ -128,7 +128,7 @@ $$\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\
 - For **continuous** latent variables:
 $$\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \int \color{green}{q_\phi(z|x)} \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{red}{p_\theta(z|x)}} \right) dz$$
 
-::: {.callout-important icon=false}
+::: {.callout-important icon=false collapse=true}
 ## Key Properties of KL Divergence
 
 Understanding these properties is crucial for grasping how VAE training works:
