@@ -141,13 +141,16 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#mathematical-derivation-of-vae-and-conditional-vae-cvae" id="toc-mathematical-derivation-of-vae-and-conditional-vae-cvae" class="nav-link active" data-scroll-target="#mathematical-derivation-of-vae-and-conditional-vae-cvae">Mathematical Derivation of VAE and Conditional VAE (cVAE)</a>
+  <li><a href="#mathematical-derivation-of-vae" id="toc-mathematical-derivation-of-vae" class="nav-link active" data-scroll-target="#mathematical-derivation-of-vae">Mathematical Derivation of VAE</a>
   <ul class="collapse">
   <li><a href="#what-is-the-aim-of-blog" id="toc-what-is-the-aim-of-blog" class="nav-link" data-scroll-target="#what-is-the-aim-of-blog">What is the aim of blog?</a></li>
+  <li><a href="#introduction-what-are-variational-autoencoders-vaes" id="toc-introduction-what-are-variational-autoencoders-vaes" class="nav-link" data-scroll-target="#introduction-what-are-variational-autoencoders-vaes">Introduction: What are Variational Autoencoders (VAEs)?</a></li>
+  <li><a href="#intuition-what-a-vae-is-really-learning" id="toc-intuition-what-a-vae-is-really-learning" class="nav-link" data-scroll-target="#intuition-what-a-vae-is-really-learning">Intuition: What a VAE Is Really Learning</a></li>
   <li><a href="#what-are-the-assumptions-of-a-vae-model" id="toc-what-are-the-assumptions-of-a-vae-model" class="nav-link" data-scroll-target="#what-are-the-assumptions-of-a-vae-model">What are the assumptions of a VAE model?</a></li>
   <li><a href="#what-is-the-role-of-vaes-encoder-and-decoder" id="toc-what-is-the-role-of-vaes-encoder-and-decoder" class="nav-link" data-scroll-target="#what-is-the-role-of-vaes-encoder-and-decoder">What is the role of VAE’s encoder and decoder?</a></li>
   <li><a href="#how-can-we-learn-colorgreenphi-and-colorbluetheta-jointly" id="toc-how-can-we-learn-colorgreenphi-and-colorbluetheta-jointly" class="nav-link" data-scroll-target="#how-can-we-learn-colorgreenphi-and-colorbluetheta-jointly">How can we learn <span class="math inline">\(\color{green}{\phi}\)</span> and <span class="math inline">\(\color{blue}{\theta}\)</span> jointly?</a></li>
   <li><a href="#deriving-the-evidence-lower-bound-elbo" id="toc-deriving-the-evidence-lower-bound-elbo" class="nav-link" data-scroll-target="#deriving-the-evidence-lower-bound-elbo">Deriving the Evidence Lower Bound (ELBO)</a></li>
+  <li><a href="#key-takeaways-and-final-remarks" id="toc-key-takeaways-and-final-remarks" class="nav-link" data-scroll-target="#key-takeaways-and-final-remarks">Key Takeaways and Final Remarks</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -158,11 +161,24 @@ window.Quarto = {
 
 
 
-<section id="mathematical-derivation-of-vae-and-conditional-vae-cvae" class="level1">
-<h1>Mathematical Derivation of VAE and Conditional VAE (cVAE)</h1>
+<section id="mathematical-derivation-of-vae" class="level1">
+<h1>Mathematical Derivation of VAE</h1>
 <section id="what-is-the-aim-of-blog" class="level3">
 <h3 class="anchored" data-anchor-id="what-is-the-aim-of-blog">What is the aim of blog?</h3>
 <p>This blog draws upon insights from <a href="https://hunterheidenreich.com/posts/modern-variational-autoencoder-in-pytorch/">this article</a> and <a href="https://lilianweng.github.io/posts/2018-08-12-vae/#td-vae">this post</a>, with the objective of developing a deeper and more technical understanding of Variational Autoencoders (VAEs).</p>
+</section>
+<section id="introduction-what-are-variational-autoencoders-vaes" class="level3">
+<h3 class="anchored" data-anchor-id="introduction-what-are-variational-autoencoders-vaes">Introduction: What are Variational Autoencoders (VAEs)?</h3>
+<p>Variational Autoencoders (VAEs) are a foundational class of latent variable models that combine probabilistic modeling with neural networks, enabling <strong>both representation learning and data generation</strong>. Unlike standard autoencoders, VAEs provide a principled probabilistic framework that allows us to reason about uncertainty, impose structure on latent spaces, and perform meaningful sampling.</p>
+<p>At a high level, VAEs assume that high-dimensional observations are generated from a lower-dimensional latent variable through a stochastic process. Learning such models, however, presents a central challenge: <em>the true posterior distribution over latent variables is intractable</em>. Variational inference resolves this by introducing a tractable approximation and reframing learning as an optimization problem.</p>
+<p>The goal of this post is to develop a precise and fully mathematical understanding of how VAEs are derived—from their generative assumptions to the Evidence Lower Bound (ELBO) that is optimized in practice. Rather than focusing on intuition alone, we walk through each step of the derivation, clarifying where approximations are introduced and why the final objective is both computable and effective.</p>
+</section>
+<section id="intuition-what-a-vae-is-really-learning" class="level3">
+<h3 class="anchored" data-anchor-id="intuition-what-a-vae-is-really-learning">Intuition: What a VAE Is Really Learning</h3>
+<p>A VAE assumes that each data point can be explained by a small set of hidden factors—latent variables—that capture the essential structure of the data.</p>
+<p>The encoder does not map an input to a single point in latent space, but instead learns <strong>a distribution over plausible latent representations</strong>, reflecting uncertainty about how the data was generated.</p>
+<p>The decoder then learns how to <strong>probabilistically reconstruct the data from samples drawn from this latent distribution</strong>.</p>
+<p>Training a VAE is therefore a balancing act: we want latent representations that are expressive enough to reconstruct the data well, while also being regularized to follow a simple prior distribution so that the latent space remains smooth and generative.</p>
 </section>
 <section id="what-are-the-assumptions-of-a-vae-model" class="level3">
 <h3 class="anchored" data-anchor-id="what-are-the-assumptions-of-a-vae-model">What are the assumptions of a VAE model?</h3>
@@ -459,9 +475,24 @@ Interpreting the VAE Loss
 <li>Decreases <span class="math inline">\(\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right)\)</span> (better posterior approximation)</li>
 </ol>
 <p>And we can compute everything in the ELBO without ever needing the intractable <span class="math inline">\(\color{red}{p_\theta(z|x)}\)</span>!</p>
-
-
 </section>
+</section>
+<section id="key-takeaways-and-final-remarks" class="level3">
+<h3 class="anchored" data-anchor-id="key-takeaways-and-final-remarks">Key Takeaways and Final Remarks</h3>
+<p>The Variational Autoencoder framework provides a principled solution to learning latent variable models when exact inference is intractable. By introducing a tractable variational posterior and optimizing the Evidence Lower Bound (ELBO), we transform an otherwise impossible likelihood maximization problem into a practical and scalable objective that can be optimized with stochastic gradient methods.</p>
+<p>From the derivation, several core insights emerge:</p>
+<ul>
+<li>First, the VAE objective naturally decomposes into two competing terms:
+<ul>
+<li>A reconstruction term that encourages faithful data generation, via the decoder.</li>
+<li>A KL regularization term that shapes the latent space by keeping the approximate posterior close to the prior, via the encoder.</li>
+<li>This trade-off is not an implementation detail, but a direct consequence of variational inference.</li>
+</ul></li>
+<li>Second, maximizing the ELBO simultaneously improves data likelihood and posterior approximation, even though the true posterior is never computed explicitly.</li>
+</ul>
+<p>This framework extends seamlessly to Conditional VAEs by conditioning both the encoder and decoder on auxiliary information. The mathematical structure of the ELBO remains unchanged, highlighting the flexibility and generality of variational inference as a modeling paradigm.</p>
+
+
 </section>
 </section>
 
