@@ -160,7 +160,10 @@ window.Quarto = {
   </ul></li>
   <li><a href="#flow-matching-models" id="toc-flow-matching-models" class="nav-link" data-scroll-target="#flow-matching-models">Flow Matching models</a></li>
   <li><a href="#common-types-of-generative-ai-models" id="toc-common-types-of-generative-ai-models" class="nav-link" data-scroll-target="#common-types-of-generative-ai-models">Common Types of Generative AI Models</a></li>
-  <li><a href="#bibliography" id="toc-bibliography" class="nav-link" data-scroll-target="#bibliography">Bibliography</a></li>
+  <li><a href="#bibliography" id="toc-bibliography" class="nav-link" data-scroll-target="#bibliography">Bibliography</a>
+  <ul class="collapse">
+  <li><a href="#vae-challenges" id="toc-vae-challenges" class="nav-link" data-scroll-target="#vae-challenges">VAE Challenges:</a></li>
+  </ul></li>
   </ul></li>
   </ul>
 </nav>
@@ -375,14 +378,22 @@ q(X_{1:T} | X_0) = \prod_{t=1}^T q(X_t | X_{t-1})
 <li><p><a href="https://www.vanillabug.com/posts/sde/">Stochastic Differential Equations and Diffusion Models by Tanmaya Shekhar Dabral</a></p></li>
 <li><p><a href="https://arxiv.org/pdf/2011.13456">Song, Kingma 2021</a></p></li>
 <li><p><a href="https://www.peterholderrieth.com/blog/2023/Langevin-Dynamics-An-introduction-for-Machine-Learning-Engineers/">Langevin equation</a></p></li>
+<li><p><a href="https://diffusion.csail.mit.edu/">MIT Course of FM and Diffusion</a></p></li>
 </ol>
 <p>Maybe these:</p>
 <ol type="1">
 <li><p><a href="https://www.superannotate.com/blog/diffusion-models#:~:text=Diffusion%20model%20techniques,-Central%20to%20the&amp;text=These%20include%20score%2Dbased%20generative,process%20and%20generate%20complex%20data.">General intro 1</a></p></li>
 <li><p><a href="https://theaisummer.com/diffusion-models/">General intro 2</a></p></li>
 </ol>
+<p>I think this is important:</p>
+<section id="vae-challenges" class="level3">
+<h3 class="anchored" data-anchor-id="vae-challenges">VAE Challenges:</h3>
+<p>• Optimization can be difficult for large models</p>
+<p>• The ELBO enforces an information bottleneck (through its loss function) at the latent variables ‘z’, making VAE optimization prone to bad local minima.</p>
+<p>• Posterior collapse is a dreaded bad local minimum where the latents do not transmit any information Source: https://cs231n.stanford.edu/slides/2023/lecture_15.pdf</p>
 
 
+</section>
 </section>
 </section>
 
