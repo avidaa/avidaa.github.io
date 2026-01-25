@@ -6,7 +6,7 @@ Here I share posts about topics that interest me and I am trying to learn, rangi
 
 <!-- Preview of Blog Post 1 -->
 
-## Mathematical Derivation of VAE and Conditional VAE (cVAE)
+## Mathematical Derivation of VAE
 
 *Published on: Jan 2026*
 
