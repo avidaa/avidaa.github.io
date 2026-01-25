@@ -461,6 +461,12 @@ Interpreting the VAE Loss
 <li>When the decoder outputs Bernoulli distributions, this becomes BCE (Binary Cross-Entropy)</li>
 </ul></li>
 </ol>
+<p>It enforces the following properties:</p>
+<ul>
+<li><strong>Structured latent geometry:</strong> The KL term shapes latent space into a smooth, continuous manifold aligned with the prior.</li>
+<li><strong>Smooth interpolation:</strong> Nearby latent points decode to semantically similar outputs, enabling meaningful interpolations.</li>
+<li><strong>Valid sampling:</strong> Samples drawn from the prior fall in regions the decoder understands, producing realistic generations.</li>
+</ul>
 </div>
 </div>
 <p><strong>Parameter Names:</strong></p>

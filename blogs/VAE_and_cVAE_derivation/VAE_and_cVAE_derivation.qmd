@@ -302,7 +302,14 @@ The VAE loss has two terms:
    - Encourages the decoder to reconstruct the input accurately
    - When the decoder outputs Gaussian distributions, this becomes MSE (Mean Squared Error)
    - When the decoder outputs Bernoulli distributions, this becomes BCE (Binary Cross-Entropy)
+
+It enforces the following properties:
+
+- **Structured latent geometry:** The KL term shapes latent space into a smooth, continuous manifold aligned with the prior.
+- **Smooth interpolation:** Nearby latent points decode to semantically similar outputs, enabling meaningful interpolations.
+- **Valid sampling:** Samples drawn from the prior fall in regions the decoder understands, producing realistic generations.
 :::
+
 
 **Parameter Names:**
 
