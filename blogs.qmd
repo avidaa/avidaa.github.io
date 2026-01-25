@@ -10,7 +10,7 @@ Here I share posts about topics that interest me and I am trying to learn, rangi
 
 *Published on: Jan 2026*
 
-A concise walkthrough of the mathematical foundations behind Variational Autoencoders (VAE) and their conditional extension (cVAE), highlighting key derivations and concepts for understanding how they work.
+A concise walkthrough of the mathematical foundations behind Variational Autoencoders (VAE) highlighting key derivations and concepts for understanding how they work.
 
 [Read more](blogs/VAE_and_cVAE_derivation/VAE_and_cVAE_derivation.qmd)
 
