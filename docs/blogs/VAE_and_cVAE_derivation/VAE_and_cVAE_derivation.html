@@ -143,14 +143,31 @@ window.Quarto = {
   <ul>
   <li><a href="#mathematical-derivation-of-vae" id="toc-mathematical-derivation-of-vae" class="nav-link active" data-scroll-target="#mathematical-derivation-of-vae">Mathematical Derivation of VAE</a>
   <ul class="collapse">
-  <li><a href="#what-is-the-aim-of-blog" id="toc-what-is-the-aim-of-blog" class="nav-link" data-scroll-target="#what-is-the-aim-of-blog">What is the aim of blog?</a></li>
-  <li><a href="#introduction-what-are-variational-autoencoders-vaes" id="toc-introduction-what-are-variational-autoencoders-vaes" class="nav-link" data-scroll-target="#introduction-what-are-variational-autoencoders-vaes">Introduction: What are Variational Autoencoders (VAEs)?</a></li>
+  <li><a href="#what-is-the-aim-of-this-blog" id="toc-what-is-the-aim-of-this-blog" class="nav-link" data-scroll-target="#what-is-the-aim-of-this-blog">What Is the Aim of This Blog?</a></li>
+  <li><a href="#introduction-what-are-variational-autoencoders-vaes" id="toc-introduction-what-are-variational-autoencoders-vaes" class="nav-link" data-scroll-target="#introduction-what-are-variational-autoencoders-vaes">Introduction: What Are Variational Autoencoders (VAEs)?</a></li>
   <li><a href="#intuition-what-a-vae-is-really-learning" id="toc-intuition-what-a-vae-is-really-learning" class="nav-link" data-scroll-target="#intuition-what-a-vae-is-really-learning">Intuition: What a VAE Is Really Learning</a></li>
-  <li><a href="#what-are-the-assumptions-of-a-vae-model" id="toc-what-are-the-assumptions-of-a-vae-model" class="nav-link" data-scroll-target="#what-are-the-assumptions-of-a-vae-model">What are the assumptions of a VAE model?</a></li>
-  <li><a href="#what-is-the-role-of-vaes-encoder-and-decoder" id="toc-what-is-the-role-of-vaes-encoder-and-decoder" class="nav-link" data-scroll-target="#what-is-the-role-of-vaes-encoder-and-decoder">What is the role of VAE’s encoder and decoder?</a></li>
-  <li><a href="#how-can-we-learn-colorgreenphi-and-colorbluetheta-jointly" id="toc-how-can-we-learn-colorgreenphi-and-colorbluetheta-jointly" class="nav-link" data-scroll-target="#how-can-we-learn-colorgreenphi-and-colorbluetheta-jointly">How can we learn <span class="math inline">\(\color{green}{\phi}\)</span> and <span class="math inline">\(\color{blue}{\theta}\)</span> jointly?</a></li>
-  <li><a href="#deriving-the-evidence-lower-bound-elbo" id="toc-deriving-the-evidence-lower-bound-elbo" class="nav-link" data-scroll-target="#deriving-the-evidence-lower-bound-elbo">Deriving the Evidence Lower Bound (ELBO)</a></li>
-  <li><a href="#key-takeaways-and-final-remarks" id="toc-key-takeaways-and-final-remarks" class="nav-link" data-scroll-target="#key-takeaways-and-final-remarks">Key Takeaways and Final Remarks</a></li>
+  <li><a href="#assumptions-what-are-the-core-assumptions-of-a-vae-model" id="toc-assumptions-what-are-the-core-assumptions-of-a-vae-model" class="nav-link" data-scroll-target="#assumptions-what-are-the-core-assumptions-of-a-vae-model">Assumptions: What Are the Core Assumptions of a VAE Model?</a></li>
+  <li><a href="#architecture-what-is-the-role-of-vaes-encoder-and-decoder" id="toc-architecture-what-is-the-role-of-vaes-encoder-and-decoder" class="nav-link" data-scroll-target="#architecture-what-is-the-role-of-vaes-encoder-and-decoder">Architecture: What Is the Role of VAE’s Encoder and Decoder?</a></li>
+  <li><a href="#training-objective-how-can-we-learn-colorgreenphi-and-colorbluetheta-jointly" id="toc-training-objective-how-can-we-learn-colorgreenphi-and-colorbluetheta-jointly" class="nav-link" data-scroll-target="#training-objective-how-can-we-learn-colorgreenphi-and-colorbluetheta-jointly">Training Objective: How Can We Learn <span class="math inline">\(\color{green}{\phi}\)</span> and <span class="math inline">\(\color{blue}{\theta}\)</span> Jointly?</a>
+  <ul class="collapse">
+  <li><a href="#measuring-closeness-the-kl-divergence" id="toc-measuring-closeness-the-kl-divergence" class="nav-link" data-scroll-target="#measuring-closeness-the-kl-divergence">Measuring Closeness: The KL Divergence</a></li>
+  </ul></li>
+  <li><a href="#elbo-derivation-deriving-the-evidence-lower-bound" id="toc-elbo-derivation-deriving-the-evidence-lower-bound" class="nav-link" data-scroll-target="#elbo-derivation-deriving-the-evidence-lower-bound">ELBO Derivation: Deriving the Evidence Lower Bound</a>
+  <ul class="collapse">
+  <li><a href="#step-1-start-with-the-kl-divergence" id="toc-step-1-start-with-the-kl-divergence" class="nav-link" data-scroll-target="#step-1-start-with-the-kl-divergence">Step 1: Start with the KL Divergence</a></li>
+  <li><a href="#step-2-apply-bayes-rule-to-the-posterior" id="toc-step-2-apply-bayes-rule-to-the-posterior" class="nav-link" data-scroll-target="#step-2-apply-bayes-rule-to-the-posterior">Step 2: Apply Bayes’ Rule to the Posterior</a></li>
+  <li><a href="#step-3-split-the-logarithm" id="toc-step-3-split-the-logarithm" class="nav-link" data-scroll-target="#step-3-split-the-logarithm">Step 3: Split the Logarithm</a></li>
+  <li><a href="#step-4-separate-the-integral" id="toc-step-4-separate-the-integral" class="nav-link" data-scroll-target="#step-4-separate-the-integral">Step 4: Separate the Integral</a></li>
+  <li><a href="#step-5-decompose-the-joint-distribution" id="toc-step-5-decompose-the-joint-distribution" class="nav-link" data-scroll-target="#step-5-decompose-the-joint-distribution">Step 5: Decompose the Joint Distribution</a></li>
+  <li><a href="#step-6-simplify-using-logarithm-properties" id="toc-step-6-simplify-using-logarithm-properties" class="nav-link" data-scroll-target="#step-6-simplify-using-logarithm-properties">Step 6: Simplify Using Logarithm Properties</a></li>
+  <li><a href="#step-7-split-into-two-integrals" id="toc-step-7-split-into-two-integrals" class="nav-link" data-scroll-target="#step-7-split-into-two-integrals">Step 7: Split Into Two Integrals</a></li>
+  <li><a href="#step-8-recognize-standard-forms" id="toc-step-8-recognize-standard-forms" class="nav-link" data-scroll-target="#step-8-recognize-standard-forms">Step 8: Recognize Standard Forms</a></li>
+  <li><a href="#step-9-rearrange-to-isolate-the-evidence-that-is-p_thetax" id="toc-step-9-rearrange-to-isolate-the-evidence-that-is-p_thetax" class="nav-link" data-scroll-target="#step-9-rearrange-to-isolate-the-evidence-that-is-p_thetax">Step 9: Rearrange to Isolate the Evidence (That Is <span class="math inline">\(p_\theta(x)\)</span>)</a></li>
+  <li><a href="#step-10-the-vae-loss-function" id="toc-step-10-the-vae-loss-function" class="nav-link" data-scroll-target="#step-10-the-vae-loss-function">Step 10: The VAE Loss Function</a></li>
+  <li><a href="#parameter-names-what-are-the-parameters-of-the-vae" id="toc-parameter-names-what-are-the-parameters-of-the-vae" class="nav-link" data-scroll-target="#parameter-names-what-are-the-parameters-of-the-vae">Parameter Names: What Are the Parameters of the VAE?</a></li>
+  <li><a href="#why-this-solves-our-problem-what-is-the-purpose-of-the-vae-loss" id="toc-why-this-solves-our-problem-what-is-the-purpose-of-the-vae-loss" class="nav-link" data-scroll-target="#why-this-solves-our-problem-what-is-the-purpose-of-the-vae-loss">Why This Solves Our Problem: What Is the Purpose of the VAE Loss?</a></li>
+  </ul></li>
+  <li><a href="#conclusion-key-takeaways-and-final-remarks" id="toc-conclusion-key-takeaways-and-final-remarks" class="nav-link" data-scroll-target="#conclusion-key-takeaways-and-final-remarks">Conclusion: Key Takeaways and Final Remarks</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -163,30 +180,29 @@ window.Quarto = {
 
 <section id="mathematical-derivation-of-vae" class="level1">
 <h1>Mathematical Derivation of VAE</h1>
-<section id="what-is-the-aim-of-blog" class="level3">
-<h3 class="anchored" data-anchor-id="what-is-the-aim-of-blog">What is the aim of blog?</h3>
+<section id="what-is-the-aim-of-this-blog" class="level2">
+<h2 class="anchored" data-anchor-id="what-is-the-aim-of-this-blog">What Is the Aim of This Blog?</h2>
 <p>This blog draws upon insights from <a href="https://hunterheidenreich.com/posts/modern-variational-autoencoder-in-pytorch/">this article</a> and <a href="https://lilianweng.github.io/posts/2018-08-12-vae/#td-vae">this post</a>, with the objective of developing a deeper and more technical understanding of Variational Autoencoders (VAEs).</p>
 </section>
-<section id="introduction-what-are-variational-autoencoders-vaes" class="level3">
-<h3 class="anchored" data-anchor-id="introduction-what-are-variational-autoencoders-vaes">Introduction: What are Variational Autoencoders (VAEs)?</h3>
-<p>Variational Autoencoders (VAEs) are a foundational class of latent variable models that combine probabilistic modeling with neural networks, enabling <strong>both representation learning and data generation</strong>. Unlike standard autoencoders, VAEs provide a principled probabilistic framework that allows us to reason about uncertainty, impose structure on latent spaces, and perform meaningful sampling.</p>
-<p>At a high level, VAEs assume that high-dimensional observations are generated from a lower-dimensional latent variable through a stochastic process. Learning such models, however, presents a central challenge: <em>the true posterior distribution over latent variables is intractable</em>. Variational inference resolves this by introducing a tractable approximation and reframing learning as an optimization problem.</p>
-<p>The goal of this post is to develop a precise and fully mathematical understanding of how VAEs are derived—from their generative assumptions to the Evidence Lower Bound (ELBO) that is optimized in practice. Rather than focusing on intuition alone, we walk through each step of the derivation, clarifying where approximations are introduced and why the final objective is both computable and effective.</p>
+<section id="introduction-what-are-variational-autoencoders-vaes" class="level2">
+<h2 class="anchored" data-anchor-id="introduction-what-are-variational-autoencoders-vaes">Introduction: What Are Variational Autoencoders (VAEs)?</h2>
+<p>Variational Autoencoders (VAEs) are a foundational class of latent variable models that combine probabilistic modeling with neural networks, enabling <strong>both representation learning and data generation</strong>. Unlike standard autoencoders, VAEs provide a principled probabilistic framework that allows us to <strong>reason about uncertainty</strong>, <strong>impose structure on latent spaces</strong>, and <strong>perform meaningful sampling</strong>.</p>
+<p>At a high level, VAEs assume that high-dimensional observations are generated from a lower-dimensional latent variable through a stochastic process. Learning such models, however, presents a central challenge: <strong>the true posterior distribution over latent variables is intractable</strong>. Variational inference resolves this by introducing a tractable approximation and reframing learning as an optimization problem.</p>
+<p>The goal of this post is to develop a precise and fully mathematical understanding of how VAEs are derived; from their generative assumptions to the Evidence Lower Bound (ELBO) that is optimized in practice. Rather than focusing on intuition alone, I walk through each step of the derivation, clarifying where approximations are introduced and why the final objective is both computable and effective.</p>
 </section>
-<section id="intuition-what-a-vae-is-really-learning" class="level3">
-<h3 class="anchored" data-anchor-id="intuition-what-a-vae-is-really-learning">Intuition: What a VAE Is Really Learning</h3>
-<p>A VAE assumes that each data point can be explained by a small set of hidden factors—latent variables—that capture the essential structure of the data.</p>
-<p>The encoder does not map an input to a single point in latent space, but instead learns <strong>a distribution over plausible latent representations</strong>, reflecting uncertainty about how the data was generated.</p>
-<p>The decoder then learns how to <strong>probabilistically reconstruct the data from samples drawn from this latent distribution</strong>.</p>
-<p>Training a VAE is therefore a balancing act: we want latent representations that are expressive enough to reconstruct the data well, while also being regularized to follow a simple prior distribution so that the latent space remains smooth and generative.</p>
+<section id="intuition-what-a-vae-is-really-learning" class="level2">
+<h2 class="anchored" data-anchor-id="intuition-what-a-vae-is-really-learning">Intuition: What a VAE Is Really Learning</h2>
+<p>A VAE assumes that each data point can be explained by a small set of hidden factors (latent variables)that capture the essential structure of the data.</p>
+<p>The <span style="color:#d7263d; font-weight:bold;">encoder</span> does not map an input to a single point in latent space, but instead learns <strong>a distribution over plausible latent representations</strong>, reflecting uncertainty about how the data was generated.</p>
+<p>The <span style="color:#2176ff; font-weight:bold;">decoder</span> then learns how to <strong>probabilistically reconstruct the data from samples drawn from this latent distribution</strong>.</p>
+<p><strong>Training a VAE is therefore a balancing act:</strong> we want latent representations that are expressive enough to reconstruct the data well, while also being regularized to follow a simple prior distribution so that the latent space remains smooth and generative.</p>
 </section>
-<section id="what-are-the-assumptions-of-a-vae-model" class="level3">
-<h3 class="anchored" data-anchor-id="what-are-the-assumptions-of-a-vae-model">What are the assumptions of a VAE model?</h3>
+<section id="assumptions-what-are-the-core-assumptions-of-a-vae-model" class="level2">
+<h2 class="anchored" data-anchor-id="assumptions-what-are-the-core-assumptions-of-a-vae-model">Assumptions: What Are the Core Assumptions of a VAE Model?</h2>
 <p>Assume we have a dataset <span class="math inline">\(X\)</span>:</p>
 <p><span class="math display">\[X = [\vec{x}^{(i)}]_{i=1}^N = \{\vec{x}^{(1)}, \vec{x}^{(2)}, \ldots, \vec{x}^{(N)}\}\]</span></p>
 <p>Each <span class="math inline">\(\vec{x}^{(i)}\)</span> is IID. It can be continuous or discrete-valued.</p>
-<p><strong>Key Generative Assumptions:</strong></p>
-<p>The VAE framework makes the following fundamental assumptions about how the observed data is generated:</p>
+<p>The VAE framework makes the following <strong>fundamental assumptions</strong> about how the observed data is generated:</p>
 <div class="callout callout-style-default callout-note no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -223,13 +239,13 @@ Assumption 2: Conditional Likelihood
 <p>However, it is usually more convenient and numerically stable to work with the log-likelihood (since logs turn products into sums). Therefore, we rewrite the objective as:</p>
 <p><span class="math display">\[\color{purple}{\theta^*} \color{black}{ = \arg \max_{\theta}\sum_{i=1}^N \log} \; \color{teal}{p_\theta(\vec{x}^{(i)})}\]</span></p>
 <p>To compute <span class="math inline">\(\color{teal}{p_\theta(\vec{x}^{i})}\)</span>, we marginalize over the latent variable <span class="math inline">\(z\)</span>:</p>
-<p><span class="math display">\[\color{teal}{p_\theta(\vec{x}^{i})} = \int \color{blue}{p_\theta(x|z)}\, \color{orange}{p_\theta(z)}\, dz\]</span></p>
-<p>However, directly computing this integral is typically <strong>intractable</strong> because it requires evaluating <span class="math inline">\(p_\theta(x|z)\)</span> for all possible values of <span class="math inline">\(z\)</span>. To make this computation practical, we introduce an auxiliary function, <span class="math inline">\(\color{green}{q_\phi(z|x)}\)</span>, called the variational distribution or approximate posterior. This function, parameterized by <span class="math inline">\(\color{green}{\phi}\)</span>, provides a tractable way to estimate which values of <span class="math inline">\(z\)</span> are likely given a particular input <span class="math inline">\(x\)</span>.</p>
+<p><span class="math display">\[\color{teal}{p_\theta(\vec{x}^{i})} \color{black}{=\int} \color{blue}{p_\theta(x|z)}\, \color{orange}{p_\theta(z)}\, \color{black}{dz}\]</span></p>
+<p>However, directly computing this integral is typically <strong>intractable</strong> because it requires evaluating <span class="math inline">\(\color{blue}{p_\theta(x|z)}\)</span> for all possible values of <span class="math inline">\(z\)</span>. To make this computation practical, we introduce an auxiliary function, <span class="math inline">\(\color{green}{q_\phi(z|x)}\)</span>, called the variational distribution or approximate posterior. This function, parameterized by <span class="math inline">\(\color{green}{\phi}\)</span>, provides a tractable way to estimate which values of <span class="math inline">\(z\)</span> are likely given a particular input <span class="math inline">\(x\)</span>.</p>
 </section>
-<section id="what-is-the-role-of-vaes-encoder-and-decoder" class="level3">
-<h3 class="anchored" data-anchor-id="what-is-the-role-of-vaes-encoder-and-decoder">What is the role of VAE’s encoder and decoder?</h3>
+<section id="architecture-what-is-the-role-of-vaes-encoder-and-decoder" class="level2">
+<h2 class="anchored" data-anchor-id="architecture-what-is-the-role-of-vaes-encoder-and-decoder">Architecture: What Is the Role of VAE’s Encoder and Decoder?</h2>
 <p>To understand the VAE architecture, let’s start with <strong>Bayes’ theorem</strong>, which relates our key distributions:</p>
-<p><span class="math display">\[\color{red}{p_\theta(z|x)} = \frac{\color{orange}{p_\theta(z)} \times \color{blue}{p_\theta(x|z)}}{\color{teal}{p_\theta(x)}}\]</span></p>
+<p><span class="math display">\[\color{red}{p_\theta(z|x)} \color{black}{= \frac{\color{orange}{p_\theta(z)} \color{black}{ \times} \color{blue}{p_\theta(x|z)}}{\color{teal}{p_\theta(x)}}}\]</span></p>
 <p>This equation shows that the <strong>posterior</strong> distribution <span class="math inline">\(\color{red}{p_\theta(z|x)}\)</span> (the probability of latent code <span class="math inline">\(z\)</span> given observation <span class="math inline">\(x\)</span>) can be computed from the prior <span class="math inline">\(\color{orange}{p_\theta(z)}\)</span>, the likelihood <span class="math inline">\(\color{blue}{p_\theta(x|z)}\)</span>, and the evidence <span class="math inline">\(\color{teal}{p_\theta(x)}\)</span>.</p>
 <section id="the-challenge-intractable-posterior" class="level4">
 <h4 class="anchored" data-anchor-id="the-challenge-intractable-posterior">The Challenge: Intractable Posterior</h4>
@@ -247,7 +263,7 @@ The Encoder (Recognition Network)
 <p>The <strong>encoder</strong> approximates the intractable posterior <span class="math inline">\(\color{red}{p_\theta(z|x)}\)</span> using variational inference.</p>
 <ul>
 <li>We introduce a <strong>variational distribution</strong> <span class="math inline">\(\color{green}{q_\phi(z|x)}\)</span> that is designed to be tractable</li>
-<li>The encoder learns parameters <span class="math inline">\(\color{green}{\phi}\)</span> to make <span class="math inline">\(\color{green}{q_\phi(z|x)} \approx \color{red}{p_\theta(z|x)}\)</span> as close as possible</li>
+<li>The encoder learns parameters <span class="math inline">\(\color{green}{\phi}\)</span> to make <span class="math inline">\(\color{green}{q_\phi(z|x)} \color{black}{\approx} \color{red}{p_\theta(z|x)}\)</span> as close as possible</li>
 <li><strong>Role</strong>: Given an input <span class="math inline">\(x\)</span>, the encoder outputs a distribution over likely latent codes <span class="math inline">\(z\)</span></li>
 </ul>
 </div>
@@ -272,22 +288,22 @@ The Decoder (Generative Network)
 <p>In summary: the encoder <strong>compresses</strong> observations <span class="math inline">\(x\)</span> into latent representations <span class="math inline">\(z\)</span>, while the decoder <strong>reconstructs</strong> observations from latent codes.</p>
 </section>
 </section>
-<section id="how-can-we-learn-colorgreenphi-and-colorbluetheta-jointly" class="level3">
-<h3 class="anchored" data-anchor-id="how-can-we-learn-colorgreenphi-and-colorbluetheta-jointly">How can we learn <span class="math inline">\(\color{green}{\phi}\)</span> and <span class="math inline">\(\color{blue}{\theta}\)</span> jointly?</h3>
+<section id="training-objective-how-can-we-learn-colorgreenphi-and-colorbluetheta-jointly" class="level2">
+<h2 class="anchored" data-anchor-id="training-objective-how-can-we-learn-colorgreenphi-and-colorbluetheta-jointly">Training Objective: How Can We Learn <span class="math inline">\(\color{green}{\phi}\)</span> and <span class="math inline">\(\color{blue}{\theta}\)</span> Jointly?</h2>
 <p>Now we have two sets of parameters to optimize:</p>
 <ul>
 <li><strong>Encoder parameters</strong> <span class="math inline">\(\color{green}{\phi}\)</span>: control the approximate posterior <span class="math inline">\(\color{green}{q_\phi(z|x)}\)</span></li>
 <li><strong>Decoder parameters</strong> <span class="math inline">\(\color{blue}{\theta}\)</span>: control the likelihood <span class="math inline">\(\color{blue}{p_\theta(x|z)}\)</span> (and also appear in the true posterior <span class="math inline">\(\color{red}{p_\theta(z|x)}\)</span>)</li>
 </ul>
 <p>Our goal is to make the estimated posterior <span class="math inline">\(\color{green}{q_\phi(z|x)}\)</span> as close as possible to the true (but intractable) posterior <span class="math inline">\(\color{red}{p_\theta(z|x)}\)</span>.</p>
-<section id="measuring-closeness-the-kl-divergence" class="level4">
-<h4 class="anchored" data-anchor-id="measuring-closeness-the-kl-divergence">Measuring Closeness: The KL Divergence</h4>
+<section id="measuring-closeness-the-kl-divergence" class="level3">
+<h3 class="anchored" data-anchor-id="measuring-closeness-the-kl-divergence">Measuring Closeness: The KL Divergence</h3>
 <p>To measure how “close” two probability distributions are, we use the <strong>Kullback-Leibler (KL) divergence</strong>. Specifically, we use the <strong>reverse KL divergence</strong>:</p>
-<p><span class="math display">\[\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log \frac{\color{green}{q_\phi(z|x)}}{\color{red}{p_\theta(z|x)}} \right]\]</span></p>
+<p><span class="math display">\[\text{KL} \Biggl( \color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log \frac{\color{green}{q_\phi(z|x)}}{\color{red}{p_\theta(z|x)}} \right]}\]</span></p>
 <p>which can be written more explicitly as:</p>
 <ul>
-<li><p>For <strong>discrete</strong> latent variables: <span class="math display">\[\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \sum_{z \in Z} \color{green}{q_\phi(z|x)} \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{red}{p_\theta(z|x)}} \right)\]</span></p></li>
-<li><p>For <strong>continuous</strong> latent variables: <span class="math display">\[\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \int \color{green}{q_\phi(z|x)} \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{red}{p_\theta(z|x)}} \right) dz\]</span></p></li>
+<li><p>For <strong>discrete</strong> latent variables: <span class="math display">\[\text{KL} \Biggl( \color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \sum_{z \in Z} \color{green}{q_\phi(z|x)} \color{black}{\log} \left( \color{black}\frac{\color{green}{q_\phi(z|x)}}{\color{red}{p_\theta(z|x)}} \right)}\]</span></p></li>
+<li><p>For <strong>continuous</strong> latent variables: <span class="math display">\[\text{KL} \Biggl( \color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\color{black} \Biggr) \color{black}{= \int \color{green}{q_\phi(z|x)} \color{black}{\log} \left( \color{black}\frac{\color{green}{q_\phi(z|x)}}{\color{red}{p_\theta(z|x)}} \right) \color{black}{dz}}\]</span></p></li>
 </ul>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
@@ -327,16 +343,13 @@ Key Properties of KL Divergence
 </div>
 </div>
 </div>
-<p><strong>Our Training Objective:</strong></p>
-<p>By <strong>minimizing</strong> <span class="math inline">\(\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right)\)</span>, we make our encoder’s approximate posterior as accurate as possible. However, there’s a problem: we can’t directly compute this KL divergence because it involves the intractable posterior <span class="math inline">\(\color{red}{p_\theta(z|x)}\)</span>!</p>
+<p>By <strong>minimizing</strong> <span class="math inline">\(\text{KL} \Biggl( \color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\color{black} \Biggr)\)</span>, we make our encoder’s approximate posterior as accurate as possible. However, there’s a problem: we can’t directly compute this KL divergence because it involves the intractable posterior <span class="math inline">\(\color{red}{p_\theta(z|x)}\)</span>!</p>
 <p>This is where the ELBO (Evidence Lower Bound) comes in, which we’ll derive next.</p>
 </section>
 </section>
-<section id="deriving-the-evidence-lower-bound-elbo" class="level3">
-<h3 class="anchored" data-anchor-id="deriving-the-evidence-lower-bound-elbo">Deriving the Evidence Lower Bound (ELBO)</h3>
-<section id="the-problem-we-need-to-solve" class="level4">
-<h4 class="anchored" data-anchor-id="the-problem-we-need-to-solve">The Problem We Need to Solve</h4>
-<p>Recall that we want to minimize <span class="math inline">\(\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right)\)</span>, but we can’t compute it directly because it involves the intractable posterior <span class="math inline">\(\color{red}{p_\theta(z|x)}\)</span>.</p>
+<section id="elbo-derivation-deriving-the-evidence-lower-bound" class="level2">
+<h2 class="anchored" data-anchor-id="elbo-derivation-deriving-the-evidence-lower-bound">ELBO Derivation: Deriving the Evidence Lower Bound</h2>
+<p>Recall that we want to minimize <span class="math inline">\(\text{KL} \Biggl( \color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr)\)</span>, but we can’t compute it directly because it involves the intractable posterior <span class="math inline">\(\color{red}{p_\theta(z|x)}\)</span>.</p>
 <p>The variational inference idea is that we can derive an <strong>alternative objective</strong> that:</p>
 <ol type="1">
 <li>Is tractable to compute</li>
@@ -344,28 +357,27 @@ Key Properties of KL Divergence
 <li>Automatically handles the intractability</li>
 </ol>
 <p>Let’s derive this alternative objective step by step.</p>
-</section>
-<section id="step-1-start-with-the-kl-divergence" class="level4">
-<h4 class="anchored" data-anchor-id="step-1-start-with-the-kl-divergence">Step 1: Start with the KL Divergence</h4>
+<section id="step-1-start-with-the-kl-divergence" class="level3">
+<h3 class="anchored" data-anchor-id="step-1-start-with-the-kl-divergence">Step 1: Start with the KL Divergence</h3>
 <p>For continuous latent variables, the KL divergence is defined as:</p>
-<p><span class="math display">\[\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \int \color{green}{q_\phi(z|x)} \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{red}{p_\theta(z|x)}} \right) dz\]</span></p>
+<p><span class="math display">\[\text{KL} \Biggl( \color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \int \color{green}{q_\phi(z|x)} \color{black}{\log} \left( \color{black}\frac{\color{green}{q_\phi(z|x)}}{\color{red}{p_\theta(z|x)}} \right) \color{black}{dz}}\]</span></p>
 </section>
-<section id="step-2-apply-bayes-rule-to-the-posterior" class="level4">
-<h4 class="anchored" data-anchor-id="step-2-apply-bayes-rule-to-the-posterior">Step 2: Apply Bayes’ Rule to the Posterior</h4>
+<section id="step-2-apply-bayes-rule-to-the-posterior" class="level3">
+<h3 class="anchored" data-anchor-id="step-2-apply-bayes-rule-to-the-posterior">Step 2: Apply Bayes’ Rule to the Posterior</h3>
 <p>Using Bayes’ rule, we know that:</p>
-<p><span class="math display">\[\color{red}{p_\theta(z|x)} = \frac{p_\theta(x,z)}{\color{teal}{p_\theta(x)}}\]</span></p>
+<p><span class="math display">\[\color{red}{p_\theta(z|x)} \color{black}{= \frac{p_\theta(x,z)}{\color{teal}{p_\theta(x)}}}\]</span></p>
 <p>Substituting this into our KL divergence:</p>
-<p><span class="math display">\[\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \int \color{green}{q_\phi(z|x)} \log \left( \frac{\color{green}{q_\phi(z|x)} \cdot \color{teal}{p_\theta(x)}}{p_\theta(x,z)} \right) dz\]</span></p>
+<p><span class="math display">\[\text{KL} \Biggl( \color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \int \color{green}{q_\phi(z|x)} \color{black}{\log} \left( \color{black}\frac{\color{green}{q_\phi(z|x)} \cdot \color{teal}{p_\theta(x)}}{p_\theta(x,z)} \right) \color{black}{dz}}\]</span></p>
 </section>
-<section id="step-3-split-the-logarithm" class="level4">
-<h4 class="anchored" data-anchor-id="step-3-split-the-logarithm">Step 3: Split the Logarithm</h4>
-<p>Using the property <span class="math inline">\(\log(ab/c) = \log(a) + \log(b) - \log(c)\)</span>:</p>
-<p><span class="math display">\[\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \int \color{green}{q_\phi(z|x)} \left[ \log(\color{teal}{p_\theta(x)}) + \log \left( \frac{\color{green}{q_\phi(z|x)}}{p_\theta(x,z)} \right) \right] dz\]</span></p>
+<section id="step-3-split-the-logarithm" class="level3">
+<h3 class="anchored" data-anchor-id="step-3-split-the-logarithm">Step 3: Split the Logarithm</h3>
+<p>Using the property <span class="math inline">\(\log(ab/c) = \log(a) + \log(b/c)\)</span>, where <span class="math inline">\(a = \color{teal}{p_\theta(x)}\)</span>, <span class="math inline">\(b = \color{green}{q_\phi(z|x)}\)</span>, and <span class="math inline">\(c = p_\theta(x,z)\)</span>:</p>
+<p><span class="math display">\[\text{KL} \Biggl( \color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \int \color{green}{q_\phi(z|x)} \color{black}{\left[ \log(\color{teal}{p_\theta(x)} \color{black}) + \log \left( \frac{\color{green}{q_\phi(z|x)}}{p_\theta(x,z)} \right) \right]} \color{black}{dz}}\]</span></p>
 </section>
-<section id="step-4-separate-the-integral" class="level4">
-<h4 class="anchored" data-anchor-id="step-4-separate-the-integral">Step 4: Separate the Integral</h4>
+<section id="step-4-separate-the-integral" class="level3">
+<h3 class="anchored" data-anchor-id="step-4-separate-the-integral">Step 4: Separate the Integral</h3>
 <p>Split into two integrals:</p>
-<p><span class="math display">\[\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \int \color{green}{q_\phi(z|x)} \log(\color{teal}{p_\theta(x)}) \, dz + \int \color{green}{q_\phi(z|x)} \log \left( \frac{\color{green}{q_\phi(z|x)}}{p_\theta(x,z)} \right) dz\]</span></p>
+<p><span class="math display">\[\text{KL}\Biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\color{black} \Biggr) \color{black}{= \int \color{green}{q_\phi(z|x)} \color{black} \log(\color{teal}{p_\theta(x)} \color{black} ) \, dz + \int \color{green}{q_\phi(z|x)} \color{black} \log \left( \frac{\color{green}{q_\phi(z|x)}}{p_\theta(x,z)} \right) dz}\]</span></p>
 <div class="callout callout-style-default callout-note no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -377,42 +389,42 @@ Key Observation: The Evidence is Constant
 </div>
 <div class="callout-body-container callout-body">
 <p>The first integral simplifies because <span class="math inline">\(\color{teal}{p_\theta(x)}\)</span> doesn’t depend on <span class="math inline">\(z\)</span>:</p>
-<p><span class="math display">\[\int \color{green}{q_\phi(z|x)} \log(\color{teal}{p_\theta(x)}) \, dz = \log(\color{teal}{p_\theta(x)}) \int \color{green}{q_\phi(z|x)} \, dz = \log(\color{teal}{p_\theta(x)})\]</span></p>
-<p>since <span class="math inline">\(\int \color{green}{q_\phi(z|x)} \, dz = 1\)</span> (probability distributions must integrate to 1).</p>
+<p><span class="math display">\[\int \color{green}{q_\phi(z|x)} \color{black} \log(\color{teal}{p_\theta(x)} \color{black}) \color{black} \, dz = \log(\color{teal}{p_\theta(x)} \color{black}) \int \color{green}{q_\phi(z|x)} \color{black} \, dz = \log(\color{teal}{p_\theta(x)} \color{black})\]</span></p>
+<p>since <span class="math inline">\(\int \color{green}{q_\phi(z|x)} \color{black} \, dz = 1\)</span> (probability distributions must integrate to 1).</p>
 </div>
 </div>
 <p>So now we have:</p>
-<p><span class="math display">\[\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \log(\color{teal}{p_\theta(x)}) + \int \color{green}{q_\phi(z|x)} \log \left( \frac{\color{green}{q_\phi(z|x)}}{p_\theta(x,z)} \right) dz\]</span></p>
+<p><span class="math display">\[\text{KL}\Biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \log(\color{teal}{p_\theta(x)} \color{black}) + \int \color{green}{q_\phi(z|x)} \color{black} \log \left( \frac{\color{green}{q_\phi(z|x)}}{p_\theta(x,z)} \right) \color{black}{dz}}\]</span></p>
 </section>
-<section id="step-5-decompose-the-joint-distribution" class="level4">
-<h4 class="anchored" data-anchor-id="step-5-decompose-the-joint-distribution">Step 5: Decompose the Joint Distribution</h4>
+<section id="step-5-decompose-the-joint-distribution" class="level3">
+<h3 class="anchored" data-anchor-id="step-5-decompose-the-joint-distribution">Step 5: Decompose the Joint Distribution</h3>
 <p>The joint distribution can be factored as:</p>
 <p><span class="math display">\[p_\theta(x,z) = \color{blue}{p_\theta(x|z)} \cdot \color{purple}{p_\theta(z)}\]</span></p>
 <p>Substituting this:</p>
-<p><span class="math display">\[\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \log(\color{teal}{p_\theta(x)}) + \int \color{green}{q_\phi(z|x)} \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{blue}{p_\theta(x|z)} \cdot \color{purple}{p_\theta(z)}} \right) dz\]</span></p>
+<p><span class="math display">\[\text{KL}\Biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \log(\color{teal}{p_\theta(x)} \color{black}) + \int \color{green}{q_\phi(z|x)} \color{black} \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{blue}{p_\theta(x|z)} \cdot \color{purple}{p_\theta(z)}} \right) \color{black}{dz}}\]</span></p>
 </section>
-<section id="step-6-simplify-using-logarithm-properties" class="level4">
-<h4 class="anchored" data-anchor-id="step-6-simplify-using-logarithm-properties">Step 6: Simplify Using Logarithm Properties</h4>
-<p>Using <span class="math inline">\(\log(a/(bc)) = \log(a/b) - \log(c)\)</span>:</p>
-<p><span class="math display">\[\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \log(\color{teal}{p_\theta(x)}) + \int \color{green}{q_\phi(z|x)} \left[ \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{purple}{p_\theta(z)}} \right) - \log(\color{blue}{p_\theta(x|z)}) \right] dz\]</span></p>
+<section id="step-6-simplify-using-logarithm-properties" class="level3">
+<h3 class="anchored" data-anchor-id="step-6-simplify-using-logarithm-properties">Step 6: Simplify Using Logarithm Properties</h3>
+<p>Using <span class="math inline">\(\log(a/(bc)) = \log(a/b) - \log(c)\)</span>, where <span class="math inline">\(a = \color{green}{q_\phi(z|x)}\)</span>, <span class="math inline">\(b = \color{purple}{p_\theta(z)}\)</span>, and <span class="math inline">\(c = \color{blue}{p_\theta(x|z)}\)</span>:</p>
+<p><span class="math display">\[\text{KL}\Biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \log(\color{teal}{p_\theta(x)} \color{black}) + \int \color{green}{q_\phi(z|x)} \color{black} \left[ \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{purple}{p_\theta(z)}} \right) - \log(\color{blue}{p_\theta(x|z)} \color{black}) \right]{dz}}\]</span></p>
 </section>
-<section id="step-7-split-into-two-integrals" class="level4">
-<h4 class="anchored" data-anchor-id="step-7-split-into-two-integrals">Step 7: Split Into Two Integrals</h4>
-<p><span class="math display">\[\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \log(\color{teal}{p_\theta(x)}) + \int \color{green}{q_\phi(z|x)} \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{purple}{p_\theta(z)}} \right) dz - \int \color{green}{q_\phi(z|x)} \log(\color{blue}{p_\theta(x|z)}) \, dz\]</span></p>
+<section id="step-7-split-into-two-integrals" class="level3">
+<h3 class="anchored" data-anchor-id="step-7-split-into-two-integrals">Step 7: Split Into Two Integrals</h3>
+<p><span class="math display">\[\text{KL}\Biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \log(\color{teal}{p_\theta(x)} \color{black}) + \int \color{green}{q_\phi(z|x)} \color{black} \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{purple}{p_\theta(z)}} \right) \color{black}{dz} - \int \color{green}{q_\phi(z|x)} \color{black} \log(\color{blue}{p_\theta(x|z)} \color{black}) \color{black}{dz}}\]</span></p>
 </section>
-<section id="step-8-recognize-standard-forms" class="level4">
-<h4 class="anchored" data-anchor-id="step-8-recognize-standard-forms">Step 8: Recognize Standard Forms</h4>
+<section id="step-8-recognize-standard-forms" class="level3">
+<h3 class="anchored" data-anchor-id="step-8-recognize-standard-forms">Step 8: Recognize Standard Forms</h3>
 <p>The second term is the KL divergence between <span class="math inline">\(\color{green}{q_\phi(z|x)}\)</span> and the prior <span class="math inline">\(\color{purple}{p_\theta(z)}\)</span>:</p>
-<p><span class="math display">\[\int \color{green}{q_\phi(z|x)} \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{purple}{p_\theta(z)}} \right) dz = \text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\right)\]</span></p>
+<p><span class="math display">\[\int \color{green}{q_\phi(z|x)} \color{black} \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{purple}{p_\theta(z)}} \right) \color{black}{dz} = \text{KL}\Biggl(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\color{black} \Biggr)\]</span></p>
 <p>The third term is an expectation under <span class="math inline">\(\color{green}{q_\phi(z|x)}\)</span>:</p>
-<p><span class="math display">\[\int \color{green}{q_\phi(z|x)} \log(\color{blue}{p_\theta(x|z)}) \, dz = \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)}) \right]\]</span></p>
+<p><span class="math display">\[\int \color{green}{q_\phi(z|x)} \color{black} \log(\color{blue}{p_\theta(x|z)} \color{black}) \color{black} \, dz = \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)}\color{black}) \right]\]</span></p>
 <p>Therefore:</p>
-<p><span class="math display">\[\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \log(\color{teal}{p_\theta(x)}) + \text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\right) - \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)}) \right]\]</span></p>
+<p><span class="math display">\[\text{KL}\Bigg(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) = \log(\color{teal}{p_\theta(x)} \color{black}) + \text{KL}\Biggl(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\color{black} \Biggr) - \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)} \color{black}) \right]\]</span></p>
 </section>
-<section id="step-9-rearrange-to-isolate-the-evidence" class="level4">
-<h4 class="anchored" data-anchor-id="step-9-rearrange-to-isolate-the-evidence">Step 9: Rearrange to Isolate the Evidence</h4>
+<section id="step-9-rearrange-to-isolate-the-evidence-that-is-p_thetax" class="level3">
+<h3 class="anchored" data-anchor-id="step-9-rearrange-to-isolate-the-evidence-that-is-p_thetax">Step 9: Rearrange to Isolate the Evidence (That Is <span class="math inline">\(p_\theta(x)\)</span>)</h3>
 <p>Rearranging the equation:</p>
-<p><span class="math display">\[\log(\color{teal}{p_\theta(x)}) = \text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) + \underbrace{\mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)}) \right] - \text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\right)}_{\text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x)}\]</span></p>
+<p><span class="math display">\[\log(\color{teal}{p_\theta(x)} \color{black}) = \text{KL}\biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\biggr) + \underbrace{\mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)} \color{black}) \right] - \text{KL}\biggl(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\color{black} \biggr)}_{\text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x)}\]</span></p>
 <div class="callout callout-style-default callout-important no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -424,21 +436,23 @@ The Evidence Lower Bound (ELBO)
 </div>
 <div class="callout-body-container callout-body">
 <p>We define the <strong>Evidence Lower Bound</strong> (ELBO) as:</p>
-<p><span class="math display">\[\text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x) = \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)}) \right] - \text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\right)\]</span></p>
+<p><span class="math display">\[\text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x \color{black}) = \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)} \color{black}) \right] - \text{KL}\biggl(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\color{black} \biggr)\]</span></p>
 <p><strong>Why is it called a “lower bound”?</strong></p>
-<p>From the equation above: <span class="math display">\[\log(\color{teal}{p_\theta(x)}) = \underbrace{\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right)}_{\geq 0} + \text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x)\]</span></p>
-<p>Since <span class="math inline">\(\text{KL} \geq 0\)</span>, we have: <span class="math display">\[\text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x) \leq \log(\color{teal}{p_\theta(x)})\]</span></p>
-<p>The ELBO provides a <strong>lower bound</strong> on the log-evidence <span class="math inline">\(\log(\color{teal}{p_\theta(x)})\)</span>!</p>
+<p>From the equation in step 9: <span class="math display">\[\log(\color{teal}{p_\theta(x)} \color{black}) = \underbrace{\text{KL}\biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\biggr)}_{\geq 0} + \text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x \color{black})\]</span></p>
+<p>Rearranging to isolate the ELBO: <span class="math display">\[\text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x \color{black}) = \log(\color{teal}{p_\theta(x)} \color{black}) - \text{KL}\biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\biggr)\]</span></p>
+<p>Since <span class="math inline">\(\text{KL} \geq 0\)</span> (always non-negative), we’re <strong>subtracting</strong> a non-negative value from the log-evidence:</p>
+<p><span class="math display">\[\text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x \color{black}) = \log(\color{teal}{p_\theta(x)} \color{black}) - \underbrace{\text{KL}}_{\geq 0} \leq \log(\color{teal}{p_\theta(x)} \color{black})\]</span></p>
+<p>Therefore, the ELBO is always <strong>less than or equal to</strong> the log-evidence, <span class="math inline">\(\log(\color{teal}{p_\theta(x)}\color{black} )\)</span>! It provides a <strong>lower bound</strong>! The gap between them is exactly the KL divergence between our approximate and true posteriors.</p>
 </div>
 </div>
 </section>
-<section id="step-10-the-vae-loss-function" class="level4">
-<h4 class="anchored" data-anchor-id="step-10-the-vae-loss-function">Step 10: The VAE Loss Function</h4>
+<section id="step-10-the-vae-loss-function" class="level3">
+<h3 class="anchored" data-anchor-id="step-10-the-vae-loss-function">Step 10: The VAE Loss Function</h3>
 <p>In practice, we want to <strong>minimize a loss function</strong>. The VAE loss is simply the <strong>negative ELBO</strong>:</p>
-<p><span class="math display">\[\mathcal{L}_{\text{VAE}}(\color{blue}{\theta}, \color{green}{\phi}; x) = -\text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x)\]</span></p>
-<p><span class="math display">\[\boxed{\mathcal{L}_{\text{VAE}}(\color{blue}{\theta}, \color{green}{\phi}; x) = \text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\right) - \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)}) \right]}\]</span></p>
+<p><span class="math display">\[\mathcal{L}_{\text{VAE}}(\color{blue}{\theta}, \color{green}{\phi}; x \color{black}) = -\text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}\color{black}; x )\]</span></p>
+<p><span class="math display">\[\boxed{\mathcal{L}_{\text{VAE}}(\color{blue}{\theta}, \color{green}{\phi}; x \color{black}) = \text{KL}\biggl(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\color{black} \biggr) - \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)} \color{black}) \right]}\]</span></p>
 <p>We seek the optimal parameters:</p>
-<p><span class="math display">\[\color{green}{\phi}^*, \color{blue}{\theta}^* = \arg\min_{\color{green}{\phi}, \color{blue}{\theta}} \mathcal{L}_{\text{VAE}}(\color{blue}{\theta}, \color{green}{\phi}; x)\]</span></p>
+<p><span class="math display">\[\color{green}{\phi}^*, \color{blue}{\theta}^* \color{black}{= \arg\min_{\color{green}{\phi}, \color{blue}{\theta}} \mathcal{L}_{\text{VAE}}(\color{blue}{\theta}, \color{green}{\phi} \color{black}; x )}\]</span></p>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -451,13 +465,13 @@ Interpreting the VAE Loss
 <div class="callout-body-container callout-body">
 <p>The VAE loss has two terms:</p>
 <ol type="1">
-<li><strong>KL Regularization Term</strong>: <span class="math inline">\(\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\right)\)</span>
+<li><strong>KL Regularization Term</strong>: <span class="math inline">\(\text{KL}\biggl(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\color{black} \biggr)\)</span>
 <ul>
 <li>Encourages the encoder’s approximate posterior to stay close to the prior</li>
 <li>Acts as a regularizer preventing overfitting</li>
 <li>Ensures the latent space has a nice structure</li>
 </ul></li>
-<li><strong>Reconstruction Term</strong>: <span class="math inline">\(-\mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)}) \right]\)</span>
+<li><strong>Reconstruction Term</strong>: <span class="math inline">\(-\mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)} \color{black}) \right]\)</span>
 <ul>
 <li>Encourages the decoder to reconstruct the input accurately</li>
 <li>When the decoder outputs Gaussian distributions, this becomes MSE (Mean Squared Error)</li>
@@ -472,22 +486,26 @@ Interpreting the VAE Loss
 </ul>
 </div>
 </div>
-<p><strong>Parameter Names:</strong></p>
+</section>
+<section id="parameter-names-what-are-the-parameters-of-the-vae" class="level3">
+<h3 class="anchored" data-anchor-id="parameter-names-what-are-the-parameters-of-the-vae">Parameter Names: What Are the Parameters of the VAE?</h3>
 <ul>
 <li><span class="math inline">\(\color{green}{\phi}\)</span> are the <strong>variational parameters</strong> (encoder parameters)</li>
 <li><span class="math inline">\(\color{blue}{\theta}\)</span> are the <strong>generative parameters</strong> (decoder parameters)</li>
 </ul>
-<p><strong>Why This Solves Our Problem:</strong></p>
+</section>
+<section id="why-this-solves-our-problem-what-is-the-purpose-of-the-vae-loss" class="level3">
+<h3 class="anchored" data-anchor-id="why-this-solves-our-problem-what-is-the-purpose-of-the-vae-loss">Why This Solves Our Problem: What Is the Purpose of the VAE Loss?</h3>
 <p>Maximizing the ELBO (equivalently, minimizing <span class="math inline">\(\mathcal{L}_{\text{VAE}}\)</span>) simultaneously:</p>
 <ol type="1">
-<li>Increases <span class="math inline">\(\log(\color{teal}{p_\theta(x)})\)</span> (generates more realistic samples)</li>
-<li>Decreases <span class="math inline">\(\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right)\)</span> (better posterior approximation)</li>
+<li>Increases <span class="math inline">\(\log(\color{teal}{p_\theta(x)} \color{black})\)</span> (generates more realistic samples)</li>
+<li>Decreases <span class="math inline">\(\text{KL}\biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\biggr)\)</span> (better posterior approximation)</li>
 </ol>
 <p>And we can compute everything in the ELBO without ever needing the intractable <span class="math inline">\(\color{red}{p_\theta(z|x)}\)</span>!</p>
 </section>
 </section>
-<section id="key-takeaways-and-final-remarks" class="level3">
-<h3 class="anchored" data-anchor-id="key-takeaways-and-final-remarks">Key Takeaways and Final Remarks</h3>
+<section id="conclusion-key-takeaways-and-final-remarks" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion-key-takeaways-and-final-remarks">Conclusion: Key Takeaways and Final Remarks</h2>
 <p>The Variational Autoencoder framework provides a principled solution to learning latent variable models when exact inference is intractable. By introducing a tractable variational posterior and optimizing the Evidence Lower Bound (ELBO), we transform an otherwise impossible likelihood maximization problem into a practical and scalable objective that can be optimized with stochastic gradient methods.</p>
 <p>From the derivation, several core insights emerge:</p>
 <ul>

@@ -1,28 +1,28 @@
 # Mathematical Derivation of VAE
 
-### What is the aim of blog?
+## What Is the Aim of This Blog?
 
 This blog draws upon insights from [this article](https://hunterheidenreich.com/posts/modern-variational-autoencoder-in-pytorch/) and [this post](https://lilianweng.github.io/posts/2018-08-12-vae/#td-vae), with the objective of developing a deeper and more technical understanding of Variational Autoencoders (VAEs).
 
-### Introduction: What are Variational Autoencoders (VAEs)?
+## Introduction: What Are Variational Autoencoders (VAEs)?
 
-Variational Autoencoders (VAEs) are a foundational class of latent variable models that combine probabilistic modeling with neural networks, enabling **both representation learning and data generation**. Unlike standard autoencoders, VAEs provide a principled probabilistic framework that allows us to reason about uncertainty, impose structure on latent spaces, and perform meaningful sampling.
+Variational Autoencoders (VAEs) are a foundational class of latent variable models that combine probabilistic modeling with neural networks, enabling **both representation learning and data generation**. Unlike standard autoencoders, VAEs provide a principled probabilistic framework that allows us to **reason about uncertainty**, **impose structure on latent spaces**, and **perform meaningful sampling**.
 
-At a high level, VAEs assume that high-dimensional observations are generated from a lower-dimensional latent variable through a stochastic process. Learning such models, however, presents a central challenge: *the true posterior distribution over latent variables is intractable*. Variational inference resolves this by introducing a tractable approximation and reframing learning as an optimization problem.
+At a high level, VAEs assume that high-dimensional observations are generated from a lower-dimensional latent variable through a stochastic process. Learning such models, however, presents a central challenge: **the true posterior distribution over latent variables is intractable**. Variational inference resolves this by introducing a tractable approximation and reframing learning as an optimization problem.
 
-The goal of this post is to develop a precise and fully mathematical understanding of how VAEs are derived—from their generative assumptions to the Evidence Lower Bound (ELBO) that is optimized in practice. Rather than focusing on intuition alone, we walk through each step of the derivation, clarifying where approximations are introduced and why the final objective is both computable and effective.
+The goal of this post is to develop a precise and fully mathematical understanding of how VAEs are derived; from their generative assumptions to the Evidence Lower Bound (ELBO) that is optimized in practice. Rather than focusing on intuition alone, I walk through each step of the derivation, clarifying where approximations are introduced and why the final objective is both computable and effective.
 
-### Intuition: What a VAE Is Really Learning
+## Intuition: What a VAE Is Really Learning
 
-A VAE assumes that each data point can be explained by a small set of hidden factors—latent variables—that capture the essential structure of the data. 
+A VAE assumes that each data point can be explained by a small set of hidden factors (latent variables)that capture the essential structure of the data. 
 
-The encoder does not map an input to a single point in latent space, but instead learns **a distribution over plausible latent representations**, reflecting uncertainty about how the data was generated. 
+The <span style="color:#d7263d; font-weight:bold;">encoder</span> does not map an input to a single point in latent space, but instead learns **a distribution over plausible latent representations**, reflecting uncertainty about how the data was generated. 
 
-The decoder then learns how to **probabilistically reconstruct the data from samples drawn from this latent distribution**.
+The <span style="color:#2176ff; font-weight:bold;">decoder</span> then learns how to **probabilistically reconstruct the data from samples drawn from this latent distribution**.
 
-Training a VAE is therefore a balancing act: we want latent representations that are expressive enough to reconstruct the data well, while also being regularized to follow a simple prior distribution so that the latent space remains smooth and generative.
+**Training a VAE is therefore a balancing act:** we want latent representations that are expressive enough to reconstruct the data well, while also being regularized to follow a simple prior distribution so that the latent space remains smooth and generative.
 
-### What are the assumptions of a VAE model?
+## Assumptions: What Are the Core Assumptions of a VAE Model?
 
 Assume we have a dataset $X$:
 
@@ -30,9 +30,7 @@ $$X = [\vec{x}^{(i)}]_{i=1}^N = \{\vec{x}^{(1)}, \vec{x}^{(2)}, \ldots, \vec{x}^
 
 Each $\vec{x}^{(i)}$ is IID. It can be continuous or discrete-valued.
 
-**Key Generative Assumptions:**
-
-The VAE framework makes the following fundamental assumptions about how the observed data is generated:
+The VAE framework makes the following **fundamental assumptions** about how the observed data is generated:
 
 ::: {.callout-note icon=false}
 ## Assumption 1: Latent Prior Distribution
@@ -68,15 +66,15 @@ $$\color{purple}{\theta^*} \color{black}{ = \arg \max_{\theta}\sum_{i=1}^N \log}
 
 To compute $\color{teal}{p_\theta(\vec{x}^{i})}$, we marginalize over the latent variable $z$:
 
-$$\color{teal}{p_\theta(\vec{x}^{i})} = \int \color{blue}{p_\theta(x|z)}\, \color{orange}{p_\theta(z)}\, dz$$
+$$\color{teal}{p_\theta(\vec{x}^{i})} \color{black}{=\int} \color{blue}{p_\theta(x|z)}\, \color{orange}{p_\theta(z)}\, \color{black}{dz}$$
 
-However, directly computing this integral is typically **intractable** because it requires evaluating $p_\theta(x|z)$ for all possible values of $z$. To make this computation practical, we introduce an auxiliary function, $\color{green}{q_\phi(z|x)}$, called the variational distribution or approximate posterior. This function, parameterized by $\color{green}{\phi}$, provides a tractable way to estimate which values of $z$ are likely given a particular input $x$.
+However, directly computing this integral is typically **intractable** because it requires evaluating $\color{blue}{p_\theta(x|z)}$ for all possible values of $z$. To make this computation practical, we introduce an auxiliary function, $\color{green}{q_\phi(z|x)}$, called the variational distribution or approximate posterior. This function, parameterized by $\color{green}{\phi}$, provides a tractable way to estimate which values of $z$ are likely given a particular input $x$.
 
-### What is the role of VAE's encoder and decoder?
+## Architecture: What Is the Role of VAE's Encoder and Decoder?
 
 To understand the VAE architecture, let's start with **Bayes' theorem**, which relates our key distributions:
 
-$$\color{red}{p_\theta(z|x)} = \frac{\color{orange}{p_\theta(z)} \times \color{blue}{p_\theta(x|z)}}{\color{teal}{p_\theta(x)}}$$
+$$\color{red}{p_\theta(z|x)} \color{black}{= \frac{\color{orange}{p_\theta(z)} \color{black}{ \times} \color{blue}{p_\theta(x|z)}}{\color{teal}{p_\theta(x)}}}$$
 
 This equation shows that the **posterior** distribution $\color{red}{p_\theta(z|x)}$ (the probability of latent code $z$ given observation $x$) can be computed from the prior $\color{orange}{p_\theta(z)}$, the likelihood $\color{blue}{p_\theta(x|z)}$, and the evidence $\color{teal}{p_\theta(x)}$.
 
@@ -90,7 +88,7 @@ The posterior $\color{red}{p_\theta(z|x)}$ is **intractable** to compute directl
 The **encoder** approximates the intractable posterior $\color{red}{p_\theta(z|x)}$ using variational inference.
 
 - We introduce a **variational distribution** $\color{green}{q_\phi(z|x)}$ that is designed to be tractable
-- The encoder learns parameters $\color{green}{\phi}$ to make $\color{green}{q_\phi(z|x)} \approx \color{red}{p_\theta(z|x)}$ as close as possible
+- The encoder learns parameters $\color{green}{\phi}$ to make $\color{green}{q_\phi(z|x)} \color{black}{\approx} \color{red}{p_\theta(z|x)}$ as close as possible
 - **Role**: Given an input $x$, the encoder outputs a distribution over likely latent codes $z$
 :::
 
@@ -105,7 +103,7 @@ The **decoder** models the likelihood $\color{blue}{p_\theta(x|z)}$, which is th
 
 In summary: the encoder **compresses** observations $x$ into latent representations $z$, while the decoder **reconstructs** observations from latent codes.
 
-### How can we learn $\color{green}{\phi}$ and $\color{blue}{\theta}$ jointly?
+## Training Objective: How Can We Learn $\color{green}{\phi}$ and $\color{blue}{\theta}$ Jointly?
 
 Now we have two sets of parameters to optimize:
 
@@ -114,19 +112,20 @@ Now we have two sets of parameters to optimize:
 
 Our goal is to make the estimated posterior $\color{green}{q_\phi(z|x)}$ as close as possible to the true (but intractable) posterior $\color{red}{p_\theta(z|x)}$.
 
-#### Measuring Closeness: The KL Divergence
+### Measuring Closeness: The KL Divergence
 
 To measure how "close" two probability distributions are, we use the **Kullback-Leibler (KL) divergence**. Specifically, we use the **reverse KL divergence**:
 
-$$\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log \frac{\color{green}{q_\phi(z|x)}}{\color{red}{p_\theta(z|x)}} \right]$$
+$$\text{KL} \Biggl( \color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log \frac{\color{green}{q_\phi(z|x)}}{\color{red}{p_\theta(z|x)}} \right]}$$
 
 which can be written more explicitly as:
 
 - For **discrete** latent variables:
-$$\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \sum_{z \in Z} \color{green}{q_\phi(z|x)} \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{red}{p_\theta(z|x)}} \right)$$
+$$\text{KL} \Biggl( \color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \sum_{z \in Z} \color{green}{q_\phi(z|x)} \color{black}{\log} \left( \color{black}\frac{\color{green}{q_\phi(z|x)}}{\color{red}{p_\theta(z|x)}} \right)}$$
+
 
 - For **continuous** latent variables:
-$$\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \int \color{green}{q_\phi(z|x)} \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{red}{p_\theta(z|x)}} \right) dz$$
+$$\text{KL} \Biggl( \color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\color{black} \Biggr) \color{black}{= \int \color{green}{q_\phi(z|x)} \color{black}{\log} \left( \color{black}\frac{\color{green}{q_\phi(z|x)}}{\color{red}{p_\theta(z|x)}} \right) \color{black}{dz}}$$
 
 ::: {.callout-important icon=false collapse=true}
 ## Key Properties of KL Divergence
@@ -156,17 +155,14 @@ Understanding these properties is crucial for grasping how VAE training works:
    - In VAE context: how much information we lose by using $\color{green}{q_\phi(z|x)}$ instead of the true $\color{red}{p_\theta(z|x)}$
 :::
 
-**Our Training Objective:**
 
-By **minimizing** $\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right)$, we make our encoder's approximate posterior as accurate as possible. However, there's a problem: we can't directly compute this KL divergence because it involves the intractable posterior $\color{red}{p_\theta(z|x)}$! 
+By **minimizing** $\text{KL} \Biggl( \color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\color{black} \Biggr)$, we make our encoder's approximate posterior as accurate as possible. However, there's a problem: we can't directly compute this KL divergence because it involves the intractable posterior $\color{red}{p_\theta(z|x)}$! 
 
 This is where the ELBO (Evidence Lower Bound) comes in, which we'll derive next.
 
-### Deriving the Evidence Lower Bound (ELBO)
+## ELBO Derivation: Deriving the Evidence Lower Bound
 
-#### The Problem We Need to Solve
-
-Recall that we want to minimize $\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right)$, but we can't compute it directly because it involves the intractable posterior $\color{red}{p_\theta(z|x)}$. 
+Recall that we want to minimize $\text{KL} \Biggl( \color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr)$, but we can't compute it directly because it involves the intractable posterior $\color{red}{p_\theta(z|x)}$. 
 
 The variational inference idea is that we can derive an **alternative objective** that:
 
@@ -176,49 +172,49 @@ The variational inference idea is that we can derive an **alternative objective*
 
 Let's derive this alternative objective step by step.
 
-#### Step 1: Start with the KL Divergence
+### Step 1: Start with the KL Divergence
 
 For continuous latent variables, the KL divergence is defined as:
 
-$$\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \int \color{green}{q_\phi(z|x)} \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{red}{p_\theta(z|x)}} \right) dz$$
+$$\text{KL} \Biggl( \color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \int \color{green}{q_\phi(z|x)} \color{black}{\log} \left( \color{black}\frac{\color{green}{q_\phi(z|x)}}{\color{red}{p_\theta(z|x)}} \right) \color{black}{dz}}$$
 
-#### Step 2: Apply Bayes' Rule to the Posterior
+### Step 2: Apply Bayes' Rule to the Posterior
 
 Using Bayes' rule, we know that:
 
-$$\color{red}{p_\theta(z|x)} = \frac{p_\theta(x,z)}{\color{teal}{p_\theta(x)}}$$
+$$\color{red}{p_\theta(z|x)} \color{black}{= \frac{p_\theta(x,z)}{\color{teal}{p_\theta(x)}}}$$
 
 Substituting this into our KL divergence:
 
-$$\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \int \color{green}{q_\phi(z|x)} \log \left( \frac{\color{green}{q_\phi(z|x)} \cdot \color{teal}{p_\theta(x)}}{p_\theta(x,z)} \right) dz$$
+$$\text{KL} \Biggl( \color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \int \color{green}{q_\phi(z|x)} \color{black}{\log} \left( \color{black}\frac{\color{green}{q_\phi(z|x)} \cdot \color{teal}{p_\theta(x)}}{p_\theta(x,z)} \right) \color{black}{dz}}$$
 
-#### Step 3: Split the Logarithm
+### Step 3: Split the Logarithm
 
-Using the property $\log(ab/c) = \log(a) + \log(b) - \log(c)$:
+Using the property $\log(ab/c) = \log(a) + \log(b/c)$, where $a = \color{teal}{p_\theta(x)}$, $b = \color{green}{q_\phi(z|x)}$, and $c = p_\theta(x,z)$:
 
-$$\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \int \color{green}{q_\phi(z|x)} \left[ \log(\color{teal}{p_\theta(x)}) + \log \left( \frac{\color{green}{q_\phi(z|x)}}{p_\theta(x,z)} \right) \right] dz$$
+$$\text{KL} \Biggl( \color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \int \color{green}{q_\phi(z|x)} \color{black}{\left[ \log(\color{teal}{p_\theta(x)} \color{black}) + \log \left( \frac{\color{green}{q_\phi(z|x)}}{p_\theta(x,z)} \right) \right]} \color{black}{dz}}$$
 
-#### Step 4: Separate the Integral
+### Step 4: Separate the Integral
 
 Split into two integrals:
 
-$$\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \int \color{green}{q_\phi(z|x)} \log(\color{teal}{p_\theta(x)}) \, dz + \int \color{green}{q_\phi(z|x)} \log \left( \frac{\color{green}{q_\phi(z|x)}}{p_\theta(x,z)} \right) dz$$
+$$\text{KL}\Biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\color{black} \Biggr) \color{black}{= \int \color{green}{q_\phi(z|x)} \color{black} \log(\color{teal}{p_\theta(x)} \color{black} ) \, dz + \int \color{green}{q_\phi(z|x)} \color{black} \log \left( \frac{\color{green}{q_\phi(z|x)}}{p_\theta(x,z)} \right) dz}$$
 
 ::: {.callout-note icon=false}
 ## Key Observation: The Evidence is Constant
 
 The first integral simplifies because $\color{teal}{p_\theta(x)}$ doesn't depend on $z$:
 
-$$\int \color{green}{q_\phi(z|x)} \log(\color{teal}{p_\theta(x)}) \, dz = \log(\color{teal}{p_\theta(x)}) \int \color{green}{q_\phi(z|x)} \, dz = \log(\color{teal}{p_\theta(x)})$$
+$$\int \color{green}{q_\phi(z|x)} \color{black} \log(\color{teal}{p_\theta(x)} \color{black}) \color{black} \, dz = \log(\color{teal}{p_\theta(x)} \color{black}) \int \color{green}{q_\phi(z|x)} \color{black} \, dz = \log(\color{teal}{p_\theta(x)} \color{black})$$
 
-since $\int \color{green}{q_\phi(z|x)} \, dz = 1$ (probability distributions must integrate to 1).
+since $\int \color{green}{q_\phi(z|x)} \color{black} \, dz = 1$ (probability distributions must integrate to 1).
 :::
 
 So now we have:
 
-$$\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \log(\color{teal}{p_\theta(x)}) + \int \color{green}{q_\phi(z|x)} \log \left( \frac{\color{green}{q_\phi(z|x)}}{p_\theta(x,z)} \right) dz$$
+$$\text{KL}\Biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \log(\color{teal}{p_\theta(x)} \color{black}) + \int \color{green}{q_\phi(z|x)} \color{black} \log \left( \frac{\color{green}{q_\phi(z|x)}}{p_\theta(x,z)} \right) \color{black}{dz}}$$
 
-#### Step 5: Decompose the Joint Distribution
+### Step 5: Decompose the Joint Distribution
 
 The joint distribution can be factored as:
 
@@ -226,79 +222,83 @@ $$p_\theta(x,z) = \color{blue}{p_\theta(x|z)} \cdot \color{purple}{p_\theta(z)}$
 
 Substituting this:
 
-$$\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \log(\color{teal}{p_\theta(x)}) + \int \color{green}{q_\phi(z|x)} \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{blue}{p_\theta(x|z)} \cdot \color{purple}{p_\theta(z)}} \right) dz$$
+$$\text{KL}\Biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \log(\color{teal}{p_\theta(x)} \color{black}) + \int \color{green}{q_\phi(z|x)} \color{black} \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{blue}{p_\theta(x|z)} \cdot \color{purple}{p_\theta(z)}} \right) \color{black}{dz}}$$
 
-#### Step 6: Simplify Using Logarithm Properties
+### Step 6: Simplify Using Logarithm Properties
 
-Using $\log(a/(bc)) = \log(a/b) - \log(c)$:
+Using $\log(a/(bc)) = \log(a/b) - \log(c)$, where $a = \color{green}{q_\phi(z|x)}$, $b = \color{purple}{p_\theta(z)}$, and $c = \color{blue}{p_\theta(x|z)}$:
 
-$$\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \log(\color{teal}{p_\theta(x)}) + \int \color{green}{q_\phi(z|x)} \left[ \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{purple}{p_\theta(z)}} \right) - \log(\color{blue}{p_\theta(x|z)}) \right] dz$$
+$$\text{KL}\Biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \log(\color{teal}{p_\theta(x)} \color{black}) + \int \color{green}{q_\phi(z|x)} \color{black} \left[ \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{purple}{p_\theta(z)}} \right) - \log(\color{blue}{p_\theta(x|z)} \color{black}) \right]{dz}}$$
 
-#### Step 7: Split Into Two Integrals
+### Step 7: Split Into Two Integrals
 
-$$\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \log(\color{teal}{p_\theta(x)}) + \int \color{green}{q_\phi(z|x)} \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{purple}{p_\theta(z)}} \right) dz - \int \color{green}{q_\phi(z|x)} \log(\color{blue}{p_\theta(x|z)}) \, dz$$
+$$\text{KL}\Biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \log(\color{teal}{p_\theta(x)} \color{black}) + \int \color{green}{q_\phi(z|x)} \color{black} \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{purple}{p_\theta(z)}} \right) \color{black}{dz} - \int \color{green}{q_\phi(z|x)} \color{black} \log(\color{blue}{p_\theta(x|z)} \color{black}) \color{black}{dz}}$$
 
-#### Step 8: Recognize Standard Forms
+### Step 8: Recognize Standard Forms
 
 The second term is the KL divergence between $\color{green}{q_\phi(z|x)}$ and the prior $\color{purple}{p_\theta(z)}$:
 
-$$\int \color{green}{q_\phi(z|x)} \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{purple}{p_\theta(z)}} \right) dz = \text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\right)$$
+$$\int \color{green}{q_\phi(z|x)} \color{black} \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{purple}{p_\theta(z)}} \right) \color{black}{dz} = \text{KL}\Biggl(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\color{black} \Biggr)$$
 
 The third term is an expectation under $\color{green}{q_\phi(z|x)}$:
 
-$$\int \color{green}{q_\phi(z|x)} \log(\color{blue}{p_\theta(x|z)}) \, dz = \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)}) \right]$$
+$$\int \color{green}{q_\phi(z|x)} \color{black} \log(\color{blue}{p_\theta(x|z)} \color{black}) \color{black} \, dz = \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)}\color{black}) \right]$$
 
 Therefore:
 
-$$\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) = \log(\color{teal}{p_\theta(x)}) + \text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\right) - \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)}) \right]$$
+$$\text{KL}\Bigg(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) = \log(\color{teal}{p_\theta(x)} \color{black}) + \text{KL}\Biggl(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\color{black} \Biggr) - \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)} \color{black}) \right]$$
 
-#### Step 9: Rearrange to Isolate the Evidence
+### Step 9: Rearrange to Isolate the Evidence (That Is $p_\theta(x)$)
 
 Rearranging the equation:
 
-$$\log(\color{teal}{p_\theta(x)}) = \text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right) + \underbrace{\mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)}) \right] - \text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\right)}_{\text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x)}$$
+$$\log(\color{teal}{p_\theta(x)} \color{black}) = \text{KL}\biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\biggr) + \underbrace{\mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)} \color{black}) \right] - \text{KL}\biggl(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\color{black} \biggr)}_{\text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x)}$$
 
 ::: {.callout-important icon=false}
 ## The Evidence Lower Bound (ELBO)
 
 We define the **Evidence Lower Bound** (ELBO) as:
 
-$$\text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x) = \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)}) \right] - \text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\right)$$
+$$\text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x \color{black}) = \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)} \color{black}) \right] - \text{KL}\biggl(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\color{black} \biggr)$$
 
 **Why is it called a "lower bound"?**
 
-From the equation above:
-$$\log(\color{teal}{p_\theta(x)}) = \underbrace{\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right)}_{\geq 0} + \text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x)$$
+From the equation in step 9:
+$$\log(\color{teal}{p_\theta(x)} \color{black}) = \underbrace{\text{KL}\biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\biggr)}_{\geq 0} + \text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x \color{black})$$
 
-Since $\text{KL} \geq 0$, we have:
-$$\text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x) \leq \log(\color{teal}{p_\theta(x)})$$
+Rearranging to isolate the ELBO:
+$$\text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x \color{black}) = \log(\color{teal}{p_\theta(x)} \color{black}) - \text{KL}\biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\biggr)$$
 
-The ELBO provides a **lower bound** on the log-evidence $\log(\color{teal}{p_\theta(x)})$!
+Since $\text{KL} \geq 0$ (always non-negative), we're **subtracting** a non-negative value from the log-evidence:
+
+$$\text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x \color{black}) = \log(\color{teal}{p_\theta(x)} \color{black}) - \underbrace{\text{KL}}_{\geq 0} \leq \log(\color{teal}{p_\theta(x)} \color{black})$$
+
+Therefore, the ELBO is always **less than or equal to** the log-evidence, $\log(\color{teal}{p_\theta(x)}\color{black} )$! It provides a **lower bound**! The gap between them is exactly the KL divergence between our approximate and true posteriors.
 :::
 
-#### Step 10: The VAE Loss Function
+### Step 10: The VAE Loss Function
 
 In practice, we want to **minimize a loss function**. The VAE loss is simply the **negative ELBO**:
 
-$$\mathcal{L}_{\text{VAE}}(\color{blue}{\theta}, \color{green}{\phi}; x) = -\text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x)$$
+$$\mathcal{L}_{\text{VAE}}(\color{blue}{\theta}, \color{green}{\phi}; x \color{black}) = -\text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}\color{black}; x )$$
 
-$$\boxed{\mathcal{L}_{\text{VAE}}(\color{blue}{\theta}, \color{green}{\phi}; x) = \text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\right) - \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)}) \right]}$$
+$$\boxed{\mathcal{L}_{\text{VAE}}(\color{blue}{\theta}, \color{green}{\phi}; x \color{black}) = \text{KL}\biggl(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\color{black} \biggr) - \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)} \color{black}) \right]}$$
 
 We seek the optimal parameters:
 
-$$\color{green}{\phi}^*, \color{blue}{\theta}^* = \arg\min_{\color{green}{\phi}, \color{blue}{\theta}} \mathcal{L}_{\text{VAE}}(\color{blue}{\theta}, \color{green}{\phi}; x)$$
+$$\color{green}{\phi}^*, \color{blue}{\theta}^* \color{black}{= \arg\min_{\color{green}{\phi}, \color{blue}{\theta}} \mathcal{L}_{\text{VAE}}(\color{blue}{\theta}, \color{green}{\phi} \color{black}; x )}$$
 
 ::: {.callout-tip icon=false}
 ## Interpreting the VAE Loss
 
 The VAE loss has two terms:
 
-1. **KL Regularization Term**: $\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\right)$
+1. **KL Regularization Term**: $\text{KL}\biggl(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\color{black} \biggr)$
    - Encourages the encoder's approximate posterior to stay close to the prior
    - Acts as a regularizer preventing overfitting
    - Ensures the latent space has a nice structure
 
-2. **Reconstruction Term**: $-\mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)}) \right]$
+2. **Reconstruction Term**: $-\mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)} \color{black}) \right]$
    - Encourages the decoder to reconstruct the input accurately
    - When the decoder outputs Gaussian distributions, this becomes MSE (Mean Squared Error)
    - When the decoder outputs Bernoulli distributions, this becomes BCE (Binary Cross-Entropy)
@@ -310,22 +310,21 @@ It enforces the following properties:
 - **Valid sampling:** Samples drawn from the prior fall in regions the decoder understands, producing realistic generations.
 :::
 
-
-**Parameter Names:**
+### Parameter Names: What Are the Parameters of the VAE?
 
 - $\color{green}{\phi}$ are the **variational parameters** (encoder parameters)
 - $\color{blue}{\theta}$ are the **generative parameters** (decoder parameters)
 
-**Why This Solves Our Problem:**
+### Why This Solves Our Problem: What Is the Purpose of the VAE Loss?
 
 Maximizing the ELBO (equivalently, minimizing $\mathcal{L}_{\text{VAE}}$) simultaneously:
 
-1. Increases $\log(\color{teal}{p_\theta(x)})$ (generates more realistic samples)
-2. Decreases $\text{KL}\left(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\right)$ (better posterior approximation)
+1. Increases $\log(\color{teal}{p_\theta(x)} \color{black})$ (generates more realistic samples)
+2. Decreases $\text{KL}\biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\biggr)$ (better posterior approximation)
 
 And we can compute everything in the ELBO without ever needing the intractable $\color{red}{p_\theta(z|x)}$!
 
-### Key Takeaways and Final Remarks
+## Conclusion: Key Takeaways and Final Remarks
 
 The Variational Autoencoder framework provides a principled solution to learning latent variable models when exact inference is intractable. By introducing a tractable variational posterior and optimizing the Evidence Lower Bound (ELBO), we transform an otherwise impossible likelihood maximization problem into a practical and scalable objective that can be optimized with stochastic gradient methods.
 
