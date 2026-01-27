@@ -62,7 +62,7 @@ $$\color{purple}{\theta^*} {\color{black}{= \arg \max_{\theta}\prod_{i=1}^N}} \c
 
 However, it is usually more convenient and numerically stable to work with the log-likelihood (since logs turn products into sums). Therefore, we rewrite the objective as:
 
-$$\color{purple}{\theta^*} \color{black}{ = \arg \max_{\theta}\sum_{i=1}^N \log} \; \color{teal}{p_\theta(\vec{x}^{(i)})}$$
+$$\color{purple}{\theta^*} \color{black}{ = \arg \max_{\theta}\sum_{i=1}^N \log} \; \color{black}{\left( \color{teal}{p_\theta(\vec{x}^{(i)})} \color{black} \right)}$$
 
 To compute $\color{teal}{p_\theta(\vec{x}^{i})}$, we marginalize over the latent variable $z$:
 
