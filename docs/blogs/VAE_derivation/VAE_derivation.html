@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.40">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>vae_derivation</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-549806ee2085284f45b00abea8c6df48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-d045e70ebd9269c25e164ecdb4898f56.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Avid Afzal</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blogs.html"> 
+<span class="menu-text">Blogs</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#mathematical-derivation-of-vae" id="toc-mathematical-derivation-of-vae" class="nav-link active" data-scroll-target="#mathematical-derivation-of-vae">Mathematical Derivation of VAE</a>
+  <ul class="collapse">
+  <li><a href="#what-is-the-aim-of-this-blog" id="toc-what-is-the-aim-of-this-blog" class="nav-link" data-scroll-target="#what-is-the-aim-of-this-blog">What Is the Aim of This Blog?</a></li>
+  <li><a href="#introduction-what-are-variational-autoencoders-vaes" id="toc-introduction-what-are-variational-autoencoders-vaes" class="nav-link" data-scroll-target="#introduction-what-are-variational-autoencoders-vaes">Introduction: What Are Variational Autoencoders (VAEs)?</a></li>
+  <li><a href="#intuition-what-a-vae-is-really-learning" id="toc-intuition-what-a-vae-is-really-learning" class="nav-link" data-scroll-target="#intuition-what-a-vae-is-really-learning">Intuition: What a VAE Is Really Learning</a></li>
+  <li><a href="#assumptions-what-are-the-core-assumptions-of-a-vae-model" id="toc-assumptions-what-are-the-core-assumptions-of-a-vae-model" class="nav-link" data-scroll-target="#assumptions-what-are-the-core-assumptions-of-a-vae-model">Assumptions: What Are the Core Assumptions of a VAE Model?</a></li>
+  <li><a href="#architecture-what-is-the-role-of-vaes-encoder-and-decoder" id="toc-architecture-what-is-the-role-of-vaes-encoder-and-decoder" class="nav-link" data-scroll-target="#architecture-what-is-the-role-of-vaes-encoder-and-decoder">Architecture: What Is the Role of VAE’s Encoder and Decoder?</a></li>
+  <li><a href="#training-objective-how-can-we-learn-colorgreenphi-and-colorbluetheta-jointly" id="toc-training-objective-how-can-we-learn-colorgreenphi-and-colorbluetheta-jointly" class="nav-link" data-scroll-target="#training-objective-how-can-we-learn-colorgreenphi-and-colorbluetheta-jointly">Training Objective: How Can We Learn <span class="math inline">\(\color{green}{\phi}\)</span> and <span class="math inline">\(\color{blue}{\theta}\)</span> Jointly?</a>
+  <ul class="collapse">
+  <li><a href="#measuring-closeness-the-kl-divergence" id="toc-measuring-closeness-the-kl-divergence" class="nav-link" data-scroll-target="#measuring-closeness-the-kl-divergence">Measuring Closeness: The KL Divergence</a></li>
+  </ul></li>
+  <li><a href="#elbo-derivation-deriving-the-evidence-lower-bound" id="toc-elbo-derivation-deriving-the-evidence-lower-bound" class="nav-link" data-scroll-target="#elbo-derivation-deriving-the-evidence-lower-bound">ELBO Derivation: Deriving the Evidence Lower Bound</a>
+  <ul class="collapse">
+  <li><a href="#step-1-start-with-the-kl-divergence" id="toc-step-1-start-with-the-kl-divergence" class="nav-link" data-scroll-target="#step-1-start-with-the-kl-divergence">Step 1: Start with the KL Divergence</a></li>
+  <li><a href="#step-2-apply-bayes-rule-to-the-posterior" id="toc-step-2-apply-bayes-rule-to-the-posterior" class="nav-link" data-scroll-target="#step-2-apply-bayes-rule-to-the-posterior">Step 2: Apply Bayes’ Rule to the Posterior</a></li>
+  <li><a href="#step-3-split-the-logarithm" id="toc-step-3-split-the-logarithm" class="nav-link" data-scroll-target="#step-3-split-the-logarithm">Step 3: Split the Logarithm</a></li>
+  <li><a href="#step-4-separate-the-integral" id="toc-step-4-separate-the-integral" class="nav-link" data-scroll-target="#step-4-separate-the-integral">Step 4: Separate the Integral</a></li>
+  <li><a href="#step-5-decompose-the-joint-distribution" id="toc-step-5-decompose-the-joint-distribution" class="nav-link" data-scroll-target="#step-5-decompose-the-joint-distribution">Step 5: Decompose the Joint Distribution</a></li>
+  <li><a href="#step-6-simplify-using-logarithm-properties" id="toc-step-6-simplify-using-logarithm-properties" class="nav-link" data-scroll-target="#step-6-simplify-using-logarithm-properties">Step 6: Simplify Using Logarithm Properties</a></li>
+  <li><a href="#step-7-split-into-two-integrals" id="toc-step-7-split-into-two-integrals" class="nav-link" data-scroll-target="#step-7-split-into-two-integrals">Step 7: Split Into Two Integrals</a></li>
+  <li><a href="#step-8-recognize-standard-forms" id="toc-step-8-recognize-standard-forms" class="nav-link" data-scroll-target="#step-8-recognize-standard-forms">Step 8: Recognize Standard Forms</a></li>
+  <li><a href="#step-9-rearrange-to-isolate-the-evidence-that-is-p_thetax" id="toc-step-9-rearrange-to-isolate-the-evidence-that-is-p_thetax" class="nav-link" data-scroll-target="#step-9-rearrange-to-isolate-the-evidence-that-is-p_thetax">Step 9: Rearrange to Isolate the Evidence (That Is <span class="math inline">\(p_\theta(x)\)</span>)</a></li>
+  <li><a href="#step-10-the-vae-loss-function" id="toc-step-10-the-vae-loss-function" class="nav-link" data-scroll-target="#step-10-the-vae-loss-function">Step 10: The VAE Loss Function</a></li>
+  <li><a href="#parameter-names-what-are-the-parameters-of-the-vae" id="toc-parameter-names-what-are-the-parameters-of-the-vae" class="nav-link" data-scroll-target="#parameter-names-what-are-the-parameters-of-the-vae">Parameter Names: What Are the Parameters of the VAE?</a></li>
+  <li><a href="#why-this-solves-our-problem-what-is-the-purpose-of-the-vae-loss" id="toc-why-this-solves-our-problem-what-is-the-purpose-of-the-vae-loss" class="nav-link" data-scroll-target="#why-this-solves-our-problem-what-is-the-purpose-of-the-vae-loss">Why This Solves Our Problem: What Is the Purpose of the VAE Loss?</a></li>
+  </ul></li>
+  <li><a href="#limitations-what-are-the-key-limitations-of-vaes" id="toc-limitations-what-are-the-key-limitations-of-vaes" class="nav-link" data-scroll-target="#limitations-what-are-the-key-limitations-of-vaes">Limitations: What Are the Key Limitations of VAEs?</a>
+  <ul class="collapse">
+  <li><a href="#blurry-reconstructions" id="toc-blurry-reconstructions" class="nav-link" data-scroll-target="#blurry-reconstructions">1. Blurry Reconstructions</a></li>
+  <li><a href="#posterior-collapse" id="toc-posterior-collapse" class="nav-link" data-scroll-target="#posterior-collapse">2. Posterior Collapse</a></li>
+  <li><a href="#limited-expressiveness" id="toc-limited-expressiveness" class="nav-link" data-scroll-target="#limited-expressiveness">3. Limited Expressiveness</a></li>
+  <li><a href="#inability-to-directly-measure-true-likelihood" id="toc-inability-to-directly-measure-true-likelihood" class="nav-link" data-scroll-target="#inability-to-directly-measure-true-likelihood">4. Inability to Directly Measure True Likelihood</a></li>
+  </ul></li>
+  <li><a href="#conclusion-key-takeaways-and-final-remarks" id="toc-conclusion-key-takeaways-and-final-remarks" class="nav-link" data-scroll-target="#conclusion-key-takeaways-and-final-remarks">Conclusion: Key Takeaways and Final Remarks</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content column-page-left" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
+
+
+
+
+<section id="mathematical-derivation-of-vae" class="level1">
+<h1>Mathematical Derivation of VAE</h1>
+<section id="what-is-the-aim-of-this-blog" class="level2">
+<h2 class="anchored" data-anchor-id="what-is-the-aim-of-this-blog">What Is the Aim of This Blog?</h2>
+<p>This blog draws upon insights from <a href="https://hunterheidenreich.com/posts/modern-variational-autoencoder-in-pytorch/">this article</a> and <a href="https://lilianweng.github.io/posts/2018-08-12-vae/">this post</a>, with the objective of developing a better understanding of Variational Autoencoders (VAEs) for my own research.</p>
+</section>
+<section id="introduction-what-are-variational-autoencoders-vaes" class="level2">
+<h2 class="anchored" data-anchor-id="introduction-what-are-variational-autoencoders-vaes">Introduction: What Are Variational Autoencoders (VAEs)?</h2>
+<p>Variational Autoencoders (VAEs) are a foundational class of latent variable models that combine probabilistic modeling with neural networks, enabling <strong>both representation learning and data generation</strong>. Unlike standard autoencoders, VAEs provide a principled probabilistic framework that allows us to <strong>reason about uncertainty</strong>, <strong>impose structure on latent spaces</strong>, and <strong>perform meaningful sampling</strong>.</p>
+<p>At a high level, VAEs assume that high-dimensional observations are generated from a lower-dimensional latent variable through a stochastic process. Learning such models, however, presents a central challenge: <strong>the true posterior distribution over latent variables is intractable</strong>. Variational inference resolves this by introducing a tractable approximation and reframing learning as an optimization problem.</p>
+<p>The goal of this post is to develop a precise and fully mathematical understanding of how VAEs are derived; from their generative assumptions to the Evidence Lower Bound (ELBO) that is optimized in practice. Rather than focusing on intuition alone, I walk through each step of the derivation, clarifying where approximations are introduced and why the final objective is both computable and effective.</p>
+</section>
+<section id="intuition-what-a-vae-is-really-learning" class="level2">
+<h2 class="anchored" data-anchor-id="intuition-what-a-vae-is-really-learning">Intuition: What a VAE Is Really Learning</h2>
+<p>A VAE assumes that each data point can be explained by a small set of hidden factors (latent variables)that capture the essential structure of the data.</p>
+<p>The <span style="color:#d7263d; font-weight:bold;">encoder</span> does not map an input to a single point in latent space, but instead learns <strong>a distribution over plausible latent representations</strong>, reflecting uncertainty about how the data was generated.</p>
+<p>The <span style="color:#2176ff; font-weight:bold;">decoder</span> then learns how to <strong>probabilistically reconstruct the data from samples drawn from this latent distribution</strong>.</p>
+<p><strong>Training a VAE is therefore a balancing act:</strong> we want latent representations that are expressive enough to reconstruct the data well, while also being regularized to follow a simple prior distribution so that the latent space remains smooth and generative.</p>
+</section>
+<section id="assumptions-what-are-the-core-assumptions-of-a-vae-model" class="level2">
+<h2 class="anchored" data-anchor-id="assumptions-what-are-the-core-assumptions-of-a-vae-model">Assumptions: What Are the Core Assumptions of a VAE Model?</h2>
+<p>Assume we have a dataset <span class="math inline">\(X\)</span>:</p>
+<p><span class="math display">\[X = [\vec{x}^{(i)}]_{i=1}^N = \{\vec{x}^{(1)}, \vec{x}^{(2)}, \ldots, \vec{x}^{(N)}\}\]</span></p>
+<p>Each <span class="math inline">\(\vec{x}^{(i)}\)</span> is IID. It can be continuous or discrete-valued.</p>
+<p>The VAE framework makes the following <strong>fundamental assumptions</strong> about how the observed data is generated:</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Assumption 1: Latent Prior Distribution
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Each latent vector <span class="math inline">\(\vec{z}^{(i)}\)</span> is drawn from a <strong>prior distribution</strong>:</p>
+<p><span class="math display">\[\vec{z}^{(i)} \sim \color{purple}{p_{\theta^*}(\vec{z})}\]</span></p>
+<p>where <span class="math inline">\(\color{purple}{p_{\theta^*}(\vec{z})}\)</span> is the <span class="math inline">\(\color{purple}{\text{prior}}\)</span> over the lower-dimensional latent space, parameterized by <span class="math inline">\(\color{purple}{\theta^*}\)</span>.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Assumption 2: Conditional Likelihood
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Each observed data point is generated from its corresponding latent vector through a <strong>conditional distribution</strong>:</p>
+<p><span class="math display">\[\vec{x}^{(i)} \sim \color{blue}{p_{\theta^*}(\vec{x} \mid \vec{z} = \vec{z}^{(i)})}\]</span></p>
+<p>where <span class="math inline">\(\color{blue}{p_{\theta^*}(\vec{x} \mid \vec{z})}\)</span> is the model’s <span class="math inline">\(\color{blue}{\text{likelihood}}\)</span> function, representing the probability of generating <span class="math inline">\(\vec{x}\)</span> given latent code <span class="math inline">\(\vec{z}\)</span>.</p>
+</div>
+</div>
+<p>In essence, we assume the observed high-dimensional dataset <span class="math inline">\(X\)</span> is generated by a <strong>latent variable model</strong> with an underlying lower-dimensional random process <span class="math inline">\(\vec{z}\)</span>.</p>
+<p>The goal is to find the parameter <span class="math inline">\(\color{purple}{\theta^*}\)</span> that makes our observed data as likely as possible under the model. In other words, we want to maximize the likelihood of the data:</p>
+<p><span class="math display">\[\color{purple}{\theta^*} {\color{black}{= \arg \max_{\theta}\prod_{i=1}^N}} \color{teal}{p_\theta(\vec{x}^{(i)})}\]</span></p>
+<p>However, it is usually more convenient and numerically stable to work with the log-likelihood (since logs turn products into sums). Therefore, we rewrite the objective as:</p>
+<p><span class="math display">\[\color{purple}{\theta^*} \color{black}{ = \arg \max_{\theta}\sum_{i=1}^N \log} \; \color{black}{\left( \color{teal}{p_\theta(\vec{x}^{(i)})} \color{black} \right)}\]</span></p>
+<p>To compute <span class="math inline">\(\color{teal}{p_\theta(\vec{x}^{i})}\)</span>, we marginalize over the latent variable <span class="math inline">\(z\)</span>:</p>
+<p><span class="math display">\[\color{teal}{p_\theta(\vec{x}^{i})} \color{black}{=\int} \color{blue}{p_\theta(x|z)}\, \color{orange}{p_\theta(z)}\, \color{black}{dz}\]</span></p>
+<p>However, directly computing this integral is typically <strong>intractable</strong> because it requires evaluating <span class="math inline">\(\color{blue}{p_\theta(x|z)}\)</span> for all possible values of <span class="math inline">\(z\)</span>. To make this computation practical, we introduce an auxiliary function, <span class="math inline">\(\color{green}{q_\phi(z|x)}\)</span>, called the variational distribution or approximate posterior. This function, parameterized by <span class="math inline">\(\color{green}{\phi}\)</span>, provides a tractable way to estimate which values of <span class="math inline">\(z\)</span> are likely given a particular input <span class="math inline">\(x\)</span>.</p>
+</section>
+<section id="architecture-what-is-the-role-of-vaes-encoder-and-decoder" class="level2">
+<h2 class="anchored" data-anchor-id="architecture-what-is-the-role-of-vaes-encoder-and-decoder">Architecture: What Is the Role of VAE’s Encoder and Decoder?</h2>
+<p>To understand the VAE architecture, let’s start with <strong>Bayes’ theorem</strong>, which relates our key distributions:</p>
+<p><span class="math display">\[\color{red}{p_\theta(z|x)} \color{black}{= \frac{\color{orange}{p_\theta(z)} \color{black}{ \times} \color{blue}{p_\theta(x|z)}}{\color{teal}{p_\theta(x)}}}\]</span></p>
+<p>This equation shows that the <strong>posterior</strong> distribution <span class="math inline">\(\color{red}{p_\theta(z|x)}\)</span> (the probability of latent code <span class="math inline">\(z\)</span> given observation <span class="math inline">\(x\)</span>) can be computed from the prior <span class="math inline">\(\color{orange}{p_\theta(z)}\)</span>, the likelihood <span class="math inline">\(\color{blue}{p_\theta(x|z)}\)</span>, and the evidence <span class="math inline">\(\color{teal}{p_\theta(x)}\)</span>.</p>
+<section id="the-challenge-intractable-posterior" class="level4">
+<h4 class="anchored" data-anchor-id="the-challenge-intractable-posterior">The Challenge: Intractable Posterior</h4>
+<p>The posterior <span class="math inline">\(\color{red}{p_\theta(z|x)}\)</span> is <strong>intractable</strong> to compute directly because it requires knowing <span class="math inline">\(\color{teal}{p_\theta(x)}\)</span>, which involves the difficult integral we discussed earlier. This is where the VAE’s two-part architecture comes in:</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+The Encoder (Recognition Network)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The <strong>encoder</strong> approximates the intractable posterior <span class="math inline">\(\color{red}{p_\theta(z|x)}\)</span> using variational inference.</p>
+<ul>
+<li>We introduce a <strong>variational distribution</strong> <span class="math inline">\(\color{green}{q_\phi(z|x)}\)</span> that is designed to be tractable</li>
+<li>The encoder learns parameters <span class="math inline">\(\color{green}{\phi}\)</span> to make <span class="math inline">\(\color{green}{q_\phi(z|x)} \color{black}{\approx} \color{red}{p_\theta(z|x)}\)</span> as close as possible</li>
+<li><strong>Role</strong>: Given an input <span class="math inline">\(x\)</span>, the encoder outputs a distribution over likely latent codes <span class="math inline">\(z\)</span></li>
+</ul>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+The Decoder (Generative Network)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The <strong>decoder</strong> models the likelihood <span class="math inline">\(\color{blue}{p_\theta(x|z)}\)</span>, which is the generative part of the model.</p>
+<ul>
+<li>The decoder learns parameters <span class="math inline">\(\color{blue}{\theta}\)</span> to map from the latent space back to the data space</li>
+<li><strong>Role</strong>: Given a latent code <span class="math inline">\(z\)</span>, the decoder outputs a distribution over possible reconstructions <span class="math inline">\(x\)</span></li>
+</ul>
+</div>
+</div>
+<p>In summary: the encoder <strong>compresses</strong> observations <span class="math inline">\(x\)</span> into latent representations <span class="math inline">\(z\)</span>, while the decoder <strong>reconstructs</strong> observations from latent codes.</p>
+</section>
+</section>
+<section id="training-objective-how-can-we-learn-colorgreenphi-and-colorbluetheta-jointly" class="level2">
+<h2 class="anchored" data-anchor-id="training-objective-how-can-we-learn-colorgreenphi-and-colorbluetheta-jointly">Training Objective: How Can We Learn <span class="math inline">\(\color{green}{\phi}\)</span> and <span class="math inline">\(\color{blue}{\theta}\)</span> Jointly?</h2>
+<p>Now we have two sets of parameters to optimize:</p>
+<ul>
+<li><strong>Encoder parameters</strong> <span class="math inline">\(\color{green}{\phi}\)</span>: control the approximate posterior <span class="math inline">\(\color{green}{q_\phi(z|x)}\)</span></li>
+<li><strong>Decoder parameters</strong> <span class="math inline">\(\color{blue}{\theta}\)</span>: control the likelihood <span class="math inline">\(\color{blue}{p_\theta(x|z)}\)</span> (and also appear in the true posterior <span class="math inline">\(\color{red}{p_\theta(z|x)}\)</span>)</li>
+</ul>
+<p>Our goal is to make the estimated posterior <span class="math inline">\(\color{green}{q_\phi(z|x)}\)</span> as close as possible to the true (but intractable) posterior <span class="math inline">\(\color{red}{p_\theta(z|x)}\)</span>.</p>
+<section id="measuring-closeness-the-kl-divergence" class="level3">
+<h3 class="anchored" data-anchor-id="measuring-closeness-the-kl-divergence">Measuring Closeness: The KL Divergence</h3>
+<p>To measure how “close” two probability distributions are, we use the <strong>Kullback-Leibler (KL) divergence</strong>. Specifically, we use the <strong>reverse KL divergence</strong>:</p>
+<p><span class="math display">\[\text{KL} \Biggl( \color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log \frac{\color{green}{q_\phi(z|x)}}{\color{red}{p_\theta(z|x)}} \right]}\]</span></p>
+<p>which can be written more explicitly as:</p>
+<ul>
+<li><p>For <strong>discrete</strong> latent variables: <span class="math display">\[\text{KL} \Biggl( \color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \sum_{z \in Z} \color{green}{q_\phi(z|x)} \color{black}{\log} \left( \color{black}\frac{\color{green}{q_\phi(z|x)}}{\color{red}{p_\theta(z|x)}} \right)}\]</span></p></li>
+<li><p>For <strong>continuous</strong> latent variables: <span class="math display">\[\text{KL} \Biggl( \color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\color{black} \Biggr) \color{black}{= \int \color{green}{q_\phi(z|x)} \color{black}{\log} \left( \color{black}\frac{\color{green}{q_\phi(z|x)}}{\color{red}{p_\theta(z|x)}} \right) \color{black}{dz}}\]</span></p></li>
+</ul>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Key Properties of KL Divergence
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Understanding these properties is helpful for grasping how VAE training works:</p>
+<p><strong>1. Non-negativity:</strong> <span class="math inline">\(\text{KL}(q \; || \; p) \geq 0\)</span> for any two distributions <span class="math inline">\(q\)</span> and <span class="math inline">\(p\)</span></p>
+<ul>
+<li>The KL divergence is always non-negative or zero</li>
+<li>This property comes from Jensen’s inequality</li>
+<li>Intuitively: there’s always some “cost” to using an approximation unless it’s exact</li>
+</ul>
+<p><strong>2. Zero if and only if distributions are identical:</strong> <span class="math inline">\(\text{KL}(q \; || \; p) = 0 \iff q = p\)</span> (almost everywhere)</p>
+<ul>
+<li>When <span class="math inline">\(q\)</span> and <span class="math inline">\(p\)</span> are exactly the same, there’s no information loss</li>
+<li>This is our ideal case: <span class="math inline">\(\color{green}{q_\phi(z|x)} \color{black}{=} \color{red}{p_\theta(z|x)}\)</span></li>
+<li>In practice, we get close but rarely achieve exactly zero</li>
+</ul>
+<p><strong>3. Asymmetric (not a distance metric):</strong> <span class="math inline">\(\text{KL}(q \; || \; p) \neq \text{KL}(p \; || \; q)\)</span> in general</p>
+<ul>
+<li>The order matters! <span class="math inline">\(\text{KL}\color{black}(\color{green}{q_\phi} \; \color{black}|| \; \color{red}{p_\theta}\color{black})\)</span> is called the <strong>reverse KL</strong></li>
+<li>Reverse KL encourages <span class="math inline">\(q\)</span> to focus on regions where <span class="math inline">\(p\)</span> has high probability
+<ul>
+<li>This results in <span class="math inline">\(q\)</span> spreading out to cover multiple modes</li>
+</ul></li>
+<li>This is why VAE tends to produce “mode-covering” behavior rather than “mode-seeking”</li>
+<li>Check this <a href="https://blog.evjang.com/2016/08/variational-bayes.html">blog</a>, where Eric Jang has a great explanation for forward and reverse KL divergence.</li>
+</ul>
+<p><strong>4. Measures information loss:</strong> It quantifies the expected extra bits (or nats) needed when using <span class="math inline">\(q\)</span> to encode samples from <span class="math inline">\(p\)</span></p>
+<ul>
+<li>In VAE context: how much information we lose by using <span class="math inline">\(\color{green}{q_\phi(z|x)}\)</span> instead of the true <span class="math inline">\(\color{red}{p_\theta(z|x)}\)</span></li>
+</ul>
+</div>
+</div>
+</div>
+<p>By <strong>minimizing</strong> <span class="math inline">\(\text{KL} \Biggl( \color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\color{black} \Biggr)\)</span>, we make our encoder’s approximate posterior as accurate as possible. However, there’s a problem: we can’t directly compute this KL divergence because it involves the intractable posterior <span class="math inline">\(\color{red}{p_\theta(z|x)}\)</span>!</p>
+<p>This is where the ELBO (Evidence Lower Bound) comes in, which we’ll derive next.</p>
+</section>
+</section>
+<section id="elbo-derivation-deriving-the-evidence-lower-bound" class="level2">
+<h2 class="anchored" data-anchor-id="elbo-derivation-deriving-the-evidence-lower-bound">ELBO Derivation: Deriving the Evidence Lower Bound</h2>
+<p>Recall that we want to minimize <span class="math inline">\(\text{KL} \Biggl( \color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr)\)</span>, but we can’t compute it directly because it involves the intractable posterior <span class="math inline">\(\color{red}{p_\theta(z|x)}\)</span>.</p>
+<p>The variational inference idea is that we can derive an <strong>alternative objective</strong> that:</p>
+<ol type="1">
+<li>Is tractable to compute</li>
+<li>Still allows us to optimize both <span class="math inline">\(\color{green}{\phi}\)</span> and <span class="math inline">\(\color{blue}{\theta}\)</span></li>
+<li>Automatically handles the intractability</li>
+</ol>
+<p>Let’s derive this alternative objective step by step.</p>
+<section id="step-1-start-with-the-kl-divergence" class="level3">
+<h3 class="anchored" data-anchor-id="step-1-start-with-the-kl-divergence">Step 1: Start with the KL Divergence</h3>
+<p>For continuous latent variables, the KL divergence is defined as:</p>
+<p><span class="math display">\[\text{KL} \Biggl( \color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \int \color{green}{q_\phi(z|x)} \color{black}{\log} \left( \color{black}\frac{\color{green}{q_\phi(z|x)}}{\color{red}{p_\theta(z|x)}} \right) \color{black}{dz}}\]</span></p>
+</section>
+<section id="step-2-apply-bayes-rule-to-the-posterior" class="level3">
+<h3 class="anchored" data-anchor-id="step-2-apply-bayes-rule-to-the-posterior">Step 2: Apply Bayes’ Rule to the Posterior</h3>
+<p>Using Bayes’ rule, we know that:</p>
+<p><span class="math display">\[\color{red}{p_\theta(z|x)} \color{black}{= \frac{p_\theta(x,z)}{\color{teal}{p_\theta(x)}}}\]</span></p>
+<p>Substituting this into our KL divergence:</p>
+<p><span class="math display">\[\text{KL} \Biggl( \color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \int \color{green}{q_\phi(z|x)} \color{black}{\log} \left( \color{black}\frac{\color{green}{q_\phi(z|x)} \cdot \color{teal}{p_\theta(x)}}{p_\theta(x,z)} \right) \color{black}{dz}}\]</span></p>
+</section>
+<section id="step-3-split-the-logarithm" class="level3">
+<h3 class="anchored" data-anchor-id="step-3-split-the-logarithm">Step 3: Split the Logarithm</h3>
+<p>Using the property <span class="math inline">\(\log(ab/c) = \log(a) + \log(b/c)\)</span>, where <span class="math inline">\(a = \color{teal}{p_\theta(x)}\)</span>, <span class="math inline">\(b = \color{green}{q_\phi(z|x)}\)</span>, and <span class="math inline">\(c = p_\theta(x,z)\)</span>:</p>
+<p><span class="math display">\[\text{KL} \Biggl( \color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \int \color{green}{q_\phi(z|x)} \color{black}{\left[ \log(\color{teal}{p_\theta(x)} \color{black}) + \log \left( \frac{\color{green}{q_\phi(z|x)}}{p_\theta(x,z)} \right) \right]} \color{black}{dz}}\]</span></p>
+</section>
+<section id="step-4-separate-the-integral" class="level3">
+<h3 class="anchored" data-anchor-id="step-4-separate-the-integral">Step 4: Separate the Integral</h3>
+<p>Split into two integrals:</p>
+<p><span class="math display">\[\text{KL}\Biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)}\color{black} \Biggr) \color{black}{= \int \color{green}{q_\phi(z|x)} \color{black} \log(\color{teal}{p_\theta(x)} \color{black} ) \, dz + \int \color{green}{q_\phi(z|x)} \color{black} \log \left( \frac{\color{green}{q_\phi(z|x)}}{p_\theta(x,z)} \right) dz}\]</span></p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+The Evidence is Constant
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The first integral simplifies because <span class="math inline">\(\color{teal}{p_\theta(x)}\)</span> doesn’t depend on <span class="math inline">\(z\)</span>:</p>
+<p><span class="math display">\[\int \color{green}{q_\phi(z|x)} \color{black} \log(\color{teal}{p_\theta(x)} \color{black}) \color{black} \, dz = \log(\color{teal}{p_\theta(x)} \color{black}) \int \color{green}{q_\phi(z|x)} \color{black} \, dz = \log(\color{teal}{p_\theta(x)} \color{black})\]</span></p>
+<p>since <span class="math inline">\(\int \color{green}{q_\phi(z|x)} \color{black} \, dz = 1\)</span> (probability distributions must integrate to 1).</p>
+</div>
+</div>
+<p>So now we have:</p>
+<p><span class="math display">\[\text{KL}\Biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \log(\color{teal}{p_\theta(x)} \color{black}) + \int \color{green}{q_\phi(z|x)} \color{black} \log \left( \frac{\color{green}{q_\phi(z|x)}}{p_\theta(x,z)} \right) \color{black}{dz}}\]</span></p>
+</section>
+<section id="step-5-decompose-the-joint-distribution" class="level3">
+<h3 class="anchored" data-anchor-id="step-5-decompose-the-joint-distribution">Step 5: Decompose the Joint Distribution</h3>
+<p>The joint distribution can be factored as:</p>
+<p><span class="math display">\[p_\theta(x,z) = \color{blue}{p_\theta(x|z)} \cdot \color{purple}{p_\theta(z)}\]</span></p>
+<p>Substituting this:</p>
+<p><span class="math display">\[\text{KL}\Biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \log(\color{teal}{p_\theta(x)} \color{black}) + \int \color{green}{q_\phi(z|x)} \color{black} \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{blue}{p_\theta(x|z)} \cdot \color{purple}{p_\theta(z)}} \right) \color{black}{dz}}\]</span></p>
+</section>
+<section id="step-6-simplify-using-logarithm-properties" class="level3">
+<h3 class="anchored" data-anchor-id="step-6-simplify-using-logarithm-properties">Step 6: Simplify Using Logarithm Properties</h3>
+<p>Using <span class="math inline">\(\log(a/(bc)) = \log(a/b) - \log(c)\)</span>, where <span class="math inline">\(a = \color{green}{q_\phi(z|x)}\)</span>, <span class="math inline">\(b = \color{purple}{p_\theta(z)}\)</span>, and <span class="math inline">\(c = \color{blue}{p_\theta(x|z)}\)</span>:</p>
+<p><span class="math display">\[\text{KL}\Biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \log(\color{teal}{p_\theta(x)} \color{black}) + \int \color{green}{q_\phi(z|x)} \color{black} \left[ \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{purple}{p_\theta(z)}} \right) - \log(\color{blue}{p_\theta(x|z)} \color{black}) \right]{dz}}\]</span></p>
+</section>
+<section id="step-7-split-into-two-integrals" class="level3">
+<h3 class="anchored" data-anchor-id="step-7-split-into-two-integrals">Step 7: Split Into Two Integrals</h3>
+<p><span class="math display">\[\text{KL}\Biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) \color{black}{= \log(\color{teal}{p_\theta(x)} \color{black}) + \int \color{green}{q_\phi(z|x)} \color{black} \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{purple}{p_\theta(z)}} \right) \color{black}{dz} - \int \color{green}{q_\phi(z|x)} \color{black} \log(\color{blue}{p_\theta(x|z)} \color{black}) \color{black}{dz}}\]</span></p>
+</section>
+<section id="step-8-recognize-standard-forms" class="level3">
+<h3 class="anchored" data-anchor-id="step-8-recognize-standard-forms">Step 8: Recognize Standard Forms</h3>
+<p>The second term is the KL divergence between <span class="math inline">\(\color{green}{q_\phi(z|x)}\)</span> and the prior <span class="math inline">\(\color{purple}{p_\theta(z)}\)</span>:</p>
+<p><span class="math display">\[\int \color{green}{q_\phi(z|x)} \color{black} \log \left( \frac{\color{green}{q_\phi(z|x)}}{\color{purple}{p_\theta(z)}} \right) \color{black}{dz} = \text{KL}\Biggl(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\color{black} \Biggr)\]</span></p>
+<p>The third term is an expectation under <span class="math inline">\(\color{green}{q_\phi(z|x)}\)</span>:</p>
+<p><span class="math display">\[\int \color{green}{q_\phi(z|x)} \color{black} \log(\color{blue}{p_\theta(x|z)} \color{black}) \color{black} \, dz = \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)}\color{black}) \right]\]</span></p>
+<p>Therefore:</p>
+<p><span class="math display">\[\text{KL}\Bigg(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\Biggr) = \log(\color{teal}{p_\theta(x)} \color{black}) + \text{KL}\Biggl(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\color{black} \Biggr) - \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)} \color{black}) \right]\]</span></p>
+</section>
+<section id="step-9-rearrange-to-isolate-the-evidence-that-is-p_thetax" class="level3">
+<h3 class="anchored" data-anchor-id="step-9-rearrange-to-isolate-the-evidence-that-is-p_thetax">Step 9: Rearrange to Isolate the Evidence (That Is <span class="math inline">\(p_\theta(x)\)</span>)</h3>
+<p>Rearranging the equation:</p>
+<p><span class="math display">\[\log(\color{teal}{p_\theta(x)} \color{black}) = \text{KL}\biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\biggr) + \underbrace{\mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)} \color{black}) \right] - \text{KL}\biggl(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\color{black} \biggr)}_{\text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x)}\]</span></p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+The Evidence Lower Bound (ELBO)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>We define the <strong>Evidence Lower Bound</strong> (ELBO) as:</p>
+<p><span class="math display">\[\text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x \color{black}) = \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)} \color{black}) \right] - \text{KL}\biggl(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\color{black} \biggr)\]</span></p>
+<p><strong>Why is it called a “lower bound”?</strong></p>
+<p>From the equation in step 9: <span class="math display">\[\log(\color{teal}{p_\theta(x)} \color{black}) = \underbrace{\text{KL}\biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\biggr)}_{\geq 0} + \text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x \color{black})\]</span></p>
+<p>Rearranging to isolate the ELBO: <span class="math display">\[\text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x \color{black}) = \log(\color{teal}{p_\theta(x)} \color{black}) - \text{KL}\biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\biggr)\]</span></p>
+<p>Since <span class="math inline">\(\text{KL} \geq 0\)</span> (always non-negative), we’re <strong>subtracting</strong> a non-negative value from the log-evidence:</p>
+<p><span class="math display">\[\text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}; x \color{black}) = \log(\color{teal}{p_\theta(x)} \color{black}) - \underbrace{\text{KL}}_{\geq 0} \leq \log(\color{teal}{p_\theta(x)} \color{black})\]</span></p>
+<p>Therefore, the ELBO is always <strong>less than or equal to</strong> the log-evidence, <span class="math inline">\(\log(\color{teal}{p_\theta(x)}\color{black} )\)</span>! It provides a <strong>lower bound</strong>! The gap between them is exactly the KL divergence between our approximate and true posteriors.</p>
+</div>
+</div>
+</section>
+<section id="step-10-the-vae-loss-function" class="level3">
+<h3 class="anchored" data-anchor-id="step-10-the-vae-loss-function">Step 10: The VAE Loss Function</h3>
+<p>In practice, we want to <strong>minimize a loss function</strong>. The VAE loss is simply the <strong>negative ELBO</strong>:</p>
+<p><span class="math display">\[\mathcal{L}_{\text{VAE}}(\color{blue}{\theta}, \color{green}{\phi}; x \color{black}) = -\text{ELBO}(\color{blue}{\theta}, \color{green}{\phi}\color{black}; x )\]</span></p>
+<p><span class="math display">\[\boxed{\mathcal{L}_{\text{VAE}}(\color{blue}{\theta}, \color{green}{\phi}; x \color{black}) = \text{KL}\biggl(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\color{black} \biggr) - \mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)} \color{black}) \right]}\]</span></p>
+<p>We seek the optimal parameters:</p>
+<p><span class="math display">\[\color{green}{\phi}^*, \color{blue}{\theta}^* \color{black}{= \arg\min_{\color{green}{\phi}, \color{blue}{\theta}} \mathcal{L}_{\text{VAE}}(\color{blue}{\theta}, \color{green}{\phi} \color{black}; x )}\]</span></p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Interpreting the VAE Loss
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The VAE loss has two terms:</p>
+<ol type="1">
+<li><strong>KL Regularization Term</strong>: <span class="math inline">\(\text{KL}\biggl(\color{green}{q_\phi(z|x)} \; || \; \color{purple}{p_\theta(z)}\color{black} \biggr)\)</span>
+<ul>
+<li>Encourages the encoder’s approximate posterior to stay close to the prior</li>
+<li>Acts as a regularizer preventing overfitting</li>
+<li>Ensures the latent space has a nice structure</li>
+</ul></li>
+<li><strong>Reconstruction Term</strong>: <span class="math inline">\(-\mathbb{E}_{z \sim \color{green}{q_\phi(z|x)}} \left[ \log(\color{blue}{p_\theta(x|z)} \color{black}) \right]\)</span>
+<ul>
+<li>Encourages the decoder to reconstruct the input accurately</li>
+<li>When the decoder outputs Gaussian distributions, this becomes MSE (Mean Squared Error)</li>
+<li>When the decoder outputs Bernoulli distributions, this becomes BCE (Binary Cross-Entropy)</li>
+</ul></li>
+</ol>
+<p>It enforces the following properties:</p>
+<ul>
+<li><strong>Structured latent geometry:</strong> The KL term shapes latent space into a smooth, continuous manifold aligned with the prior.</li>
+<li><strong>Smooth interpolation:</strong> Nearby latent points decode to semantically similar outputs, enabling meaningful interpolations.</li>
+<li><strong>Valid sampling:</strong> Samples drawn from the prior fall in regions the decoder understands, producing realistic generations.</li>
+</ul>
+</div>
+</div>
+</section>
+<section id="parameter-names-what-are-the-parameters-of-the-vae" class="level3">
+<h3 class="anchored" data-anchor-id="parameter-names-what-are-the-parameters-of-the-vae">Parameter Names: What Are the Parameters of the VAE?</h3>
+<ul>
+<li><span class="math inline">\(\color{green}{\phi}\)</span> are the <strong>variational parameters</strong> (encoder parameters)</li>
+<li><span class="math inline">\(\color{blue}{\theta}\)</span> are the <strong>generative parameters</strong> (decoder parameters)</li>
+</ul>
+</section>
+<section id="why-this-solves-our-problem-what-is-the-purpose-of-the-vae-loss" class="level3">
+<h3 class="anchored" data-anchor-id="why-this-solves-our-problem-what-is-the-purpose-of-the-vae-loss">Why This Solves Our Problem: What Is the Purpose of the VAE Loss?</h3>
+<p>Maximizing the ELBO (equivalently, minimizing <span class="math inline">\(\mathcal{L}_{\text{VAE}}\)</span>) simultaneously:</p>
+<ol type="1">
+<li>Increases <span class="math inline">\(\log(\color{teal}{p_\theta(x)} \color{black})\)</span> (generates more realistic samples)</li>
+<li>Decreases <span class="math inline">\(\text{KL}\biggl(\color{green}{q_\phi(z|x)} \; || \; \color{red}{p_\theta(z|x)} \color{black}\biggr)\)</span> (better posterior approximation)</li>
+</ol>
+<p>And we can compute everything in the ELBO without ever needing the intractable <span class="math inline">\(\color{red}{p_\theta(z|x)}\)</span>!</p>
+</section>
+</section>
+<section id="limitations-what-are-the-key-limitations-of-vaes" class="level2">
+<h2 class="anchored" data-anchor-id="limitations-what-are-the-key-limitations-of-vaes">Limitations: What Are the Key Limitations of VAEs?</h2>
+<p>While VAEs provide a principled and elegant framework for learning latent variable models, they have several <strong>limitations</strong>:</p>
+<section id="blurry-reconstructions" class="level3">
+<h3 class="anchored" data-anchor-id="blurry-reconstructions">1. Blurry Reconstructions</h3>
+<p>One of the most noticeable issues with VAEs is their tendency to produce blurry reconstructions, particularly for images. When the decoder models the likelihood as a <strong>Gaussian distribution with a fixed variance</strong>, the <strong>VAE loss penalizes deviations from the mean prediction</strong>. As a result, when there are multiple plausible outputs for a given input, the model is incentivized to output their <strong>average</strong>; this produces a blurry result rather than choosing one sharp possibility.</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-11-contents" aria-controls="callout-11" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Why does this happen?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-11" class="callout-11-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>When the decoder models the likelihood as a Gaussian distribution with mean <span class="math inline">\(\mu_\theta(z)\)</span> (the decoder’s output) and fixed variance <span class="math inline">\(\sigma^2\)</span>, that is, <span class="math display">\[p_\theta(x|z) = \mathcal{N}(x; \mu_\theta(z), \sigma^2 I)\]</span></p>
+<p>The probability density function is: <span class="math display">\[
+p_\theta(x|z) = \frac{1}{(2\pi \sigma^2)^{D/2}} \exp\left(-\frac{1}{2\sigma^2} \|x - \mu_\theta(z)\|^2\right)
+\]</span> where <span class="math inline">\(D\)</span> is the data dimensionality.</p>
+<p>Taking the log of both sides: <span class="math display">\[
+\log p_\theta(x|z) = \log\left[\frac{1}{(2\pi \sigma^2)^{D/2}}\right] + \log\left[\exp\left(-\frac{1}{2\sigma^2} \|x - \mu_\theta(z)\|^2\right)\right]
+\]</span></p>
+<p><strong>Now simplify each term separately:</strong></p>
+<p>Starting with the first term, the normalization constant: <span class="math display">\[
+\log\left[\frac{1}{(2\pi \sigma^2)^{D/2}}\right] = \log(1) - \log\left[(2\pi \sigma^2)^{D/2}\right] = 0 - \frac{D}{2}\log(2\pi\sigma^2) = -\frac{D}{2}\log(2\pi\sigma^2)
+\]</span> where we used: <span class="math inline">\(\log(1/a) = \log(1) - \log(a) = -\log(a)\)</span> and <span class="math inline">\(\log(a^b) = b\log(a)\)</span></p>
+<p>Then, the second term, the exponential: <span class="math display">\[
+\log\left[\exp\left(-\frac{1}{2\sigma^2} \|x - \mu_\theta(z)\|^2\right)\right] = -\frac{1}{2\sigma^2} \|x - \mu_\theta(z)\|^2
+\]</span> where we used: <span class="math inline">\(\log(\exp(a)) = a\)</span></p>
+<p>Finally, combining both terms: <span class="math display">\[
+\log p_\theta(x|z) = -\frac{D}{2}\log(2\pi\sigma^2) - \frac{1}{2\sigma^2} \|x - \mu_\theta(z)\|^2
+\]</span></p>
+<p>Next, identify the constant term:</p>
+<p>The first term, <span class="math inline">\(-\frac{D}{2}\log(2\pi\sigma^2)\)</span>, is <strong>constant with respect to the model parameters</strong> <span class="math inline">\(\theta\)</span> (as long as <span class="math inline">\(\sigma^2\)</span> is fixed). This means it has <strong>no impact on optimization</strong>—so when training the model, we can <strong>safely ignore or drop this constant term</strong>. <span class="math display">\[
+\log p_\theta(x|z) \propto - \frac{1}{2\sigma^2} \|x - \mu_\theta(z)\|^2
+\]</span></p>
+<p><strong>Connect to the reconstruction loss:</strong></p>
+<p>Recall that the reconstruction term in the VAE loss is the <strong>negative</strong> expected log-likelihood, that is, <span class="math display">\[
+\text{Reconstruction Loss} = -\mathbb{E}_{z \sim q_\phi(z|x)} \left[ \log p_\theta(x|z) \right]
+\]</span></p>
+<p>Substituting our Gaussian likelihood: <span class="math display">\[
+\text{Reconstruction Loss} = \mathbb{E}_{z \sim q_\phi(z|x)} \left[ \frac{1}{2\sigma^2} \|x - \mu_\theta(z)\|^2 \right] + \text{const}
+\]</span></p>
+<p><strong>The MSE connection:</strong></p>
+<p>The squared Euclidean distance <span class="math inline">\(\|x - \mu_\theta(z)\|^2\)</span> is exactly the <strong>mean squared error (MSE)</strong>: <span class="math display">\[
+\|x - \mu_\theta(z)\|^2 = \sum_{j=1}^D (x_j - \mu_\theta(z)_j)^2 = D \cdot \text{MSE}
+\]</span></p>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-9-contents" aria-controls="callout-9" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Summary
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-9" class="callout-9-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>Maximizing</strong> <span class="math inline">\(\log p_\theta(x|z)\)</span> ⟺ <strong>Minimizing</strong> <span class="math inline">\(\|x - \mu_\theta(z)\|^2\)</span></li>
+<li>Therefore, the Gaussian likelihood assumption (with fixed variance) makes the reconstruction loss equivalent to <strong>MSE</strong></li>
+<li>MSE penalizes any deviation from the mean prediction, encouraging the decoder to output <strong>averaged</strong> or <strong>blurred</strong> reconstructions when multiple plausible outputs exist.</li>
+<li>When the data has multiple valid reconstructions (e.g., an image could have either a cat or a dog), MSE forces the decoder to hedge its bets by outputting something in between—resulting in a blurry average rather than committing to one sharp possibility.</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-10-contents" aria-controls="callout-10" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Possible Solutions (for further reading)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-10" class="callout-10-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Several approaches have been proposed to address the blurriness problem:</p>
+<ol type="1">
+<li><strong>Use different likelihood models:</strong>
+<ul>
+<li>For binary images (e.g., MNIST): Use <strong>Bernoulli likelihood</strong> instead of Gaussian <span class="math display">\[p_\theta(x|z) = \prod_{j=1}^D \text{Bernoulli}(x_j; \mu_\theta(z)_j)\]</span> This leads to binary cross-entropy loss instead of MSE</li>
+<li>For natural images: Use <a href="https://github.com/thesofakillers/dlml-tutorial"><strong>discretized logistic mixture models</strong></a> or <a href="https://arxiv.org/abs/1606.05328"><strong>PixelCNN-style</strong></a> decoders.</li>
+</ul></li>
+<li><strong>Learn the variance instead of fixing it:</strong>
+<ul>
+<li>Let the decoder output both <span class="math inline">\(\mu_\theta(z)\)</span> and <span class="math inline">\(\sigma^2_\theta(z)\)</span></li>
+<li>The model can adapt variance to different regions of the latent space</li>
+<li>Can lead to better reconstructions but requires careful training</li>
+</ul></li>
+<li><strong>Alternative divergences:</strong>
+<ul>
+<li>Use <strong>Wasserstein distance</strong> instead of KL divergence <a href="https://arxiv.org/abs/1711.01558">Wasserstein Auto-Encoders</a></li>
+<li>Can lead to better sample quality</li>
+</ul></li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="posterior-collapse" class="level3">
+<h3 class="anchored" data-anchor-id="posterior-collapse">2. Posterior Collapse</h3>
+<p>Posterior collapse occurs when the <strong>encoder becomes uninformative</strong> and the <strong>decoder ignores the latent variable</strong> <span class="math inline">\(z\)</span>. In this case,the model behaves like a decoder-only model driven by the prior.</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-14-contents" aria-controls="callout-14" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Why does this happen?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-14" class="callout-14-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Posterior collapse typically occurs when:</p>
+<ul>
+<li><p><strong>Decoder is too powerful:</strong> When using autoregressive decoders (e.g., LSTMs for text, PixelCNN for images), the decoder can model the data distribution well without needing information from <span class="math inline">\(z\)</span>. In this case, the decoder’s modeling capacity far exceeds what’s needed, it may find it easier to ignore <span class="math inline">\(z\)</span> entirely.</p></li>
+<li><p><strong>Optimization dynamics:</strong> During early training, if the decoder quickly learns to generate reasonable outputs without <span class="math inline">\(z\)</span>, the gradient signal to the encoder becomes weak</p></li>
+</ul>
+<p><strong>Mathematical perspective:</strong></p>
+<p>The VAE loss encourages minimizing: <span class="math display">\[\mathcal{L}_{\text{VAE}} = \text{KL}\biggl(q_\phi(z|x) \; || \; p_\theta(z)\biggr) - \mathbb{E}_{z \sim q_\phi(z|x)} \left[ \log p_\theta(x|z) \right]\]</span></p>
+<p>If the decoder can achieve low reconstruction error without using <span class="math inline">\(z\)</span>, then <span class="math inline">\(\log p_\theta(x|z) \approx \log p_\theta(x)\)</span> (independent of <span class="math inline">\(z\)</span>). In this case, the encoder has no incentive to encode meaningful information, and setting <span class="math inline">\(q_\phi(z|x) = p_\theta(z)\)</span> minimizes the KL term without hurting reconstruction.</p>
+<p>Here are some signs of posterior collapse:</p>
+<ol type="1">
+<li><p><strong>KL divergence drops to near zero:</strong> <span class="math display">\[\text{KL}\biggl(q_\phi(z|x) \; || \; p_\theta(z)\biggr) \approx 0\]</span> This means the encoder’s output is essentially identical to the prior.</p></li>
+<li><p><strong>Encoder becomes input-independent:</strong> <span class="math display">\[q_\phi(z|x) \approx p_\theta(z) \text{ for all } x\]</span> The encoder outputs the same distribution regardless of the input.</p></li>
+<li><p><strong>Decoder ignores the latent code:</strong> The decoder learns to generate outputs without using information from <span class="math inline">\(z\)</span>, relying solely on its own parameters</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-12-contents" aria-controls="callout-12" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Summary
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-12" class="callout-12-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ul>
+<li>Posterior collapse occurs when the decoder can achieve low reconstruction error without using <span class="math inline">\(z\)</span>, leading the encoder to set <span class="math inline">\(q_\phi(z|x) = p_\theta(z)\)</span>.</li>
+<li>This happens when the decoder is too powerful or the optimization dynamics are not conducive.</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-13-contents" aria-controls="callout-13" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Possible Solutions (for further reading)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-13" class="callout-13-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Several techniques have been developed to prevent or mitigate posterior collapse:</p>
+<ol type="1">
+<li><p><strong>KL Annealing:</strong></p>
+<ul>
+<li>Start training with <span class="math inline">\(\beta = 0\)</span> in <span class="math inline">\(\beta\)</span>-VAE and gradually increase to 1</li>
+<li>Gives the decoder time to learn to use <span class="math inline">\(z\)</span> before the KL penalty becomes strong</li>
+</ul>
+<p><strong>Modified loss function:</strong> <span class="math display">\[\mathcal{L}_{\text{KL Annealing}} = \beta_t \cdot \text{KL}\biggl(q_\phi(z|x) \; || \; p_\theta(z)\biggr) - \mathbb{E}_{z \sim q_\phi(z|x)} \left[ \log p_\theta(x|z) \right]\]</span></p>
+<p>where <span class="math inline">\(\beta_t\)</span> is a time-dependent weight that gradually increases during training.</p>
+<p>An exaplample of a common schedule is the linear schedule: <span class="math display">\[\beta_t = \min(1, t/T)\]</span> where <span class="math inline">\(t\)</span> is the training step and <span class="math inline">\(T\)</span> is the annealing period</p>
+<ul>
+<li>References:
+<ul>
+<li><a href="https://arxiv.org/abs/1903.10145">Cyclical Annealing Schedule: A Simple Approach to Mitigating KL Vanishing</a></li>
+<li><a href="https://openreview.net/forum?id=Sy2fzU9gl">Beta-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework</a></li>
+<li><a href="https://arxiv.org/abs/1804.03599">Understanding disentangling in β-VAE</a></li>
+</ul></li>
+</ul></li>
+<li><p><strong>Free Bits:</strong></p>
+<ul>
+<li>Ensure a minimum amount of information is encoded in each latent dimension</li>
+<li>Prevents any dimension from collapsing to the prior</li>
+</ul>
+<p><strong>Modified loss function:</strong> <span class="math display">\[\mathcal{L}_{\text{Free Bits}} = \sum_{j=1}^{d_z} \max\biggl(\lambda, \text{KL}_j\biggl(q_\phi(z_j|x) \; || \; p_\theta(z_j)\biggr)\biggr) - \mathbb{E}_{z \sim q_\phi(z|x)} \left[ \log p_\theta(x|z) \right]\]</span></p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">\(d_z\)</span> is the latent dimension</li>
+<li><span class="math inline">\(\text{KL}_j\)</span> is the KL divergence for the <span class="math inline">\(j\)</span>-th latent dimension</li>
+<li><span class="math inline">\(\lambda\)</span> is the minimum bits threshold (e.g., <span class="math inline">\(\lambda = 0.5\)</span> nats)</li>
+</ul>
+<p><strong>How it works:</strong></p>
+<p>If a dimension’s KL drops below <span class="math inline">\(\lambda\)</span>, that dimension contributes <span class="math inline">\(\lambda\)</span> to the loss (constant). Once KL exceeds <span class="math inline">\(\lambda\)</span>, the actual KL is used. This creates a “free” zone where dimensions below threshold aren’t penalized further.</p>
+<p><strong>Key difference from KL Annealing:</strong></p>
+<ul>
+<li><strong>KL Annealing:</strong> Applies a global time-varying weight <span class="math inline">\(\beta_t\)</span> to the entire KL term: <span class="math inline">\(\beta_t \cdot \text{KL}(q_\phi(z|x) \; || \; p_\theta(z))\)</span></li>
+<li><strong>Free Bits:</strong> Applies dimension-wise thresholding throughout training (no temporal schedule)</li>
+<li>KL Annealing is a curriculum strategy; Free Bits is a regularization constraint</li>
+<li>References:
+<ul>
+<li>First introduced in <a href="https://arxiv.org/pdf/1606.04934">Improved Variational Inference with Inverse Autoregressive Flow</a></li>
+</ul></li>
+</ul></li>
+<li><p><strong>Architectural changes:</strong></p>
+<ul>
+<li>Use <strong>weaker decoders</strong> (fewer layers, smaller hidden dimensions)</li>
+<li>Use <strong>stronger encoders</strong> (more capacity to learn meaningful representations)</li>
+</ul></li>
+<li><p><strong>Aggressive training of encoder:</strong></p>
+<ul>
+<li><p>Update encoder more frequently than decoder:</p>
+<p>In PyTorch, this can be achieved by performing multiple encoder updates for each decoder update during the training loop. For example, if you want to update the encoder 5 times for every 1 decoder update:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>encoder_optimizer <span class="op">=</span> torch.optim.Adam(encoder.parameters(), lr<span class="op">=</span><span class="fl">1e-3</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>decoder_optimizer <span class="op">=</span> torch.optim.Adam(decoder.parameters(), lr<span class="op">=</span><span class="fl">1e-3</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> batch <span class="kw">in</span> dataloader:</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> batch[<span class="st">"input"</span>].to(device)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># --- Aggressive encoder training: ---</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">5</span>):  <span class="co"># Update encoder 5x</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>        encoder_optimizer.zero_grad()</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>        z_mu, z_logvar <span class="op">=</span> encoder(x)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Implement the reparameterization trick here</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        z <span class="op">=</span> reparameterize(z_mu, z_logvar)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        recon <span class="op">=</span> decoder(z)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        loss <span class="op">=</span> vae_loss(recon, x, z_mu, z_logvar)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>        loss.backward()</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>        encoder_optimizer.step()</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ----- Decoder update -----</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    decoder_optimizer.zero_grad()</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    z_mu, z_logvar <span class="op">=</span> encoder(x).detach()  <span class="co"># Optionally, stop gradients to encoder</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    z <span class="op">=</span> reparameterize(z_mu, z_logvar)</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    recon <span class="op">=</span> decoder(z)</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    loss <span class="op">=</span> vae_loss(recon, x, z_mu, z_logvar)</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    loss.backward()</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    decoder_optimizer.step()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>This technique can help the encoder keep up with a fast-learning or powerful decoder, mitigating posterior collapse.</p></li>
+<li><p>Pre-train encoder before joint training</p></li>
+</ul></li>
+<li><p><strong>Auxiliary losses:</strong></p>
+<ul>
+<li>Add discriminative tasks that require using <span class="math inline">\(z\)</span> (e.g., predict attributes from <span class="math inline">\(z\)</span>)</li>
+<li>Add mutual information maximization terms (e.g., maximize the mutual information between the latent variable <span class="math inline">\(z\)</span> and the observed data <span class="math inline">\(x\)</span>, <span class="math inline">\(I(z; x)\)</span>, to encourage <span class="math inline">\(z\)</span> to carry more information about <span class="math inline">\(x\)</span> and prevent it from being ignored by the decoder)</li>
+</ul></li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="limited-expressiveness" class="level3">
+<h3 class="anchored" data-anchor-id="limited-expressiveness">3. Limited Expressiveness</h3>
+<p>VAEs are flexiable models that can be used to model complex distributions. One can start with a simple model and gradually increase the complexity. For instance, one can start with a <strong>simple diagonal Gaussian for the approximate posterior</strong>, <span class="math inline">\(q_\phi(z|x) = \mathcal{N}(\mu_\phi(x), \text{diag}(\sigma^2_\phi(x)))\)</span>, and a <strong>fixed isotropic Gaussian prior</strong>, <span class="math inline">\(p_\theta(z) = \mathcal{N}(0, I)\)</span>. These are reasonable assumptions to start with but they might be too restrictive for some applications.</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-17-contents" aria-controls="callout-17" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Why does this happen?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-17" class="callout-17-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Limited expressiveness can be caused by the following problems:</p>
+<ol type="1">
+<li><strong>Posterior is too simple (Amortization Gap)</strong></li>
+</ol>
+<p>Most VAE implementations use a simple diagonal Gaussian for the approximate posterior: <span class="math display">\[q_\phi(z|x) = \mathcal{N}(\mu_\phi(x), \text{diag}(\sigma^2_\phi(x)))\]</span></p>
+<p>However, the true posterior <span class="math inline">\(p_\theta(z|x)\)</span> might be:</p>
+<ul>
+<li><strong>Multimodal</strong> (multiple peaks) - e.g., an ambiguous image could encode to multiple plausible interpretations</li>
+<li><strong>Skewed</strong> or have heavy tails</li>
+<li>Have complex <strong>correlations</strong> between dimensions</li>
+</ul>
+<p>This can limit how well the VAE fits the true data distribution. A term to describe this is <strong>amortization gap</strong>.</p>
+<p>The amortization gap is the difference between using a variational inference (VI) per data point, <span class="math inline">\(q^*(z|x)\)</span>, and a single shared encoder network <span class="math inline">\(q_\phi(z|x)\)</span> that is used for all data points.</p>
+<p><span class="math display">\[
+\text{Amortization Gap} = \underbrace{L(q^*(z|x))}_{VI\;per\; data\;point} - \underbrace{L(q_\phi(z|x))}_{encoder's\;amortized\;VI\newline for\; all\; data\; points}
+\]</span></p>
+<ol start="2" type="1">
+<li><strong>Prior is too simple and fixed</strong></li>
+</ol>
+<p>The standard VAE uses a fixed isotropic Gaussian prior: <span class="math display">\[p_\theta(z) = \mathcal{N}(0, I)\]</span></p>
+<p>This can lead to the following limitations:</p>
+<ul>
+<li>Doesn’t adapt to the data</li>
+<li>Assumes all dimensions are independent and equally important</li>
+</ul>
+<ol start="3" type="1">
+<li><strong>Prior-Posterior Mismatch</strong></li>
+</ol>
+<p>The KL term <span class="math inline">\(\text{KL}(q_\phi(z|x) \; || \; p_\theta(z))\)</span> tries to force the posterior close to the prior. But if:</p>
+<ul>
+<li>The <strong>prior is too simple</strong> to match the natural structure of the aggregated (over all data points) posterior <span class="math inline">\(p_{\text{agg}}(z) = \int q_\phi(z|x) p_{\text{data}}(x) dx\)</span></li>
+<li>The <strong>posterior family is too simple</strong> to match the true (per-data-point) posterior <span class="math inline">\(p_\theta(z|x)\)</span></li>
+</ul>
+<p>Then we get a <strong>mismatch</strong>. That is, the model must choose between:</p>
+<ol type="1">
+<li>Good reconstructions (complex posterior, high KL penalty)</li>
+<li>Low KL divergence (simple posterior that matches prior, poor reconstructions)</li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-15-contents" aria-controls="callout-15" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Summary
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-15" class="callout-15-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ul>
+<li>The <strong>amortization gap</strong> is the difference between using a flexible, datapoint-specific posterior and the limitations from using a single shared encoder network. This limits how well the VAE can approximate the true posterior.</li>
+<li>A <strong>mismatch between the prior and posterior families</strong> (often because the prior is too simple or the approximate posterior is not expressive enough) creates a trade-off between accurate reconstructions and forcing latent codes to match the prior, leading to less optimal models.</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-16-contents" aria-controls="callout-16" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Possible Solutions (for further reading)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-16" class="callout-16-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>These solutions can improve either the posterior, prior, or both:</p>
+<p><strong>1. Normalizing Flows (for posterior):</strong> Transform a simple base distribution through invertible transformations to create a more expressive approximate posterior: <span class="math display">\[z_0 \sim q_0(z_0), \quad z_K = f_K \circ f_{K-1} \circ \cdots \circ f_1(z_0)\]</span></p>
+<p>The final distribution <span class="math inline">\(q(z_K)\)</span> can capture complex, multimodal structures.</p>
+<ul>
+<li><p>References:</p>
+<ul>
+<li><p><a href="https://arxiv.org/abs/1505.05770">Variational Inference with Normalizing Flows</a></p></li>
+<li><p><a href="https://arxiv.org/abs/1606.04934">Improved Variational Inference with Inverse Autoregressive Flow</a></p></li>
+</ul></li>
+</ul>
+<p><strong>2. Mixture of Gaussians Posteriors:</strong> Use a mixture distribution for the approximate posterior: <span class="math display">\[q_\phi(z|x) = \sum_{k=1}^K \pi_k(x) \mathcal{N}(z; \mu_k(x), \Sigma_k(x))\]</span></p>
+<p>This allows multimodal posteriors where a single input can map to multiple plausible latent codes.</p>
+<p><strong>3. VampPrior (Variational Mixture of Posteriors Prior):</strong> Instead of a fixed prior, use a learnable mixture of posteriors: <span class="math display">\[p(z) = \frac{1}{K} \sum_{k=1}^K q_\phi(z|u_k)\]</span></p>
+<p>where <span class="math inline">\(\{u_k\}_{k=1}^K\)</span> are learnable pseudo-inputs. This allows the prior to adapt to the data and better match the aggregated posterior.</p>
+<ul>
+<li><p>Reference:</p>
+<ul>
+<li><a href="https://arxiv.org/abs/1705.07120">VAE with a VampPrior</a></li>
+</ul></li>
+</ul>
+<p><strong>4. Normalizing Flows (for prior):</strong> Learn a flexible prior using normalizing flows: <span class="math display">\[p_\theta(z) = p_0(f_\theta^{-1}(z)) \left|\det \frac{\partial f_\theta^{-1}(z)}{\partial z}\right|\]</span></p>
+<p>This allows the prior to have complex structure while remaining tractable.</p>
+<p><strong>5. Hierarchical/Ladder VAEs:</strong> Use multiple levels of latent variables: <span class="math display">\[p_\theta(z_1, z_2, \ldots, z_L) = p(z_L) \prod_{l=1}^{L-1} p_\theta(z_l | z_{l+1})\]</span></p>
+<p>Each level can capture different aspects of the data at different scales.</p>
+<ul>
+<li><p>Reference:</p>
+<ul>
+<li><a href="https://arxiv.org/abs/1602.02282">Ladder Variational Autoencoders</a></li>
+</ul></li>
+</ul>
+<p><strong>6. Two-Stage VAE:</strong></p>
+<p>First train a standard VAE, then fit a more flexible prior to the aggregated posterior using techniques like:</p>
+<ul>
+<li><a href="https://arxiv.org/abs/1605.08803">Realnvp</a> on the aggregated posterior samples</li>
+<li>Train a second VAE on <span class="math inline">\(z\)</span> samples</li>
+</ul>
+<p>This decouples prior learning from posterior learning.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="inability-to-directly-measure-true-likelihood" class="level3">
+<h3 class="anchored" data-anchor-id="inability-to-directly-measure-true-likelihood">4. Inability to Directly Measure True Likelihood</h3>
+<p>Since the ELBO is only a <strong>lower bound</strong>, we cannot directly compute the true log-likelihood <span class="math inline">\(\log p_\theta(x)\)</span>.</p>
+<p><span class="math display">\[\log p_\theta(x) = \text{ELBO} + \underbrace{\text{KL}(q_\phi(z|x) \; || \; p_\theta(z|x))}_{\text{unknown gap}}\]</span></p>
+<p>This limitation means that, it is difficult to compare different VAE models or assess how well the model fits the true data distribution. Also, ELBO improvements don’t necessarily mean better generative quality.</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-20-contents" aria-controls="callout-20" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Why does this happen?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-20" class="callout-20-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>To compute the true log-likelihood <span class="math inline">\(\log p_\theta(x)\)</span>, we would need to marginalize over all possible latent values:</p>
+<p><span class="math display">\[\log p_\theta(x) = \log \int p_\theta(x, z) \, dz = \log \int p_\theta(x|z) p_\theta(z) \, dz\]</span></p>
+<p>This integral is generally <strong>intractable</strong> because it is not possible to compute the integral analytically or in a tractable way.</p>
+<p>ELBO helps but doesn’t fully solve this problem.</p>
+<p>We derived that: <span class="math display">\[\log p_\theta(x) = \text{ELBO}(\theta, \phi; x) + \text{KL}(q_\phi(z|x) \; || \; p_\theta(z|x))\]</span></p>
+<ul>
+<li>We can compute ELBO easily</li>
+<li>But the gap (the KL term) is unknown because it involves the intractable posterior <span class="math inline">\(p_\theta(z|x)\)</span></li>
+<li>Therefore, we only have a <strong>lower bound</strong> on the true likelihood, not the exact value</li>
+</ul>
+<p>The practical implication is that we can’t directly evaluate “how likely is this data under my model?” or accurately compare likelihoods between different VAE models.</p>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-18-contents" aria-controls="callout-18" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Summary
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-18" class="callout-18-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ul>
+<li>The true log-likelihood <span class="math inline">\(\log p_\theta(x)\)</span> is intractable to compute.</li>
+<li>ELBO helps but doesn’t fully solve this problem.</li>
+<li>We only have a <strong>lower bound</strong> on the true likelihood, not the exact value</li>
+<li>The practical implication is that we can’t directly evaluate “how likely is this data under my model?” or accurately compare likelihoods between different VAE models.<br>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-19-contents" aria-controls="callout-19" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Possible Solutions (for further reading)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-19" class="callout-19-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>There are several possible solutions to this problem:</p>
+<p><strong>1. Importance Sampling (Importance Weighted Autoencoder - IWAE):</strong></p>
+<p>Estimate the true log-likelihood using multiple samples:</p>
+<p>We can approximate the log-likelihood using importance sampling because we have access to all components of the equation via our VAE:</p>
+<p><span class="math display">\[
+\log p_\theta(x) \approx \log \frac{1}{K} \sum_{k=1}^K \frac{p_\theta(x, z_k)}{q_\phi(z_k|x)}, \quad z_k \sim q_\phi(z|x)
+\]</span></p>
+<p>where the joint distribution in the numerator can be expanded as: <span class="math display">\[
+p_\theta(x, z_k) = p_\theta(x|z_k)\; p_\theta(z_k)
+\]</span></p>
+<ul>
+<li><span class="math inline">\(q_\phi(z|x)\)</span>: The <strong>encoder</strong> of the VAE parameterized by <span class="math inline">\(\phi\)</span> generates samples <span class="math inline">\(z_k\)</span> given <span class="math inline">\(x\)</span>.</li>
+<li><span class="math inline">\(p_\theta(x|z_k)\)</span>: The <strong>decoder</strong> of the VAE parameterized by <span class="math inline">\(\theta\)</span> computes the likelihood of <span class="math inline">\(x\)</span> given the sampled latent <span class="math inline">\(z_k\)</span>.</li>
+<li><span class="math inline">\(p_\theta(z_k)\)</span>: The VAE prior (typically standard Gaussian) — we can evaluate this for our sampled <span class="math inline">\(z_k\)</span>.</li>
+</ul>
+<p>Thus, all terms are explicitly defined in a trained VAE, allowing us to numerically estimate the log-likelihood via this weighted average.</p>
+<p>As <span class="math inline">\(K \to \infty\)</span>, this converges to the true log-likelihood. In practice:</p>
+<ul>
+<li><p><span class="math inline">\(K = 5000\)</span> samples gives reasonable estimates</p></li>
+<li><p>Computationally expensive (requires many forward passes through the network for each sample <span class="math inline">\(z_k\)</span>)</p></li>
+<li><p>Provides a tighter lower bound on the true log-likelihood than standard ELBO</p></li>
+<li><p>Reference:</p>
+<ul>
+<li><a href="https://arxiv.org/abs/1509.00519">Importance Weighted Autoencoders</a></li>
+</ul></li>
+</ul>
+<p><strong>2. Human Evaluation:</strong></p>
+<p>Ask humans to rate samples on multiple dimensions:</p>
+<ul>
+<li><strong>Quality:</strong> “Does this look realistic?”</li>
+<li><strong>Diversity:</strong> “Are the samples varied enough?”</li>
+<li><strong>Semantic coherence:</strong> “Does this match the description/input?”</li>
+</ul>
+<p>Common approaches:</p>
+<ul>
+<li>A/B testing: Compare samples from different models side-by-side</li>
+<li>Likert scale ratings (e.g., 1-5 quality scores)</li>
+<li>Turing test-style: Can humans distinguish real from generated?</li>
+</ul>
+<p><strong>3. Reconstruction Metrics:</strong></p>
+<p>For evaluating reconstruction quality specifically:</p>
+<ul>
+<li><strong>MSE:</strong> Pixel-level reconstruction accuracy</li>
+<li><strong>SSIM (Structural Similarity Index):</strong> Perceptual reconstruction quality</li>
+<li><strong>L1/L2 distance in latent space:</strong> For measuring latent space quality</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<hr>
+<p>Despite these limitations, VAEs remain a powerful and widely-used framework. Many extensions and variants have been developed to address these issues, including <span class="math inline">\(\beta\)</span>-VAE, WAE (Wasserstein Auto-Encoders), VQ-VAE (Vector Quantized VAE), and many others.</p>
+</section>
+</section>
+<section id="conclusion-key-takeaways-and-final-remarks" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion-key-takeaways-and-final-remarks">Conclusion: Key Takeaways and Final Remarks</h2>
+<p>The Variational Autoencoder framework provides a principled solution to learning latent variable models when exact inference is intractable. By introducing a tractable variational posterior and optimizing the Evidence Lower Bound (ELBO), we transform an otherwise impossible likelihood maximization problem into a practical and scalable objective that can be optimized with stochastic gradient methods.</p>
+<p>From the derivation, several core insights emerge:</p>
+<ul>
+<li>First, the VAE objective naturally decomposes into two competing terms:
+<ul>
+<li>A reconstruction term that encourages faithful data generation, via the decoder.</li>
+<li>A KL regularization term that shapes the latent space by keeping the approximate posterior close to the prior, via the encoder.</li>
+<li>This trade-off is not an implementation detail, but a direct consequence of variational inference.</li>
+</ul></li>
+<li>Second, maximizing the ELBO simultaneously improves data likelihood and posterior approximation, even though the true posterior is never computed explicitly.</li>
+</ul>
+<p>This framework extends seamlessly to Conditional VAEs by conditioning both the encoder and decoder on auxiliary information. The mathematical structure of the ELBO remains unchanged, highlighting the flexibility and generality of variational inference as a modeling paradigm.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
