@@ -12,6 +12,6 @@ Here I share posts about topics that interest me and I am trying to learn, rangi
 
 A concise walkthrough of the mathematical foundations behind Variational Autoencoders (VAE) highlighting key derivations and concepts for understanding how they work.
 
-[Read more](blogs/VAE_and_cVAE_derivation/VAE_and_cVAE_derivation.qmd)
+[Read more](blogs/VAE_derivation/VAE_derivation.qmd)
 
 ------------------------------------------------------------------------
