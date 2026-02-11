@@ -143,7 +143,7 @@ Understanding these properties is helpful for grasping how VAE training works:
 
 -   The order matters! $\text{KL}\color{black}(\color{green}{q_\phi} \; \color{black}|| \; \color{red}{p_\theta}\color{black})$ is called the **reverse KL**
 -   Reverse KL encourages $q$ to focus on regions where $p$ has high probability
-    -   This results in $q$ spreading out to cover multiple modes 
+    -   This results in $q$ spreading out to cover multiple modes
 -   This is why VAE tends to produce "mode-covering" behavior rather than "mode-seeking"
 -   Check this [blog](https://blog.evjang.com/2016/08/variational-bayes.html), where Eric Jang has a great explanation for forward and reverse KL divergence.
 
@@ -699,10 +699,13 @@ Thus, all terms are explicitly defined in a trained VAE, allowing us to numerica
 As $K \to \infty$, this converges to the true log-likelihood. In practice:
 
 -   $K = 5000$ samples gives reasonable estimates
+
 -   Computationally expensive (requires many forward passes through the network for each sample $z_k$)
+
 -   Provides a tighter lower bound on the true log-likelihood than standard ELBO
 
 -   Reference:
+
     -   [Importance Weighted Autoencoders](https://arxiv.org/abs/1509.00519)
 
 **2. Human Evaluation:**

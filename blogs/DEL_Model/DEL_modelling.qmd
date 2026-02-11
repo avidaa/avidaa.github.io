@@ -1,0 +1,294 @@
+# Modelling DNA Encoded Libraries (DELs)
+
+## What Is the Aim of This Blog?
+
+This blog aims to design and build an attachment-aware, synthon-level GNN for DNA-encoded library (DEL) data, extending compositional models like DEL-Compose by explicitly encoding where each synthon attaches, rather than treating synthons as context-free fragments.
+
+## Introduction: What Are DNA Encoded Libraries (DELs)?
+
+DNA encoded libraries (DELs) are large collections of small molecules, each tagged with a unique DNA barcode that records its synthetic history. They enable high throughput screening by pooling and sequencing to identify binders to a target. Watch [this](https://www.youtube.com/watch?v=8jLIgTBJmdU) short vidoe that explains DELs in a nutshell.
+
+## Modelling DELs
+
+### What is a correct likelihood function for DELs?
+
+A DEL experiment involves several key stochastic steps that directly impact the statistical modeling of observed counts:
+
+-   **Library synthesis**: initial molecule counts for each barcode can vary, introducing variability from the outset.
+-   **Selection or binding step**: enriches certain barcodes based on their binding affinity, leading to barcode-specific changes in abundance.
+-   **PCR amplification**: contributes substantial multiplicative noise and is a major source of overdispersion in the data.
+-   **Sequencing**: captures a random, approximately Poisson-distributed sample from the amplified pool.
+
+Thus, the observed DEL counts for each barcode are the outcome of a sequence of random processes, with amplification especially contributing to count heterogeneity.
+
+#### Common likelihood functions for DELs
+
+Below are common likelihood choices for DEL count data. In practice, DEL data are often **overdispersed** (variance \> mean) due to PCR/amplification and other multiplicative factors, and may also exhibit **excess zeros** (true absence, synthesis failures, or aggressive filtering).
+
+##### Poisson
+
+$$
+X_i \sim \text{Poisson}(\lambda_i)
+$$
+
+Because sequencing counts in DEL experiments arise from random sampling of amplified DNA molecules, the sequencing step can be modeled using a Poisson distribution.
+
+References:
+
+- [Machine learning on DNA-encoded library count data using an uncertainty-aware probabilistic loss function](https://pmc.ncbi.nlm.nih.gov/articles/PMC10830332/)
+- [Randomness in DNA Encoded Library Selection Data Can Be Modeled for More Reliable Enrichment Calculation](https://pubmed.ncbi.nlm.nih.gov/29437521/)
+
+::: {.callout-note icon="false" collapse="true"}
+## When to use Poisson?
+
+Use Poisson when counts are well-explained by a single rate and the **mean–variance relationship is close to** $\mathrm{Var}(X) \approx \mathbb{E}[X]$ after accounting for obvious covariates (e.g., sequencing depth / library size).
+
+Notice that Poisson is usually too narrow for DEL data once PCR noise is present.
+:::
+
+##### Poisson-Gamma or Negative Binomial (NB)
+
+$$
+X_i \mid \lambda_i \sim \text{Poisson}(\lambda_i), \qquad \lambda_i \sim \text{Gamma}(\alpha, \beta)
+$$
+<div style="text-align: center;">
+or
+</div>
+
+$$
+X_i \sim \text{NB}(\mu_i, \phi)
+$$
+
+Because DEL sequencing readouts often exhibit overdispersion due to amplification and selection variability, barcode counts can be modeled using a Negative Binomial distribution.
+
+References:
+
+- [Partial Product Aware Machine Learning on DNA-Encoded Libraries](https://arxiv.org/abs/2205.08020)
+- [Discovery of TNF inhibitors from a DNA-encoded chemical library based on diels-alder cycloaddition](https://pubmed.ncbi.nlm.nih.gov/19875081/) - Figure 3.
+
+::: {.callout-note icon="false" collapse="true"}
+## When to use Negative Binomial?
+
+Use NB when you see **variance increasing faster than the mean**, typically well-captured by $\mu + \phi\mu^2$. This is often the default for DEL counts because amplification introduces extra variability.
+
+If you model *paired* pre-/post-selection counts, NB is often used for each condition with shared/related dispersion:
+
+$$
+X_i^\text{pre} \sim \text{NB}(\mu_i^\text{pre}, \phi)
+$$
+
+$$
+X_i^\text{post} \sim \text{NB}(\mu_i^\text{post}, \phi)
+$$
+
+The dispersion parameter $\phi$ represents **technical variability** not biological variability.
+
+Because:
+
+-   PCR process is similar between pre and post experiments
+-   Sequencing instrument is probably the same between pre and post experiments
+-   Library chemistry is the same between pre and post experiments
+
+it is a reasonable assumption that the dispersion parameter is approximately the same between pre and post experiments.
+
+$$
+\phi^\text{pre} \approx \phi^\text{post} = \phi
+$$
+
+Or, use a common prior for the dispersion parameter:
+
+$$
+\phi^\text{pre}, \phi^\text{post} \sim \text{common prior}
+$$
+:::
+
+##### Zero-Inflated Models
+
+$$
+X_i \sim \text{ZIP}(\lambda_i, \pi_i)
+$$
+
+<div style="text-align: center;">
+or 
+</div>
+
+$$
+X_i \sim \text{ZINB}(\mu_i, \phi, \pi_i)
+$$
+
+Which assumes that there are two mechanisms that produce zeros:
+
+$$
+X_i = 0 \quad \text{with probability } \pi_i
+$$
+
+<div style="text-align: center;">
+and
+</div>
+
+$$
+X_i \sim \text{Poisson}(\lambda_i) \quad \text{with probability } 1 - \pi_i \quad \text{(for ZIP)}
+$$
+
+<div style="text-align: center;">
+or 
+</div>
+
+$$
+X_i \sim \text{NB}(\mu_i, \phi) \quad \text{with probability } 1 - \pi_i \quad \text{(for ZINB)}
+$$
+
+
+The interpretation of ZIP, ZINB is that with probability $\pi_i$, the observation is a **structural zero** (e.g., synthesis failure / true absence), **otherwise counts follow Poisson or Negative Binomial**. Zero inflated models should be treated as a *diagnostic driven choice*, **not a default likelihood choice**.
+
+References:
+
+- [DEL-Ranking: Ranking-Correction Denoising Framework for Elucidating Molecular Affinities in DNA-Encoded Libraries](https://openreview.net/forum?id=QfyZ28FpVY) - Check the reviewers comments.
+
+
+::: {.callout-note icon="false" collapse="true"}
+## When to use Zero-inflated models?
+
+Zero inflated models assume that there are two mechanisms that produce zeros:
+
+-   **Structural zeros**: these are zeros that are due to:
+    -   Synthesis failure for certain barcodes
+    -   Missing synthons or ligation errors for certain barcodes
+    -   Amplification failure where barcode dropout during amplification
+    -   Library filtering steps
+    -   Compound absence in the selection pool
+-   **Observed zeros**: these are zeros that are due to the fact that the molecule was not sequenced.
+
+Structural zeros are conceptually different from **sampling zeros**, which Poisson or Negative Binomial can already explain. <span style="color: #d7263d;">This is important because many apparent extra zeros are already explained by **overdispersion** in the Negative Binomial model, *not* a separate zero-generation process.</span>
+
+Zero inflated models are reasonable when:
+
+1. Poisson or Negative Binomial alone underpredicts zeros in posterior predictive checks
+
+    The diagnostic is to check if observed zero fraction is larger than simulated zero fraction from Poisson or Negative Binomial
+
+2. Known synthesis failure mechanisms
+
+    For instance:
+
+    - specific synthons systematically fail
+    - Library construction known to have dropout
+    - Certain cycles prosuce missing compounds
+
+    These are structural zeros that are not explained by overdispersion.
+
+3. Exteremly sparse libraries
+
+    If most barcodes are absent or filtered out, then ZIP, ZINB is a better fit than Poisson or Negative Binomial. 
+
+Notice that:
+
+- If sparsity is **already explained by low counts**, then <span style="color: #d7263d; font-weight: bold;">ZIP, ZINB is not necessary</span>.
+- If **filtering is the main source of zeros**, then <span style="color: #d7263d; font-weight: bold;">ZIP, ZINB is not necessary</span>.
+
+If zeros are mainly caused by *thresholding / filtering* (i.e., you only record nonzeros above a cutoff), a **hurdle model** may be a better conceptual fit than ZIP, ZINB.
+
+:::
+
+##### Poisson-Lognormal
+
+In the Negative Binomial model, the rate parameter is assumed to vary according to a gamma distribution. In contrast, the Poisson-Lognormal model assumes that the logarithm of the rate parameter follows a normal (lognormal) distribution.
+
+$$
+X_i \mid \lambda_i \sim \text{Poisson}(\lambda_i), \qquad \lambda_i \sim \text{Lognormal}(\mu_i, \sigma^2)
+$$
+
+A lognormal model for the rate has **heavier tails than a gamma model**, so it tends to fit DEL data better when a small number of barcodes show very large enrichment.
+
+References:
+
+- There is **no well-known DEL paper** that explicitly uses a Poisson-Lognormal likelihood, although the model is statistically can be used for DEL data.
+
+::: {.callout-note icon="false" collapse="true"}
+## When to use Poisson-Lognormal?
+
+Use Poisson–lognormal when noise is naturally **multiplicative on the rate** (PCR / assay effects), giving a log-normal-ish spread in effective rates across observations.
+
+:::
+
+##### Multinomial / Dirichlet-Multinomial
+
+If we model counts **conditional on a fixed total read depth** (library size) in a sample:
+
+$$
+\mathbf{X} \sim \text{Multinomial}(N, \mathbf{p})
+$$
+
+with $N$ being the total read depth $(N = \sum_{i=1}^K X_i)$, where $K$ is the number of barcodes, and $\mathbf{p}$ being the vector of proportions of each barcode $(p_i = X_i / N)$.
+
+A more overdispersed alternative is Dirichlet-multinomial.
+
+$$
+\mathbf{X} \mid \mathbf{p} \sim \text{Multinomial}(N, \mathbf{p}), \qquad \mathbf{p} \sim \text{Dirichlet}(\alpha)
+$$
+
+::: {.callout-note icon="false" collapse="true"}
+## When to use Multinomial / Dirichlet-multinomial?
+
+Use these when your primary variability is driven by **relative composition** under a fixed (or modeled) total depth. This is common when comparing barcodes within the same sequencing run.
+
+**In practice:**
+
+- Multinomial can be too narrow; Dirichlet-multinomial adds extra variability in proportions. 
+
+- These are especially natural for modeling *within-sample* composition, whereas Poisson and Negative Binomial are common for *per-barcode* marginal modeling.
+
+- Most DEL models don't use Multinomial / Dirichlet-multinomial likelihood, mostly for practical reasons:
+
+    1. Libraries are extremely large and have millions of barcodes. A multinomial likelihood becomes computationally difficult.
+    2. When counts are small relative to $N$, then $\text{Multinomial} \approx \text{independent Poisson}$. 
+
+**Intuition:**
+
+- **Multinomial perspective:** Imagine you have a total of $N$ sequencing reads, and you assign each one to a barcode. The barcodes share the total pool of reads.
+
+- **Negative Binomial/Poisson perspective:** Instead, think of each barcode as producing its own number of reads independently, according to its own rate. The total number of reads is simply the sum of these independent counts.
+:::
+
+##### Beta-Binomial perspective on enrichment
+
+Another useful compositional view for DEL data is the **Beta–binomial model applied to a single barcode relative to the rest of the library**. Instead of modeling the full vector of barcode proportions (Dirichlet–multinomial), we can focus on one barcode at a time.
+
+Let $N$ be the total read depth in a sequencing run and $X_i$ the reads assigned to barcode $i$.
+
+$$
+X_i \mid p_i \sim \text{Binomial}(N, p_i)
+$$
+
+To allow **overdispersion in enrichment probabilities**, place a prior on the barcode proportion:
+
+$$
+p_i \sim \text{Beta}(a_i, b_i)
+$$
+
+Marginally, this yields a **Beta–binomial likelihood**:
+
+$$
+X_i \sim \text{BetaBinomial}(N, a_i, b_i)
+$$
+
+This model captures **extra variability in enrichment probability across barcodes**, analogous to how the Negative Binomial captures extra variability in Poisson rates.
+
+::: {.callout-note icon="false" collapse="true"}
+## When is Beta–binomial useful for DEL?
+
+Beta–binomial is particularly natural when modeling:
+
+- enrichment of **one barcode vs the background library**
+- **binder vs non‑binder probability** formulations
+- selection experiments where **total sequencing depth is fixed**
+
+Conceptually:
+
+- **Dirichlet–multinomial** models the *entire library composition*
+- **Beta–binomial** models *one barcode’s share of reads*
+
+In large DEL libraries, Beta–binomial can be easier to use than Dirichlet–multinomial because it avoids modeling all barcodes jointly.
+
+When counts are small relative to $N$, the Beta–binomial model is closely related to the **Negative Binomial approximation commonly used in DEL modeling**.
+:::
