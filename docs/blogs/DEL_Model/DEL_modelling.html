@@ -422,22 +422,19 @@ When to use Multinomial / Dirichlet-multinomial?
 </div>
 </div>
 </section>
-<section id="beta-binomial-perspective-on-enrichment" class="level5">
-<h5 class="anchored" data-anchor-id="beta-binomial-perspective-on-enrichment">Beta-Binomial perspective on enrichment</h5>
-<p>Another useful compositional view for DEL data is the <strong>Beta–binomial model applied to a single barcode relative to the rest of the library</strong>. Instead of modeling the full vector of barcode proportions (Dirichlet–multinomial), we can focus on one barcode at a time.</p>
-<p>Let <span class="math inline">\(N\)</span> be the total read depth in a sequencing run and <span class="math inline">\(X_i\)</span> the reads assigned to barcode <span class="math inline">\(i\)</span>.</p>
+<section id="binomial-beta-binomial" class="level5">
+<h5 class="anchored" data-anchor-id="binomial-beta-binomial">Binomial / Beta-Binomial</h5>
+<p>When modeling a single barcode’s counts conditional on fixed total read depth <span class="math inline">\(N\)</span>, we can treat the number of reads assigned to barcode <span class="math inline">\(i\)</span> as the marginal of a multinomial model:</p>
 <p><span class="math display">\[
-X_i \mid p_i \sim \text{Binomial}(N, p_i)
+\mathbf{X} \sim \text{Multinomial}(N,\mathbf{p})
+\quad \Rightarrow \quad
+X_i \sim \text{Binomial}(N,p_i)
 \]</span></p>
-<p>To allow <strong>overdispersion in enrichment probabilities</strong>, place a prior on the barcode proportion:</p>
-<p><span class="math display">\[
-p_i \sim \text{Beta}(a_i, b_i)
-\]</span></p>
-<p>Marginally, this yields a <strong>Beta–binomial likelihood</strong>:</p>
+<p>with <span class="math inline">\(p_i\)</span> the true proportion of barcode <span class="math inline">\(i\)</span> in the pool. Binomial assumes a fixed probability per read and variance <span class="math inline">\(N p_i(1-p_i)\)</span>, which can be too narrow when enrichment probabilities vary across experiments, PCR amplification, or selection noise.</p>
+<p>A more overdispersed alternative is the Beta-binomial.</p>
 <p><span class="math display">\[
 X_i \sim \text{BetaBinomial}(N, a_i, b_i)
 \]</span></p>
-<p>This model captures <strong>extra variability in enrichment probability across barcodes</strong>, analogous to how the Negative Binomial captures extra variability in Poisson rates.</p>
 <div class="callout callout-style-default callout-note no-icon callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -450,19 +447,24 @@ When is Beta–binomial useful for DEL?
 </div>
 <div id="callout-6" class="callout-6-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
+<p>The Beta prior adds <strong>extra variability in enrichment probability</strong>, analogous to how the Negative Binomial adds extra variability to Poisson rates.</p>
+<p><strong>The Beta–binomial is the one-dimensional marginal of the Dirichlet–multinomial</strong>: if one barcode is treated as “success” and all others as “failure,” the Dirichlet prior on proportions reduces to a Beta prior for that barcode.</p>
 <p>Beta–binomial is particularly natural when modeling:</p>
 <ul>
 <li>enrichment of <strong>one barcode vs the background library</strong></li>
 <li><strong>binder vs non‑binder probability</strong> formulations</li>
 <li>selection experiments where <strong>total sequencing depth is fixed</strong></li>
 </ul>
-<p>Conceptually:</p>
+<p><strong>In practice:</strong></p>
+<ul>
+<li><p>In large DEL libraries, Beta–binomial can be easier to use than Dirichlet–multinomial because it avoids modeling all barcodes jointly.</p></li>
+<li><p>When counts are small relative to <span class="math inline">\(N\)</span>, then <span class="math inline">\(\text{BetaBinomial} \approx \text{Negative Binomial}\)</span>.</p></li>
+</ul>
+<p><strong>Intuition:</strong></p>
 <ul>
 <li><strong>Dirichlet–multinomial</strong> models the <em>entire library composition</em></li>
 <li><strong>Beta–binomial</strong> models <em>one barcode’s share of reads</em></li>
 </ul>
-<p>In large DEL libraries, Beta–binomial can be easier to use than Dirichlet–multinomial because it avoids modeling all barcodes jointly.</p>
-<p>When counts are small relative to <span class="math inline">\(N\)</span>, the Beta–binomial model is closely related to the <strong>Negative Binomial approximation commonly used in DEL modeling</strong>.</p>
 </div>
 </div>
 </div>

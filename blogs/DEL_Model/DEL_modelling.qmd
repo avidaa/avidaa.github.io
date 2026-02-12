@@ -250,32 +250,31 @@ Use these when your primary variability is driven by **relative composition** un
 - **Negative Binomial/Poisson perspective:** Instead, think of each barcode as producing its own number of reads independently, according to its own rate. The total number of reads is simply the sum of these independent counts.
 :::
 
-##### Beta-Binomial perspective on enrichment
+##### Binomial / Beta-Binomial
 
-Another useful compositional view for DEL data is the **Beta–binomial model applied to a single barcode relative to the rest of the library**. Instead of modeling the full vector of barcode proportions (Dirichlet–multinomial), we can focus on one barcode at a time.
-
-Let $N$ be the total read depth in a sequencing run and $X_i$ the reads assigned to barcode $i$.
+When modeling a single barcode’s counts conditional on fixed total read depth $N$, we can treat the number of reads assigned to barcode $i$ as the marginal of a multinomial model:
 
 $$
-X_i \mid p_i \sim \text{Binomial}(N, p_i)
+\mathbf{X} \sim \text{Multinomial}(N,\mathbf{p})
+\quad \Rightarrow \quad
+X_i \sim \text{Binomial}(N,p_i)
 $$
 
-To allow **overdispersion in enrichment probabilities**, place a prior on the barcode proportion:
+with $p_i$ the true proportion of barcode $i$ in the pool. Binomial assumes a fixed probability per read and variance $N p_i(1-p_i)$, which can be too narrow when enrichment probabilities vary across experiments, PCR amplification, or selection noise.
 
-$$
-p_i \sim \text{Beta}(a_i, b_i)
-$$
-
-Marginally, this yields a **Beta–binomial likelihood**:
+A more overdispersed alternative is the Beta-binomial.
 
 $$
 X_i \sim \text{BetaBinomial}(N, a_i, b_i)
 $$
 
-This model captures **extra variability in enrichment probability across barcodes**, analogous to how the Negative Binomial captures extra variability in Poisson rates.
-
 ::: {.callout-note icon="false" collapse="true"}
 ## When is Beta–binomial useful for DEL?
+
+The Beta prior adds **extra variability in enrichment probability**, analogous to how the Negative Binomial adds extra variability to Poisson rates.
+
+**The Beta–binomial is the one-dimensional marginal of the Dirichlet–multinomial**: if one barcode is treated as “success” and all others as “failure,” the Dirichlet prior on proportions reduces to a Beta prior for that barcode.
+
 
 Beta–binomial is particularly natural when modeling:
 
@@ -283,12 +282,14 @@ Beta–binomial is particularly natural when modeling:
 - **binder vs non‑binder probability** formulations
 - selection experiments where **total sequencing depth is fixed**
 
-Conceptually:
+**In practice:**
+
+- In large DEL libraries, Beta–binomial can be easier to use than Dirichlet–multinomial because it avoids modeling all barcodes jointly.
+
+- When counts are small relative to $N$, then $\text{BetaBinomial} \approx \text{Negative Binomial}$. 
+
+**Intuition:**
 
 - **Dirichlet–multinomial** models the *entire library composition*
 - **Beta–binomial** models *one barcode’s share of reads*
-
-In large DEL libraries, Beta–binomial can be easier to use than Dirichlet–multinomial because it avoids modeling all barcodes jointly.
-
-When counts are small relative to $N$, the Beta–binomial model is closely related to the **Negative Binomial approximation commonly used in DEL modeling**.
 :::
