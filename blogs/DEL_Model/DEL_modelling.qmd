@@ -227,30 +227,243 @@ $$
 \mathbf{X} \mid \mathbf{p} \sim \text{Multinomial}(N, \mathbf{p}), \qquad \mathbf{p} \sim \text{Dirichlet}(\alpha)
 $$
 
+References:
+
+- There is **no well-known DEL paper** that explicitly uses a Multinomial / Dirichlet-multinomial likelihood, although the model is statistically valid and can be used for DEL data. Check <span style="color:#d7263d;">When to use Multinomial / Dirichlet-multinomial?</span> for more details.
+
 ::: {.callout-note icon="false" collapse="true"}
 ## When to use Multinomial / Dirichlet-multinomial?
 
-Use these when your primary variability is driven by **relative composition** under a fixed (or modeled) total depth. This is common when comparing barcodes within the same sequencing run.
+Use these when primary variability is driven by **relative composition** under a fixed (or modeled) total depth. This is common when comparing barcodes within the same sequencing run.
 
 **In practice:**
 
 - Multinomial can be too narrow; Dirichlet-multinomial adds extra variability in proportions. 
 
-- These are especially natural for modeling *within-sample* composition, whereas Poisson and Negative Binomial are common for *per-barcode* marginal modeling.
-
+-  Multinomial / Dirichlet-multinomial are especially natural for modeling *within-sample* composition, whereas Poisson and Negative Binomial are common for *per-barcode* marginal modeling.
+    - **Within-sample perspective:** Given one sample with total reads $N$, how are those reads split across all barcodes?
+        - Model the joint vector of proportions/counts in that sample using a Multinomial distribution.
+    - **Per-barcode perspective:** For barcode $i$, what count do I expect?
+        - Model each barcode’s count distribution individually (often approximately independent, especially in sparse DEL settings).
+    
 - Most DEL models don't use Multinomial / Dirichlet-multinomial likelihood, mostly for practical reasons:
 
     1. Libraries are extremely large and have millions of barcodes. A multinomial likelihood becomes computationally difficult.
-    2. When counts are small relative to $N$, then $\text{Multinomial} \approx \text{independent Poisson}$. 
+    2. [When counts are small relative to $N$, then $\text{Multinomial} \approx \text{independent Poisson}$.]{.highlight-key-point}
 
 **Intuition:**
 
 - **Multinomial perspective:** Imagine you have a total of $N$ sequencing reads, and you assign each one to a barcode. The barcodes share the total pool of reads.
 
 - **Negative Binomial/Poisson perspective:** Instead, think of each barcode as producing its own number of reads independently, according to its own rate. The total number of reads is simply the sum of these independent counts.
+
+::: {.callout-tip icon="false" collapse="true"}
+## Why does $\text{Multinomial} \approx$ independent Poisson when counts are small relative to $N$?
+
+Let $\mathbf{X}=(X_1,\dots,X_K) \sim \text{Multinomial}(N,\mathbf{p})$, where $\sum_{i=1}^K p_i = 1$ and $\sum_{i=1}^K X_i = N$.
+
+For a fixed barcode $i$, the multinomial marginal is binomial:
+
+$$
+X_i \sim \text{Binomial}(N,p_i), \qquad \mathbb{E}[X_i]=Np_i
+$$
+
+So $Np_i$ is the expected read count for barcode $i$: among $N$ reads, each read lands in barcode $i$ with probability $p_i$.
+
+In the DEL rare-event / large-depth regime, we consider:
+
+- $N$ is large,
+- Each barcode probability $p_i$ is small,
+- $Np_i$ stays finite (typically on the order of 1).
+
+Under this scaling ($N\to\infty$, $p_i\to 0$, $Np_i\to\text{fixed value}$), and assuming that Poisson's parameter, $\lambda_i$, is equal to $Np_i$, each marginal converges as 
+$$
+X_i \Rightarrow \text{Poisson}(\lambda_i), \quad \lambda_i = Np_i.
+$$
+
+
+::: {.callout-tip icon="false" collapse="true"}
+## Why under these conditions, the binomial distribution converges to a Poisson distribution?
+
+The probability mass function (PMF) of the Binomial distribution is:
+$$
+\Pr(X_i=k)=\binom{N}{k}p_i^k(1-p_i)^{N-k}
+$$
+
+Where $N$ is the total number of trials (or our experiment's read depth), $k$ is the number of successes (or our read count for a given barcode), and $p_i$ is the probability of success on each trial (or our barcode enrichment probability).
+
+Now, let's recall the conditions of the rare-event/ large-depth regime:
+
+- $N$ is large,
+- Each barcode probability $p_i$ is small,
+- $Np_i$ stays finite (typically on the order of 1).
+
+We stated that under this scaling, and **assuming that Poisson's parameter, $\lambda_i$, is equal to $Np_i$**, the PMF of the binomial distribution converges to the PMF of a Poisson distribution.
+
+Let's start by rewriting $p_i$ as:
+$$p_i = \frac{\lambda_i}{N},$$
+
+then the PMF of the binomial distribution becomes:
+
+$$
+\Pr(X_i=k)=\binom{N}{k}\left(\frac{\lambda_i}{N}\right)^k\left(1-\frac{\lambda_i}{N}\right)^{N-k}.
+$$
+
+Recall that: 
+$$\binom{N}{k} = \frac{N!}{k!(N-k)!}$$
+and
+$$N! = N(N-1)(N-2)(N-3)\cdots 3\times 2\times 1.$$
+It can be written as 
+$$N! = N(N-1)\cdots(N-k+1)(N-k)!$$ 
+This notation is useful because it shows that in $\binom{N}{k} = \frac{N!}{k!(N-k)!}$, the $(N-k)!$ in numerator and denominator cancel out each other. Hence, we can rewrite the binomial coefficient as:
+$$
+\binom{N}{k} = \frac{N(N-1)\cdots(N-k+1)}{k!}.
+$$
+
+Therefore, the PMF of the binomial distribution becomes:
+$$
+\Pr(X_i=k)=\binom{N}{k}\left(\frac{\lambda_i}{N}\right)^k\left(1-\frac{\lambda_i}{N}\right)^{N-k}
+=
+\frac{N(N-1)\cdots(N-k+1)}{k!}\frac{\lambda_i^k}{N^k}\left(1-\frac{\lambda_i}{N}\right)^{N-k}.
+$$
+
+Let's focus on the first two terms:
+
+$$
+\frac{N(N-1)\cdots(N-k+1)}{k!}\frac{\lambda_i^k}{N^k}
+$$
+
+This can be written as:
+$$
+\frac{\lambda_i^k}{k!}\cdot
+\frac{N}{N}\cdot\frac{N-1}{N}\cdots\frac{N-k+1}{N}
+$$
+
+If we set $\frac{\lambda_i^k}{k!}$ aside, then the product of the remaining terms, can be written as a product of $k$ terms (because $N^k$ in denominator), each of which is of the form $\frac{N-j}{N}$ for $j=0,1,2,\dots,k-1$ ($k-1$, because the first term is $\frac{N}{N}$), hence:
+$$
+\frac{N}{N}\cdot\frac{N-1}{N}\cdots\frac{N-k+1}{N} = \prod_{j=0}^{k-1}\left(1-\frac{j}{N}\right)
+$$
+
+Now, let's bring in the first term back, we get:
+$$
+\frac{\lambda_i^k}{k!}\cdot \prod_{j=0}^{k-1}\left(1-\frac{j}{N}\right)
+$$
+
+In the rare-event/ large-depth regime, as $N\to\infty$, each term goes to 1, i.e., 
+
+$$
+\left(1-\overset{\longrightarrow \ 0}{\cancel{\frac{j}{N}}}\right)\longrightarrow 1 \quad (N\to\infty),
+$$
+
+That is because $k$ is fixed (it does not grow with $N$). Thus, $\frac{j}{N}\to 0$ for each $j=0,1,2,\dots,k-1$. Hence, the product of the remaining terms tends to $1$:
+
+$$
+\prod_{j=0}^{k-1}\left(1-\overset{\longrightarrow \ 0}{\cancel{\frac{j}{N}}}\right)\longrightarrow 1.
+$$
+
+Therefore, in the rare-event/ large-depth regime, the first two terms of the PMF of the binomial distribution converge to:
+
+***************
+
+$$
+\binom{N}{k}p_i^k = \binom{N}{k}\left(\frac{\lambda_i}{N}\right)^k = \frac{N(N-1)\cdots(N-k+1)}{k!}\frac{\lambda_i^k}{N^k} = \frac{\lambda_i^k}{k!}.\overset{\longrightarrow\,1}{\cancel{\prod_{j=0}^{k-1}\left(1-\overset{\longrightarrow \ 0}{\cancel{\frac{j}{N}}}\right)}}\longrightarrow \frac{\lambda_i^k}{k!}.1 = \frac{\lambda_i^k}{k!}
+$$
+
+
+***************
+
+Now, let's focus on the third term:
+
+$$
+\left(1-\frac{\lambda_i}{N}\right)^{N-k}
+$$
+
+This term can be written as:
+
+$$
+\left(1-\frac{\lambda_i}{N}\right)^N
+\left(1-\frac{\lambda_i}{N}\right)^{-k}
+$$
+
+Recall that (this is a well-known result):
+$$
+\lim_{N\to\infty} \left(1-\frac{a}{N}\right)^N = e^{-a}
+$$
+
+Therefore as $N\to\infty$, the first term converges to $e^{-\lambda_i}$:
+$$
+\lim_{N\to\infty} \left(1-\frac{\lambda_i}{N}\right)^N = e^{-\lambda_i}
+$$
+
+The second term converges to $1$ as $N\to\infty$:
+
+$$
+\lim_{N\to\infty} \left(1-\overset{\longrightarrow\,0}{\cancel{\frac{\lambda_i}{N}}}\right)^{-k} = 1
+$$
+
+That is because $k$ is fixed (it does not grow with $N$). Thus, $\frac{\lambda_i}{N}\to 0$ as $N\to\infty$. 
+
+Putting it all together, the third term converges to:
+
+***************
+$$
+\left(1-\frac{\lambda_i}{N}\right)^{N-k} = \left(1-\frac{\lambda_i}{N}\right)^N
+\left(1-\frac{\lambda_i}{N}\right)^{-k} = e^{-\lambda_i}\cdot 1 = e^{-\lambda_i}.
+$$
+
+***************
+
+Let's bring in the result of the first and second term back, which was $\frac{\lambda_i^k}{k!}$. Now, we get:
+
+$$
+\Pr(X_i=k) = e^{-\lambda_i}\frac{\lambda_i^k}{k!}
+$$
+
+What is a PMF of a Poisson distribution?
+$$
+\Pr(X_i=k)=e^{-\lambda_i}\frac{\lambda_i^k}{k!}
+$$
+
+Therefore, the PMF of the binomial distribution converges to the PMF of a Poisson distribution:
+
+$$
+\Pr(X_i=k)\longrightarrow e^{-\lambda_i}\frac{\lambda_i^k}{k!} = \Pr(X_i=k)\text{ (PMF of Poisson distribution)}.
+$$
 :::
 
-##### Binomial / Beta-Binomial
+:::{.callout-tip icon="false" collapse="true"}
+
+## Why independent Poisson?
+
+Jointly, the multinomial constraint $\sum_i X_i=N$ induces weak negative dependence between barcodes. 
+
+Intuitively, the total number of reads is a fixed budget: if one barcode receives more reads than expected, fewer reads are available for the others. In a mathematical sense, the covariance between two barcodes is negative in a multinomial model,
+
+$$
+\mathrm{Cov}(X_i,X_j)=-Np_ip_j \quad (i\neq j),
+$$
+
+The negative value indicates the inuition mentioned above: an increase in one variable often requires a decrease in the other, as the sum of all variables is fixed at $N$. So, the covariance is negative by construction. Equivalently, in terms of proportions $\hat p_i=X_i/N$,
+
+$$
+\mathrm{Cov}(\hat p_i,\hat p_j)=-\frac{p_ip_j}{N},
+$$
+
+which shrinks to $0$ as $N$ grows. In DEL, each $p_i$ is also very small, so these cross-barcode covariances are tiny. That is why the **dependence is usually negligible in practice**, and the joint distribution is well approximated by a product of **independent** Poisson variables:
+
+$$
+X_i \approx \text{Poisson}(\lambda_i), \qquad \lambda_i = Np_i,\quad i=1,\dots,K. \quad \text{(K is number of barcodes)}
+$$
+
+This is why DEL models often treat per-barcode counts as independent Poisson (or overdispersed Negative Binomial): it is an accurate and computationally convenient approximation in the sparse-count regime.
+
+:::
+
+:::
+:::
+
+:::{.callout-tip icon="false" collapse="true"}
+## Binomial / Beta-Binomial to model per-barcode counts?
 
 When modeling a single barcode’s counts conditional on fixed total read depth $N$, we can treat the number of reads assigned to barcode $i$ as the marginal of a multinomial model:
 
@@ -263,6 +476,10 @@ $$
 with $p_i$ the true proportion of barcode $i$ in the pool. Binomial assumes a fixed probability per read and variance $N p_i(1-p_i)$, which can be too narrow when enrichment probabilities vary across experiments, PCR amplification, or selection noise.
 
 A more overdispersed alternative is the Beta-binomial.
+
+References:
+
+- [Quantitative Comparison of Enrichment from DNA-Encoded Chemical Library Selections](https://pubs.acs.org/doi/10.1021/acscombsci.8b00116) - Introduces a binomial distribution model to compute normalized enrichment z-scores from DEL selections.
 
 $$
 X_i \sim \text{BetaBinomial}(N, a_i, b_i)
@@ -292,4 +509,6 @@ Beta–binomial is particularly natural when modeling:
 
 - **Dirichlet–multinomial** models the *entire library composition*
 - **Beta–binomial** models *one barcode’s share of reads*
+:::
+
 :::

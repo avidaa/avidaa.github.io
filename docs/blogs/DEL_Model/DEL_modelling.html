@@ -97,7 +97,7 @@ window.Quarto = {
 };
 </script>
 
-<link rel="stylesheet" href="../../styles.css">
+<link rel="stylesheet" href="styles.css">
 </head>
 
 <body class="nav-fixed">
@@ -390,8 +390,12 @@ When to use Poisson-Lognormal?
 <p><span class="math display">\[
 \mathbf{X} \mid \mathbf{p} \sim \text{Multinomial}(N, \mathbf{p}), \qquad \mathbf{p} \sim \text{Dirichlet}(\alpha)
 \]</span></p>
+<p>References:</p>
+<ul>
+<li>There is <strong>no well-known DEL paper</strong> that explicitly uses a Multinomial / Dirichlet-multinomial likelihood, although the model is statistically valid and can be used for DEL data. Check <span style="color:#d7263d;">When to use Multinomial / Dirichlet-multinomial?</span> for more details.</li>
+</ul>
 <div class="callout callout-style-default callout-note no-icon callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-8-contents" aria-controls="callout-8" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
@@ -400,17 +404,27 @@ When to use Multinomial / Dirichlet-multinomial?
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div id="callout-8" class="callout-8-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>Use these when your primary variability is driven by <strong>relative composition</strong> under a fixed (or modeled) total depth. This is common when comparing barcodes within the same sequencing run.</p>
+<p>Use these when primary variability is driven by <strong>relative composition</strong> under a fixed (or modeled) total depth. This is common when comparing barcodes within the same sequencing run.</p>
 <p><strong>In practice:</strong></p>
 <ul>
 <li><p>Multinomial can be too narrow; Dirichlet-multinomial adds extra variability in proportions.</p></li>
-<li><p>These are especially natural for modeling <em>within-sample</em> composition, whereas Poisson and Negative Binomial are common for <em>per-barcode</em> marginal modeling.</p></li>
+<li><p>Multinomial / Dirichlet-multinomial are especially natural for modeling <em>within-sample</em> composition, whereas Poisson and Negative Binomial are common for <em>per-barcode</em> marginal modeling.</p>
+<ul>
+<li><strong>Within-sample perspective:</strong> Given one sample with total reads <span class="math inline">\(N\)</span>, how are those reads split across all barcodes?
+<ul>
+<li>Model the joint vector of proportions/counts in that sample using a Multinomial distribution.</li>
+</ul></li>
+<li><strong>Per-barcode perspective:</strong> For barcode <span class="math inline">\(i\)</span>, what count do I expect?
+<ul>
+<li>Model each barcode’s count distribution individually (often approximately independent, especially in sparse DEL settings).</li>
+</ul></li>
+</ul></li>
 <li><p>Most DEL models don’t use Multinomial / Dirichlet-multinomial likelihood, mostly for practical reasons:</p>
 <ol type="1">
 <li>Libraries are extremely large and have millions of barcodes. A multinomial likelihood becomes computationally difficult.</li>
-<li>When counts are small relative to <span class="math inline">\(N\)</span>, then <span class="math inline">\(\text{Multinomial} \approx \text{independent Poisson}\)</span>.</li>
+<li><span class="highlight-key-point">When counts are small relative to <span class="math inline">\(N\)</span>, then <span class="math inline">\(\text{Multinomial} \approx \text{independent Poisson}\)</span>.</span></li>
 </ol></li>
 </ul>
 <p><strong>Intuition:</strong></p>
@@ -418,12 +432,185 @@ When to use Multinomial / Dirichlet-multinomial?
 <li><p><strong>Multinomial perspective:</strong> Imagine you have a total of <span class="math inline">\(N\)</span> sequencing reads, and you assign each one to a barcode. The barcodes share the total pool of reads.</p></li>
 <li><p><strong>Negative Binomial/Poisson perspective:</strong> Instead, think of each barcode as producing its own number of reads independently, according to its own rate. The total number of reads is simply the sum of these independent counts.</p></li>
 </ul>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-7-contents" aria-controls="callout-7" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Why does <span class="math inline">\(\text{Multinomial} \approx\)</span> independent Poisson when counts are small relative to <span class="math inline">\(N\)</span>?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-7" class="callout-7-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Let <span class="math inline">\(\mathbf{X}=(X_1,\dots,X_K) \sim \text{Multinomial}(N,\mathbf{p})\)</span>, where <span class="math inline">\(\sum_{i=1}^K p_i = 1\)</span> and <span class="math inline">\(\sum_{i=1}^K X_i = N\)</span>.</p>
+<p>For a fixed barcode <span class="math inline">\(i\)</span>, the multinomial marginal is binomial:</p>
+<p><span class="math display">\[
+X_i \sim \text{Binomial}(N,p_i), \qquad \mathbb{E}[X_i]=Np_i
+\]</span></p>
+<p>So <span class="math inline">\(Np_i\)</span> is the expected read count for barcode <span class="math inline">\(i\)</span>: among <span class="math inline">\(N\)</span> reads, each read lands in barcode <span class="math inline">\(i\)</span> with probability <span class="math inline">\(p_i\)</span>.</p>
+<p>In the DEL rare-event / large-depth regime, we consider:</p>
+<ul>
+<li><span class="math inline">\(N\)</span> is large,</li>
+<li>Each barcode probability <span class="math inline">\(p_i\)</span> is small,</li>
+<li><span class="math inline">\(Np_i\)</span> stays finite (typically on the order of 1).</li>
+</ul>
+<p>Under this scaling (<span class="math inline">\(N\to\infty\)</span>, <span class="math inline">\(p_i\to 0\)</span>, <span class="math inline">\(Np_i\to\text{fixed value}\)</span>), and assuming that Poisson’s parameter, <span class="math inline">\(\lambda_i\)</span>, is equal to <span class="math inline">\(Np_i\)</span>, each marginal converges as <span class="math display">\[
+X_i \Rightarrow \text{Poisson}(\lambda_i), \quad \lambda_i = Np_i.
+\]</span></p>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Why under these conditions, the binomial distribution converges to a Poisson distribution?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>The probability mass function (PMF) of the Binomial distribution is: <span class="math display">\[
+\Pr(X_i=k)=\binom{N}{k}p_i^k(1-p_i)^{N-k}
+\]</span></p>
+<p>Where <span class="math inline">\(N\)</span> is the total number of trials (or our experiment’s read depth), <span class="math inline">\(k\)</span> is the number of successes (or our read count for a given barcode), and <span class="math inline">\(p_i\)</span> is the probability of success on each trial (or our barcode enrichment probability).</p>
+<p>Now, let’s recall the conditions of the rare-event/ large-depth regime:</p>
+<ul>
+<li><span class="math inline">\(N\)</span> is large,</li>
+<li>Each barcode probability <span class="math inline">\(p_i\)</span> is small,</li>
+<li><span class="math inline">\(Np_i\)</span> stays finite (typically on the order of 1).</li>
+</ul>
+<p>We stated that under this scaling, and <strong>assuming that Poisson’s parameter, <span class="math inline">\(\lambda_i\)</span>, is equal to <span class="math inline">\(Np_i\)</span></strong>, the PMF of the binomial distribution converges to the PMF of a Poisson distribution.</p>
+<p>Let’s start by rewriting <span class="math inline">\(p_i\)</span> as: <span class="math display">\[p_i = \frac{\lambda_i}{N},\]</span></p>
+<p>then the PMF of the binomial distribution becomes:</p>
+<p><span class="math display">\[
+\Pr(X_i=k)=\binom{N}{k}\left(\frac{\lambda_i}{N}\right)^k\left(1-\frac{\lambda_i}{N}\right)^{N-k}.
+\]</span></p>
+<p>Recall that: <span class="math display">\[\binom{N}{k} = \frac{N!}{k!(N-k)!}\]</span> and <span class="math display">\[N! = N(N-1)(N-2)(N-3)\cdots 3\times 2\times 1.\]</span> It can be written as <span class="math display">\[N! = N(N-1)\cdots(N-k+1)(N-k)!\]</span> This notation is useful because it shows that in <span class="math inline">\(\binom{N}{k} = \frac{N!}{k!(N-k)!}\)</span>, the <span class="math inline">\((N-k)!\)</span> in numerator and denominator cancel out each other. Hence, we can rewrite the binomial coefficient as: <span class="math display">\[
+\binom{N}{k} = \frac{N(N-1)\cdots(N-k+1)}{k!}.
+\]</span></p>
+<p>Therefore, the PMF of the binomial distribution becomes: <span class="math display">\[
+\Pr(X_i=k)=\binom{N}{k}\left(\frac{\lambda_i}{N}\right)^k\left(1-\frac{\lambda_i}{N}\right)^{N-k}
+=
+\frac{N(N-1)\cdots(N-k+1)}{k!}\frac{\lambda_i^k}{N^k}\left(1-\frac{\lambda_i}{N}\right)^{N-k}.
+\]</span></p>
+<p>Let’s focus on the first two terms:</p>
+<p><span class="math display">\[
+\frac{N(N-1)\cdots(N-k+1)}{k!}\frac{\lambda_i^k}{N^k}
+\]</span></p>
+<p>This can be written as: <span class="math display">\[
+\frac{\lambda_i^k}{k!}\cdot
+\frac{N}{N}\cdot\frac{N-1}{N}\cdots\frac{N-k+1}{N}
+\]</span></p>
+<p>If we set <span class="math inline">\(\frac{\lambda_i^k}{k!}\)</span> aside, then the product of the remaining terms, can be written as a product of <span class="math inline">\(k\)</span> terms (because <span class="math inline">\(N^k\)</span> in denominator), each of which is of the form <span class="math inline">\(\frac{N-j}{N}\)</span> for <span class="math inline">\(j=0,1,2,\dots,k-1\)</span> (<span class="math inline">\(k-1\)</span>, because the first term is <span class="math inline">\(\frac{N}{N}\)</span>), hence: <span class="math display">\[
+\frac{N}{N}\cdot\frac{N-1}{N}\cdots\frac{N-k+1}{N} = \prod_{j=0}^{k-1}\left(1-\frac{j}{N}\right)
+\]</span></p>
+<p>Now, let’s bring in the first term back, we get: <span class="math display">\[
+\frac{\lambda_i^k}{k!}\cdot \prod_{j=0}^{k-1}\left(1-\frac{j}{N}\right)
+\]</span></p>
+<p>In the rare-event/ large-depth regime, as <span class="math inline">\(N\to\infty\)</span>, each term goes to 1, i.e.,</p>
+<p><span class="math display">\[
+\left(1-\overset{\longrightarrow \ 0}{\cancel{\frac{j}{N}}}\right)\longrightarrow 1 \quad (N\to\infty),
+\]</span></p>
+<p>That is because <span class="math inline">\(k\)</span> is fixed (it does not grow with <span class="math inline">\(N\)</span>). Thus, <span class="math inline">\(\frac{j}{N}\to 0\)</span> for each <span class="math inline">\(j=0,1,2,\dots,k-1\)</span>. Hence, the product of the remaining terms tends to <span class="math inline">\(1\)</span>:</p>
+<p><span class="math display">\[
+\prod_{j=0}^{k-1}\left(1-\overset{\longrightarrow \ 0}{\cancel{\frac{j}{N}}}\right)\longrightarrow 1.
+\]</span></p>
+<p>Therefore, in the rare-event/ large-depth regime, the first two terms of the PMF of the binomial distribution converge to:</p>
+<hr>
+<p><span class="math display">\[
+\binom{N}{k}p_i^k = \binom{N}{k}\left(\frac{\lambda_i}{N}\right)^k = \frac{N(N-1)\cdots(N-k+1)}{k!}\frac{\lambda_i^k}{N^k} = \frac{\lambda_i^k}{k!}.\overset{\longrightarrow\,1}{\cancel{\prod_{j=0}^{k-1}\left(1-\overset{\longrightarrow \ 0}{\cancel{\frac{j}{N}}}\right)}}\longrightarrow \frac{\lambda_i^k}{k!}.1 = \frac{\lambda_i^k}{k!}
+\]</span></p>
+<hr>
+<p>Now, let’s focus on the third term:</p>
+<p><span class="math display">\[
+\left(1-\frac{\lambda_i}{N}\right)^{N-k}
+\]</span></p>
+<p>This term can be written as:</p>
+<p><span class="math display">\[
+\left(1-\frac{\lambda_i}{N}\right)^N
+\left(1-\frac{\lambda_i}{N}\right)^{-k}
+\]</span></p>
+<p>Recall that (this is a well-known result): <span class="math display">\[
+\lim_{N\to\infty} \left(1-\frac{a}{N}\right)^N = e^{-a}
+\]</span></p>
+<p>Therefore as <span class="math inline">\(N\to\infty\)</span>, the first term converges to <span class="math inline">\(e^{-\lambda_i}\)</span>: <span class="math display">\[
+\lim_{N\to\infty} \left(1-\frac{\lambda_i}{N}\right)^N = e^{-\lambda_i}
+\]</span></p>
+<p>The second term converges to <span class="math inline">\(1\)</span> as <span class="math inline">\(N\to\infty\)</span>:</p>
+<p><span class="math display">\[
+\lim_{N\to\infty} \left(1-\overset{\longrightarrow\,0}{\cancel{\frac{\lambda_i}{N}}}\right)^{-k} = 1
+\]</span></p>
+<p>That is because <span class="math inline">\(k\)</span> is fixed (it does not grow with <span class="math inline">\(N\)</span>). Thus, <span class="math inline">\(\frac{\lambda_i}{N}\to 0\)</span> as <span class="math inline">\(N\to\infty\)</span>.</p>
+<p>Putting it all together, the third term converges to:</p>
+<hr>
+<p><span class="math display">\[
+\left(1-\frac{\lambda_i}{N}\right)^{N-k} = \left(1-\frac{\lambda_i}{N}\right)^N
+\left(1-\frac{\lambda_i}{N}\right)^{-k} = e^{-\lambda_i}\cdot 1 = e^{-\lambda_i}.
+\]</span></p>
+<hr>
+<p>Let’s bring in the result of the first and second term back, which was <span class="math inline">\(\frac{\lambda_i^k}{k!}\)</span>. Now, we get:</p>
+<p><span class="math display">\[
+\Pr(X_i=k) = e^{-\lambda_i}\frac{\lambda_i^k}{k!}
+\]</span></p>
+<p>What is a PMF of a Poisson distribution? <span class="math display">\[
+\Pr(X_i=k)=e^{-\lambda_i}\frac{\lambda_i^k}{k!}
+\]</span></p>
+<p>Therefore, the PMF of the binomial distribution converges to the PMF of a Poisson distribution:</p>
+<p><span class="math display">\[
+\Pr(X_i=k)\longrightarrow e^{-\lambda_i}\frac{\lambda_i^k}{k!} = \Pr(X_i=k)\text{ (PMF of Poisson distribution)}.
+\]</span></p>
 </div>
 </div>
 </div>
-</section>
-<section id="binomial-beta-binomial" class="level5">
-<h5 class="anchored" data-anchor-id="binomial-beta-binomial">Binomial / Beta-Binomial</h5>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Why independent Poisson?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-6" class="callout-6-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Jointly, the multinomial constraint <span class="math inline">\(\sum_i X_i=N\)</span> induces weak negative dependence between barcodes.</p>
+<p>Intuitively, the total number of reads is a fixed budget: if one barcode receives more reads than expected, fewer reads are available for the others. In a mathematical sense, the covariance between two barcodes is negative in a multinomial model,</p>
+<p><span class="math display">\[
+\mathrm{Cov}(X_i,X_j)=-Np_ip_j \quad (i\neq j),
+\]</span></p>
+<p>The negative value indicates the inuition mentioned above: an increase in one variable often requires a decrease in the other, as the sum of all variables is fixed at <span class="math inline">\(N\)</span>. So, the covariance is negative by construction. Equivalently, in terms of proportions <span class="math inline">\(\hat p_i=X_i/N\)</span>,</p>
+<p><span class="math display">\[
+\mathrm{Cov}(\hat p_i,\hat p_j)=-\frac{p_ip_j}{N},
+\]</span></p>
+<p>which shrinks to <span class="math inline">\(0\)</span> as <span class="math inline">\(N\)</span> grows. In DEL, each <span class="math inline">\(p_i\)</span> is also very small, so these cross-barcode covariances are tiny. That is why the <strong>dependence is usually negligible in practice</strong>, and the joint distribution is well approximated by a product of <strong>independent</strong> Poisson variables:</p>
+<p><span class="math display">\[
+X_i \approx \text{Poisson}(\lambda_i), \qquad \lambda_i = Np_i,\quad i=1,\dots,K. \quad \text{(K is number of barcodes)}
+\]</span></p>
+<p>This is why DEL models often treat per-barcode counts as independent Poisson (or overdispersed Negative Binomial): it is an accurate and computationally convenient approximation in the sparse-count regime.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-10-contents" aria-controls="callout-10" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Binomial / Beta-Binomial to model per-barcode counts?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-10" class="callout-10-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
 <p>When modeling a single barcode’s counts conditional on fixed total read depth <span class="math inline">\(N\)</span>, we can treat the number of reads assigned to barcode <span class="math inline">\(i\)</span> as the marginal of a multinomial model:</p>
 <p><span class="math display">\[
 \mathbf{X} \sim \text{Multinomial}(N,\mathbf{p})
@@ -432,11 +619,15 @@ X_i \sim \text{Binomial}(N,p_i)
 \]</span></p>
 <p>with <span class="math inline">\(p_i\)</span> the true proportion of barcode <span class="math inline">\(i\)</span> in the pool. Binomial assumes a fixed probability per read and variance <span class="math inline">\(N p_i(1-p_i)\)</span>, which can be too narrow when enrichment probabilities vary across experiments, PCR amplification, or selection noise.</p>
 <p>A more overdispersed alternative is the Beta-binomial.</p>
+<p>References:</p>
+<ul>
+<li><a href="https://pubs.acs.org/doi/10.1021/acscombsci.8b00116">Quantitative Comparison of Enrichment from DNA-Encoded Chemical Library Selections</a> - Introduces a binomial distribution model to compute normalized enrichment z-scores from DEL selections.</li>
+</ul>
 <p><span class="math display">\[
 X_i \sim \text{BetaBinomial}(N, a_i, b_i)
 \]</span></p>
 <div class="callout callout-style-default callout-note no-icon callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-9-contents" aria-controls="callout-9" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
@@ -445,7 +636,7 @@ When is Beta–binomial useful for DEL?
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-6" class="callout-6-contents callout-collapse collapse">
+<div id="callout-9" class="callout-9-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>The Beta prior adds <strong>extra variability in enrichment probability</strong>, analogous to how the Negative Binomial adds extra variability to Poisson rates.</p>
 <p><strong>The Beta–binomial is the one-dimensional marginal of the Dirichlet–multinomial</strong>: if one barcode is treated as “success” and all others as “failure,” the Dirichlet prior on proportions reduces to a Beta prior for that barcode.</p>
@@ -465,6 +656,9 @@ When is Beta–binomial useful for DEL?
 <li><strong>Dirichlet–multinomial</strong> models the <em>entire library composition</em></li>
 <li><strong>Beta–binomial</strong> models <em>one barcode’s share of reads</em></li>
 </ul>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
