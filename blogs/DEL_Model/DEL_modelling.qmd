@@ -363,14 +363,14 @@ $$
 
 Therefore, in the rare-event/ large-depth regime, the first two terms of the PMF of the binomial distribution converge to:
 
-***************
+
 
 $$
-\binom{N}{k}p_i^k = \binom{N}{k}\left(\frac{\lambda_i}{N}\right)^k = \frac{N(N-1)\cdots(N-k+1)}{k!}\frac{\lambda_i^k}{N^k} = \frac{\lambda_i^k}{k!}.\overset{\longrightarrow\,1}{\cancel{\prod_{j=0}^{k-1}\left(1-\overset{\longrightarrow \ 0}{\cancel{\frac{j}{N}}}\right)}}\longrightarrow \frac{\lambda_i^k}{k!}.1 = \frac{\lambda_i^k}{k!}
+\boxed{\binom{N}{k}p_i^k = \binom{N}{k}\left(\frac{\lambda_i}{N}\right)^k = \frac{N(N-1)\cdots(N-k+1)}{k!}\frac{\lambda_i^k}{N^k} = \frac{\lambda_i^k}{k!}.\overset{\longrightarrow\,1}{\cancel{\prod_{j=0}^{k-1}\left(1-\overset{\longrightarrow \ 0}{\cancel{\frac{j}{N}}}\right)}} = \frac{\lambda_i^k}{k!}.1 = \frac{\lambda_i^k}{k!}}
 $$
 
 
-***************
+
 
 Now, let's focus on the third term:
 
@@ -405,23 +405,23 @@ That is because $k$ is fixed (it does not grow with $N$). Thus, $\frac{\lambda_i
 
 Putting it all together, the third term converges to:
 
-***************
+
 $$
-\left(1-\frac{\lambda_i}{N}\right)^{N-k} = \left(1-\frac{\lambda_i}{N}\right)^N
-\left(1-\frac{\lambda_i}{N}\right)^{-k} = e^{-\lambda_i}\cdot 1 = e^{-\lambda_i}.
+\boxed{\left(1-\frac{\lambda_i}{N}\right)^{N-k} = \left(1-\frac{\lambda_i}{N}\right)^N
+\left(1-\frac{\lambda_i}{N}\right)^{-k} = e^{-\lambda_i}\cdot 1 = e^{-\lambda_i}}
 $$
 
-***************
+
 
 Let's bring in the result of the first and second term back, which was $\frac{\lambda_i^k}{k!}$. Now, we get:
 
 $$
-\Pr(X_i=k) = e^{-\lambda_i}\frac{\lambda_i^k}{k!}
+\boxed{\Pr(X_i=k) = e^{-\lambda_i}\frac{\lambda_i^k}{k!}}
 $$
 
 What is a PMF of a Poisson distribution?
 $$
-\Pr(X_i=k)=e^{-\lambda_i}\frac{\lambda_i^k}{k!}
+\boxed{\Pr(X_i=k)=e^{-\lambda_i}\frac{\lambda_i^k}{k!}}
 $$
 
 Therefore, the PMF of the binomial distribution converges to the PMF of a Poisson distribution:
