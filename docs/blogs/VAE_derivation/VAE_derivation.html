@@ -131,7 +131,7 @@ window.Quarto = {
 };
 </script>
 
-<link rel="stylesheet" href="../../styles.css">
+<link rel="stylesheet" href="styles.css">
 </head>
 
 <body class="nav-fixed">
@@ -811,7 +811,7 @@ Possible Solutions (for further reading)
 </section>
 <section id="limited-expressiveness" class="level3">
 <h3 class="anchored" data-anchor-id="limited-expressiveness">3. Limited Expressiveness</h3>
-<p>VAEs are flexiable models that can be used to model complex distributions. One can start with a simple model and gradually increase the complexity. For instance, one can start with a <strong>simple diagonal Gaussian for the approximate posterior</strong>, <span class="math inline">\(q_\phi(z|x) = \mathcal{N}(\mu_\phi(x), \text{diag}(\sigma^2_\phi(x)))\)</span>, and a <strong>fixed isotropic Gaussian prior</strong>, <span class="math inline">\(p_\theta(z) = \mathcal{N}(0, I)\)</span>. These are reasonable assumptions to start with but they might be too restrictive for some applications.</p>
+<p>VAEs are flexible models that can be used to model complex distributions. One can start with a simple model and gradually increase the complexity. For instance, one can start with a <strong>simple diagonal Gaussian for the approximate posterior</strong>, <span class="math inline">\(q_\phi(z|x) = \mathcal{N}(\mu_\phi(x), \text{diag}(\sigma^2_\phi(x)))\)</span>, and a <strong>fixed isotropic Gaussian prior</strong>, <span class="math inline">\(p_\theta(z) = \mathcal{N}(0, I)\)</span>. These are reasonable assumptions to start with but they might be too restrictive for some applications.</p>
 <div class="callout callout-style-default callout-note no-icon callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-17-contents" aria-controls="callout-17" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">

@@ -532,7 +532,7 @@ Several techniques have been developed to prevent or mitigate posterior collapse
 
 ### 3. Limited Expressiveness
 
-VAEs are flexiable models that can be used to model complex distributions. One can start with a simple model and gradually increase the complexity. For instance, one can start with a **simple diagonal Gaussian for the approximate posterior**, $q_\phi(z|x) = \mathcal{N}(\mu_\phi(x), \text{diag}(\sigma^2_\phi(x)))$, and a **fixed isotropic Gaussian prior**, $p_\theta(z) = \mathcal{N}(0, I)$. These are reasonable assumptions to start with but they might be too restrictive for some applications.
+VAEs are flexible models that can be used to model complex distributions. One can start with a simple model and gradually increase the complexity. For instance, one can start with a **simple diagonal Gaussian for the approximate posterior**, $q_\phi(z|x) = \mathcal{N}(\mu_\phi(x), \text{diag}(\sigma^2_\phi(x)))$, and a **fixed isotropic Gaussian prior**, $p_\theta(z) = \mathcal{N}(0, I)$. These are reasonable assumptions to start with but they might be too restrictive for some applications.
 
 ::::: {.callout-note icon="false" collapse="true"}
 ## Why does this happen?
