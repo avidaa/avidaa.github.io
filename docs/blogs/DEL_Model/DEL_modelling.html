@@ -97,7 +97,7 @@ window.Quarto = {
 };
 </script>
 
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="../../styles.css">
 </head>
 
 <body class="nav-fixed">
@@ -167,7 +167,7 @@ window.Quarto = {
 </section>
 <section id="introduction-what-are-dna-encoded-libraries-dels" class="level2">
 <h2 class="anchored" data-anchor-id="introduction-what-are-dna-encoded-libraries-dels">Introduction: What Are DNA Encoded Libraries (DELs)?</h2>
-<p>DNA encoded libraries (DELs) are large collections of small molecules, each tagged with a unique DNA barcode that records its synthetic history. They enable high throughput screening by pooling and sequencing to identify binders to a target. Watch <a href="https://www.youtube.com/watch?v=8jLIgTBJmdU">this</a> short vidoe that explains DELs in a nutshell.</p>
+<p>DNA encoded libraries (DELs) are large collections of small molecules, each tagged with a unique DNA barcode that records its synthetic history. They enable high throughput screening by pooling and sequencing to identify binders to a target. Watch <a href="https://www.youtube.com/watch?v=8jLIgTBJmdU">this</a> short video that explains DELs in a nutshell.</p>
 </section>
 <section id="modelling-dels" class="level2">
 <h2 class="anchored" data-anchor-id="modelling-dels">Modelling DELs</h2>
@@ -181,6 +181,29 @@ window.Quarto = {
 <li><strong>Sequencing</strong>: captures a random, approximately Poisson-distributed sample from the amplified pool.</li>
 </ul>
 <p>Thus, the observed DEL counts for each barcode are the outcome of a sequence of random processes, with amplification especially contributing to count heterogeneity.</p>
+<section id="two-data-generation-perspectives-for-del-counts" class="level4">
+<h4 class="anchored" data-anchor-id="two-data-generation-perspectives-for-del-counts">Two data-generation perspectives for DEL counts</h4>
+<p>It is useful to separate DEL count models by the <strong>data-generation assumption</strong> they make about sequencing depth.</p>
+<p><strong>1) Independent-barcode (rate-based) generation</strong></p>
+<ul>
+<li>Each barcode (compound) produces its own count <strong>independently</strong> according to a barcode-specific rate.</li>
+<li>The total read depth is then the <strong>sum of independent counts</strong>.</li>
+<li>This perspective naturally motivates <strong>Poisson</strong>, <strong>Negative Binomial</strong>, <strong>Poisson–lognormal</strong>, and their zero-inflated variants.</li>
+</ul>
+<div style="text-align: center;">
+<p><img src="Independent_Barcode.png" alt="Independent-barcode generation: each barcode generates counts independently; totals add up." width="25%"></p>
+</div>
+<p><strong>2) Fixed-depth (composition-based) generation</strong></p>
+<ul>
+<li>A sample has a fixed total read depth <strong>N</strong>, and each read is assigned to exactly one barcode.</li>
+<li>Barcodes therefore <strong>share a single pool</strong> of reads, inducing weak negative dependence between barcode counts.</li>
+<li>This perspective naturally motivates <strong>Multinomial</strong> and <strong>Dirichlet–multinomial</strong>, and the one-barcode marginal <strong>Binomial/Beta–binomial</strong>.</li>
+</ul>
+<div style="text-align: center;">
+<p><img src="Fixed_N.png" alt="Fixed-depth generation: a fixed total N is split across barcodes that share one pool." width="25%"></p>
+</div>
+<p>The likelihoods below are grouped with this distinction in mind.</p>
+</section>
 <section id="common-likelihood-functions-for-dels" class="level4">
 <h4 class="anchored" data-anchor-id="common-likelihood-functions-for-dels">Common likelihood functions for DELs</h4>
 <p>Below are common likelihood choices for DEL count data. In practice, DEL data are often <strong>overdispersed</strong> (variance &gt; mean) due to PCR/amplification and other multiplicative factors, and may also exhibit <strong>excess zeros</strong> (true absence, synthesis failures, or aggressive filtering).</p>
@@ -215,9 +238,9 @@ When to use Poisson?
 </section>
 <section id="poisson-gamma-or-negative-binomial-nb" class="level5">
 <h5 class="anchored" data-anchor-id="poisson-gamma-or-negative-binomial-nb">Poisson-Gamma or Negative Binomial (NB)</h5>
-<span class="math display">\[
+<p><span class="math display">\[
 X_i \mid \lambda_i \sim \text{Poisson}(\lambda_i), \qquad \lambda_i \sim \text{Gamma}(\alpha, \beta)
-\]</span>
+\]</span></p>
 <div style="text-align: center;">
 <p>or</p>
 </div>
@@ -457,7 +480,12 @@ X_i \sim \text{Binomial}(N,p_i), \qquad \mathbb{E}[X_i]=Np_i
 <li><span class="math inline">\(Np_i\)</span> stays finite (typically on the order of 1).</li>
 </ul>
 <p>Under this scaling (<span class="math inline">\(N\to\infty\)</span>, <span class="math inline">\(p_i\to 0\)</span>, <span class="math inline">\(Np_i\to\text{fixed value}\)</span>), and assuming that Poisson’s parameter, <span class="math inline">\(\lambda_i\)</span>, is equal to <span class="math inline">\(Np_i\)</span>, each marginal converges as <span class="math display">\[
-X_i \Rightarrow \text{Poisson}(\lambda_i), \quad \lambda_i = Np_i.
+X_i \Rightarrow \text{Poisson}(\lambda_i), \quad \lambda_i = Np_i. \quad \text{(K is number of barcodes)}
+\]</span></p>
+<p>Although Multinomial is not independent jointly, but the dependence becomes negligible in sparse DEL settings. Check <span style="color:#d7263d;">Why independent Poisson?</span> for more details.</p>
+<p>So under rare-event / large-depth regime, <strong>the multinomial can be viewed as the product of independent Poisson counts conditioned on a fixed total</strong>:</p>
+<p><span class="math display">\[
+\mathbf{X} \approx \prod_{i=1}^K \text{Poisson}(\lambda_i), \qquad \lambda_i=Np_i.
 \]</span></p>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
@@ -481,7 +509,7 @@ Why under these conditions, the binomial distribution converges to a Poisson dis
 <li>Each barcode probability <span class="math inline">\(p_i\)</span> is small,</li>
 <li><span class="math inline">\(Np_i\)</span> stays finite (typically on the order of 1).</li>
 </ul>
-<p>We stated that under this scaling, and <strong>assuming that Poisson’s parameter, <span class="math inline">\(\lambda_i\)</span>, is equal to <span class="math inline">\(Np_i\)</span></strong>, the PMF of the binomial distribution converges to the PMF of a Poisson distribution.</p>
+<p>We stated that under this scaling, and <strong>assuming that Poisson’s parameter,</strong> <span class="math inline">\(\lambda_i\)</span>, is equal to <span class="math inline">\(Np_i\)</span>, the PMF of the binomial distribution converges to the PMF of a Poisson distribution.</p>
 <p>Let’s start by rewriting <span class="math inline">\(p_i\)</span> as: <span class="math display">\[p_i = \frac{\lambda_i}{N},\]</span></p>
 <p>then the PMF of the binomial distribution becomes:</p>
 <p><span class="math display">\[
@@ -595,18 +623,9 @@ X_i \approx \text{Poisson}(\lambda_i), \qquad \lambda_i = Np_i,\quad i=1,\dots,K
 </div>
 </div>
 </div>
-<div class="callout callout-style-default callout-tip no-icon callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-10-contents" aria-controls="callout-10" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Binomial / Beta-Binomial to model per-barcode counts?
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-10" class="callout-10-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
+</section>
+<section id="binomial-beta-binomial" class="level5">
+<h5 class="anchored" data-anchor-id="binomial-beta-binomial">Binomial / Beta-Binomial</h5>
 <p>When modeling a single barcode’s counts conditional on fixed total read depth <span class="math inline">\(N\)</span>, we can treat the number of reads assigned to barcode <span class="math inline">\(i\)</span> as the marginal of a multinomial model:</p>
 <p><span class="math display">\[
 \mathbf{X} \sim \text{Multinomial}(N,\mathbf{p})
@@ -623,7 +642,7 @@ X_i \sim \text{Binomial}(N,p_i)
 X_i \sim \text{BetaBinomial}(N, a_i, b_i)
 \]</span></p>
 <div class="callout callout-style-default callout-note no-icon callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-9-contents" aria-controls="callout-9" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-10-contents" aria-controls="callout-10" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
@@ -632,7 +651,7 @@ When is Beta–binomial useful for DEL?
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-9" class="callout-9-contents callout-collapse collapse">
+<div id="callout-10" class="callout-10-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>The Beta prior adds <strong>extra variability in enrichment probability</strong>, analogous to how the Negative Binomial adds extra variability to Poisson rates.</p>
 <p><strong>The Beta–binomial is the one-dimensional marginal of the Dirichlet–multinomial</strong>: if one barcode is treated as “success” and all others as “failure,” the Dirichlet prior on proportions reduces to a Beta prior for that barcode.</p>
@@ -645,19 +664,33 @@ When is Beta–binomial useful for DEL?
 <p><strong>In practice:</strong></p>
 <ul>
 <li><p>In large DEL libraries, Beta–binomial can be easier to use than Dirichlet–multinomial because it avoids modeling all barcodes jointly.</p></li>
-<li><p>When counts are small relative to <span class="math inline">\(N\)</span>, then <span class="math inline">\(\text{BetaBinomial} \approx \text{Negative Binomial}\)</span>.</p></li>
+<li><p><span class="highlight-key-point">When counts are small relative to <span class="math inline">\(N\)</span>, then <span class="math inline">\(\text{BetaBinomial} \approx \text{Negative Binomial}\)</span>.</span></p></li>
 </ul>
 <p><strong>Intuition:</strong></p>
 <ul>
 <li><strong>Dirichlet–multinomial</strong> models the <em>entire library composition</em></li>
 <li><strong>Beta–binomial</strong> models <em>one barcode’s share of reads</em></li>
 </ul>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-9-contents" aria-controls="callout-9" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Why <span class="math inline">\(\text{BetaBinomial} \approx \text{Negative Binomial}\)</span> when counts are small relative to <span class="math inline">\(N\)</span>?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-9" class="callout-9-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+
 </div>
 </div>
 </div>
 </div>
 </div>
 </div>
+<p>:::</p>
 
 
 </section>

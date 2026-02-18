@@ -6,7 +6,7 @@ This blog aims to design and build an attachment-aware, synthon-level GNN for DN
 
 ## Introduction: What Are DNA Encoded Libraries (DELs)?
 
-DNA encoded libraries (DELs) are large collections of small molecules, each tagged with a unique DNA barcode that records its synthetic history. They enable high throughput screening by pooling and sequencing to identify binders to a target. Watch [this](https://www.youtube.com/watch?v=8jLIgTBJmdU) short vidoe that explains DELs in a nutshell.
+DNA encoded libraries (DELs) are large collections of small molecules, each tagged with a unique DNA barcode that records its synthetic history. They enable high throughput screening by pooling and sequencing to identify binders to a target. Watch [this](https://www.youtube.com/watch?v=8jLIgTBJmdU) short video that explains DELs in a nutshell.
 
 ## Modelling DELs
 
@@ -20,6 +20,32 @@ A DEL experiment involves several key stochastic steps that directly impact the 
 -   **Sequencing**: captures a random, approximately Poisson-distributed sample from the amplified pool.
 
 Thus, the observed DEL counts for each barcode are the outcome of a sequence of random processes, with amplification especially contributing to count heterogeneity.
+
+#### Two data-generation perspectives for DEL counts
+
+It is useful to separate DEL count models by the **data-generation assumption** they make about sequencing depth.
+
+**1) Independent-barcode (rate-based) generation**
+
+-   Each barcode (compound) produces its own count **independently** according to a barcode-specific rate.
+-   The total read depth is then the **sum of independent counts**.
+-   This perspective naturally motivates **Poisson**, **Negative Binomial**, **Poisson–lognormal**, and their zero-inflated variants.
+
+<div style="text-align: center;">
+  <img src="Independent_Barcode.png" alt="Independent-barcode generation: each barcode generates counts independently; totals add up." width="25%">
+</div>
+
+**2) Fixed-depth (composition-based) generation**
+
+-   A sample has a fixed total read depth **N**, and each read is assigned to exactly one barcode.
+-   Barcodes therefore **share a single pool** of reads, inducing weak negative dependence between barcode counts.
+-   This perspective naturally motivates **Multinomial** and **Dirichlet–multinomial**, and the one-barcode marginal **Binomial/Beta–binomial**.
+
+<div style="text-align: center;">
+  <img src="Fixed_N.png" alt="Fixed-depth generation: a fixed total N is split across barcodes that share one pool." width="25%">
+</div>
+
+The likelihoods below are grouped with this distinction in mind.
 
 #### Common likelihood functions for DELs
 
@@ -35,8 +61,8 @@ Because sequencing counts in DEL experiments arise from random sampling of ampli
 
 References:
 
-- [Machine learning on DNA-encoded library count data using an uncertainty-aware probabilistic loss function](https://pmc.ncbi.nlm.nih.gov/articles/PMC10830332/)
-- [Randomness in DNA Encoded Library Selection Data Can Be Modeled for More Reliable Enrichment Calculation](https://pubmed.ncbi.nlm.nih.gov/29437521/)
+-   [Machine learning on DNA-encoded library count data using an uncertainty-aware probabilistic loss function](https://pmc.ncbi.nlm.nih.gov/articles/PMC10830332/)
+-   [Randomness in DNA Encoded Library Selection Data Can Be Modeled for More Reliable Enrichment Calculation](https://pubmed.ncbi.nlm.nih.gov/29437521/)
 
 ::: {.callout-note icon="false" collapse="true"}
 ## When to use Poisson?
@@ -51,9 +77,10 @@ Notice that Poisson is usually too narrow for DEL data once PCR noise is present
 $$
 X_i \mid \lambda_i \sim \text{Poisson}(\lambda_i), \qquad \lambda_i \sim \text{Gamma}(\alpha, \beta)
 $$
-<div style="text-align: center;">
+
+::: {style="text-align: center;"}
 or
-</div>
+:::
 
 $$
 X_i \sim \text{NB}(\mu_i, \phi)
@@ -63,8 +90,8 @@ Because DEL sequencing readouts often exhibit overdispersion due to amplificatio
 
 References:
 
-- [Partial Product Aware Machine Learning on DNA-Encoded Libraries](https://arxiv.org/abs/2205.08020)
-- [Discovery of TNF inhibitors from a DNA-encoded chemical library based on diels-alder cycloaddition](https://pubmed.ncbi.nlm.nih.gov/19875081/) - Figure 3.
+-   [Partial Product Aware Machine Learning on DNA-Encoded Libraries](https://arxiv.org/abs/2205.08020)
+-   [Discovery of TNF inhibitors from a DNA-encoded chemical library based on diels-alder cycloaddition](https://pubmed.ncbi.nlm.nih.gov/19875081/) - Figure 3.
 
 ::: {.callout-note icon="false" collapse="true"}
 ## When to use Negative Binomial?
@@ -108,9 +135,9 @@ $$
 X_i \sim \text{ZIP}(\lambda_i, \pi_i)
 $$
 
-<div style="text-align: center;">
-or 
-</div>
+::: {style="text-align: center;"}
+or
+:::
 
 $$
 X_i \sim \text{ZINB}(\mu_i, \phi, \pi_i)
@@ -122,29 +149,27 @@ $$
 X_i = 0 \quad \text{with probability } \pi_i
 $$
 
-<div style="text-align: center;">
+::: {style="text-align: center;"}
 and
-</div>
+:::
 
 $$
 X_i \sim \text{Poisson}(\lambda_i) \quad \text{with probability } 1 - \pi_i \quad \text{(for ZIP)}
 $$
 
-<div style="text-align: center;">
-or 
-</div>
+::: {style="text-align: center;"}
+or
+:::
 
 $$
 X_i \sim \text{NB}(\mu_i, \phi) \quad \text{with probability } 1 - \pi_i \quad \text{(for ZINB)}
 $$
 
-
 The interpretation of ZIP, ZINB is that with probability $\pi_i$, the observation is a **structural zero** (e.g., synthesis failure / true absence), **otherwise counts follow Poisson or Negative Binomial**. Zero inflated models should be treated as a *diagnostic driven choice*, **not a default likelihood choice**.
 
 References:
 
-- [DEL-Ranking: Ranking-Correction Denoising Framework for Elucidating Molecular Affinities in DNA-Encoded Libraries](https://openreview.net/forum?id=QfyZ28FpVY) - Check the reviewers comments.
-
+-   [DEL-Ranking: Ranking-Correction Denoising Framework for Elucidating Molecular Affinities in DNA-Encoded Libraries](https://openreview.net/forum?id=QfyZ28FpVY) - Check the reviewers comments.
 
 ::: {.callout-note icon="false" collapse="true"}
 ## When to use Zero-inflated models?
@@ -159,35 +184,34 @@ Zero inflated models assume that there are two mechanisms that produce zeros:
     -   Compound absence in the selection pool
 -   **Observed zeros**: these are zeros that are due to the fact that the molecule was not sequenced.
 
-Structural zeros are conceptually different from **sampling zeros**, which Poisson or Negative Binomial can already explain. <span style="color: #d7263d;">This is important because many apparent extra zeros are already explained by **overdispersion** in the Negative Binomial model, *not* a separate zero-generation process.</span>
+Structural zeros are conceptually different from **sampling zeros**, which Poisson or Negative Binomial can already explain. [This is important because many apparent extra zeros are already explained by **overdispersion** in the Negative Binomial model, *not* a separate zero-generation process.]{style="color: #d7263d;"}
 
 Zero inflated models are reasonable when:
 
-1. Poisson or Negative Binomial alone underpredicts zeros in posterior predictive checks
+1.  Poisson or Negative Binomial alone underpredicts zeros in posterior predictive checks
 
     The diagnostic is to check if observed zero fraction is larger than simulated zero fraction from Poisson or Negative Binomial
 
-2. Known synthesis failure mechanisms
+2.  Known synthesis failure mechanisms
 
     For instance:
 
-    - specific synthons systematically fail
-    - Library construction known to have dropout
-    - Certain cycles prosuce missing compounds
+    -   specific synthons systematically fail
+    -   Library construction known to have dropout
+    -   Certain cycles prosuce missing compounds
 
     These are structural zeros that are not explained by overdispersion.
 
-3. Exteremly sparse libraries
+3.  Exteremly sparse libraries
 
-    If most barcodes are absent or filtered out, then ZIP, ZINB is a better fit than Poisson or Negative Binomial. 
+    If most barcodes are absent or filtered out, then ZIP, ZINB is a better fit than Poisson or Negative Binomial.
 
 Notice that:
 
-- If sparsity is **already explained by low counts**, then <span style="color: #d7263d; font-weight: bold;">ZIP, ZINB is not necessary</span>.
-- If **filtering is the main source of zeros**, then <span style="color: #d7263d; font-weight: bold;">ZIP, ZINB is not necessary</span>.
+-   If sparsity is **already explained by low counts**, then [ZIP, ZINB is not necessary]{style="color: #d7263d; font-weight: bold;"}.
+-   If **filtering is the main source of zeros**, then [ZIP, ZINB is not necessary]{style="color: #d7263d; font-weight: bold;"}.
 
 If zeros are mainly caused by *thresholding / filtering* (i.e., you only record nonzeros above a cutoff), a **hurdle model** may be a better conceptual fit than ZIP, ZINB.
-
 :::
 
 ##### Poisson-Lognormal
@@ -202,13 +226,12 @@ A lognormal model for the rate has **heavier tails than a gamma model**, so it t
 
 References:
 
-- There is **no well-known DEL paper** that explicitly uses a Poisson-Lognormal likelihood, although the model is statistically can be used for DEL data.
+-   There is **no well-known DEL paper** that explicitly uses a Poisson-Lognormal likelihood, although the model is statistically can be used for DEL data.
 
 ::: {.callout-note icon="false" collapse="true"}
 ## When to use Poisson-Lognormal?
 
 Use Poisson–lognormal when noise is naturally **multiplicative on the rate** (PCR / assay effects), giving a log-normal-ish spread in effective rates across observations.
-
 :::
 
 ##### Multinomial / Dirichlet-Multinomial
@@ -229,35 +252,36 @@ $$
 
 References:
 
-- There is **no well-known DEL paper** that explicitly uses a Multinomial / Dirichlet-multinomial likelihood, although the model is statistically valid and can be used for DEL data. Check <span style="color:#d7263d;">When to use Multinomial / Dirichlet-multinomial?</span> for more details.
+-   There is **no well-known DEL paper** that explicitly uses a Multinomial / Dirichlet-multinomial likelihood, although the model is statistically valid and can be used for DEL data. Check [When to use Multinomial / Dirichlet-multinomial?]{style="color:#d7263d;"} for more details.
 
-::: {.callout-note icon="false" collapse="true"}
+:::::: {.callout-note icon="false" collapse="true"}
 ## When to use Multinomial / Dirichlet-multinomial?
 
 Use these when primary variability is driven by **relative composition** under a fixed (or modeled) total depth. This is common when comparing barcodes within the same sequencing run.
 
 **In practice:**
 
-- Multinomial can be too narrow; Dirichlet-multinomial adds extra variability in proportions. 
+-   Multinomial can be too narrow; Dirichlet-multinomial adds extra variability in proportions.
 
--  Multinomial / Dirichlet-multinomial are especially natural for modeling *within-sample* composition, whereas Poisson and Negative Binomial are common for *per-barcode* marginal modeling.
-    - **Within-sample perspective:** Given one sample with total reads $N$, how are those reads split across all barcodes?
-        - Model the joint vector of proportions/counts in that sample using a Multinomial distribution.
-    - **Per-barcode perspective:** For barcode $i$, what count do I expect?
-        - Model each barcode’s count distribution individually (often approximately independent, especially in sparse DEL settings).
-    
-- Most DEL models don't use Multinomial / Dirichlet-multinomial likelihood, mostly for practical reasons:
+-   Multinomial / Dirichlet-multinomial are especially natural for modeling *within-sample* composition, whereas Poisson and Negative Binomial are common for *per-barcode* marginal modeling.
 
-    1. Libraries are extremely large and have millions of barcodes. A multinomial likelihood becomes computationally difficult.
-    2. [When counts are small relative to $N$, then $\text{Multinomial} \approx \text{independent Poisson}$.]{.highlight-key-point}
+    -   **Within-sample perspective:** Given one sample with total reads $N$, how are those reads split across all barcodes?
+        -   Model the joint vector of proportions/counts in that sample using a Multinomial distribution.
+    -   **Per-barcode perspective:** For barcode $i$, what count do I expect?
+        -   Model each barcode’s count distribution individually (often approximately independent, especially in sparse DEL settings).
+
+-   Most DEL models don't use Multinomial / Dirichlet-multinomial likelihood, mostly for practical reasons:
+
+    1.  Libraries are extremely large and have millions of barcodes. A multinomial likelihood becomes computationally difficult.
+    2.  [When counts are small relative to $N$, then $\text{Multinomial} \approx \text{independent Poisson}$.]{.highlight-key-point}
 
 **Intuition:**
 
-- **Multinomial perspective:** Imagine you have a total of $N$ sequencing reads, and you assign each one to a barcode. The barcodes share the total pool of reads.
+-   **Multinomial perspective:** Imagine you have a total of $N$ sequencing reads, and you assign each one to a barcode. The barcodes share the total pool of reads.
 
-- **Negative Binomial/Poisson perspective:** Instead, think of each barcode as producing its own number of reads independently, according to its own rate. The total number of reads is simply the sum of these independent counts.
+-   **Negative Binomial/Poisson perspective:** Instead, think of each barcode as producing its own number of reads independently, according to its own rate. The total number of reads is simply the sum of these independent counts.
 
-::: {.callout-tip icon="false" collapse="true"}
+::::: {.callout-tip icon="false" collapse="true"}
 ## Why does $\text{Multinomial} \approx$ independent Poisson when counts are small relative to $N$?
 
 Let $\mathbf{X}=(X_1,\dots,X_K) \sim \text{Multinomial}(N,\mathbf{p})$, where $\sum_{i=1}^K p_i = 1$ and $\sum_{i=1}^K X_i = N$.
@@ -272,21 +296,27 @@ So $Np_i$ is the expected read count for barcode $i$: among $N$ reads, each read
 
 In the DEL rare-event / large-depth regime, we consider:
 
-- $N$ is large,
-- Each barcode probability $p_i$ is small,
-- $Np_i$ stays finite (typically on the order of 1).
+-   $N$ is large,
+-   Each barcode probability $p_i$ is small,
+-   $Np_i$ stays finite (typically on the order of 1).
 
 Under this scaling ($N\to\infty$, $p_i\to 0$, $Np_i\to\text{fixed value}$), and assuming that Poisson's parameter, $\lambda_i$, is equal to $Np_i$, each marginal converges as 
 $$
-X_i \Rightarrow \text{Poisson}(\lambda_i), \quad \lambda_i = Np_i.
+X_i \Rightarrow \text{Poisson}(\lambda_i), \quad \lambda_i = Np_i. \quad \text{(K is number of barcodes)}
 $$
 
+Although Multinomial is not independent jointly, but the dependence becomes negligible in sparse DEL settings. Check [Why independent Poisson?]{style="color:#d7263d;"} for more details.
+
+So under rare-event / large-depth regime, **the multinomial can be viewed as the product of independent Poisson counts conditioned on a fixed total**:
+
+$$
+\mathbf{X} \approx \prod_{i=1}^K \text{Poisson}(\lambda_i), \qquad \lambda_i=Np_i.
+$$
 
 ::: {.callout-tip icon="false" collapse="true"}
 ## Why under these conditions, the binomial distribution converges to a Poisson distribution?
 
-The probability mass function (PMF) of the Binomial distribution is:
-$$
+The probability mass function (PMF) of the Binomial distribution is: $$
 \Pr(X_i=k)=\binom{N}{k}p_i^k(1-p_i)^{N-k}
 $$
 
@@ -294,14 +324,13 @@ Where $N$ is the total number of trials (or our experiment's read depth), $k$ is
 
 Now, let's recall the conditions of the rare-event/ large-depth regime:
 
-- $N$ is large,
-- Each barcode probability $p_i$ is small,
-- $Np_i$ stays finite (typically on the order of 1).
+-   $N$ is large,
+-   Each barcode probability $p_i$ is small,
+-   $Np_i$ stays finite (typically on the order of 1).
 
-We stated that under this scaling, and **assuming that Poisson's parameter, $\lambda_i$, is equal to $Np_i$**, the PMF of the binomial distribution converges to the PMF of a Poisson distribution.
+We stated that under this scaling, and **assuming that Poisson's parameter,** $\lambda_i$, is equal to $Np_i$, the PMF of the binomial distribution converges to the PMF of a Poisson distribution.
 
-Let's start by rewriting $p_i$ as:
-$$p_i = \frac{\lambda_i}{N},$$
+Let's start by rewriting $p_i$ as: $$p_i = \frac{\lambda_i}{N},$$
 
 then the PMF of the binomial distribution becomes:
 
@@ -309,19 +338,11 @@ $$
 \Pr(X_i=k)=\binom{N}{k}\left(\frac{\lambda_i}{N}\right)^k\left(1-\frac{\lambda_i}{N}\right)^{N-k}.
 $$
 
-Recall that: 
-$$\binom{N}{k} = \frac{N!}{k!(N-k)!}$$
-and
-$$N! = N(N-1)(N-2)(N-3)\cdots 3\times 2\times 1.$$
-It can be written as 
-$$N! = N(N-1)\cdots(N-k+1)(N-k)!$$ 
-This notation is useful because it shows that in $\binom{N}{k} = \frac{N!}{k!(N-k)!}$, the $(N-k)!$ in numerator and denominator cancel out each other. Hence, we can rewrite the binomial coefficient as:
-$$
+Recall that: $$\binom{N}{k} = \frac{N!}{k!(N-k)!}$$ and $$N! = N(N-1)(N-2)(N-3)\cdots 3\times 2\times 1.$$ It can be written as $$N! = N(N-1)\cdots(N-k+1)(N-k)!$$ This notation is useful because it shows that in $\binom{N}{k} = \frac{N!}{k!(N-k)!}$, the $(N-k)!$ in numerator and denominator cancel out each other. Hence, we can rewrite the binomial coefficient as: $$
 \binom{N}{k} = \frac{N(N-1)\cdots(N-k+1)}{k!}.
 $$
 
-Therefore, the PMF of the binomial distribution becomes:
-$$
+Therefore, the PMF of the binomial distribution becomes: $$
 \Pr(X_i=k)=\binom{N}{k}\left(\frac{\lambda_i}{N}\right)^k\left(1-\frac{\lambda_i}{N}\right)^{N-k}
 =
 \frac{N(N-1)\cdots(N-k+1)}{k!}\frac{\lambda_i^k}{N^k}\left(1-\frac{\lambda_i}{N}\right)^{N-k}.
@@ -333,23 +354,20 @@ $$
 \frac{N(N-1)\cdots(N-k+1)}{k!}\frac{\lambda_i^k}{N^k}
 $$
 
-This can be written as:
-$$
+This can be written as: $$
 \frac{\lambda_i^k}{k!}\cdot
 \frac{N}{N}\cdot\frac{N-1}{N}\cdots\frac{N-k+1}{N}
 $$
 
-If we set $\frac{\lambda_i^k}{k!}$ aside, then the product of the remaining terms, can be written as a product of $k$ terms (because $N^k$ in denominator), each of which is of the form $\frac{N-j}{N}$ for $j=0,1,2,\dots,k-1$ ($k-1$, because the first term is $\frac{N}{N}$), hence:
-$$
+If we set $\frac{\lambda_i^k}{k!}$ aside, then the product of the remaining terms, can be written as a product of $k$ terms (because $N^k$ in denominator), each of which is of the form $\frac{N-j}{N}$ for $j=0,1,2,\dots,k-1$ ($k-1$, because the first term is $\frac{N}{N}$), hence: $$
 \frac{N}{N}\cdot\frac{N-1}{N}\cdots\frac{N-k+1}{N} = \prod_{j=0}^{k-1}\left(1-\frac{j}{N}\right)
 $$
 
-Now, let's bring in the first term back, we get:
-$$
+Now, let's bring in the first term back, we get: $$
 \frac{\lambda_i^k}{k!}\cdot \prod_{j=0}^{k-1}\left(1-\frac{j}{N}\right)
 $$
 
-In the rare-event/ large-depth regime, as $N\to\infty$, each term goes to 1, i.e., 
+In the rare-event/ large-depth regime, as $N\to\infty$, each term goes to 1, i.e.,
 
 $$
 \left(1-\overset{\longrightarrow \ 0}{\cancel{\frac{j}{N}}}\right)\longrightarrow 1 \quad (N\to\infty),
@@ -363,14 +381,9 @@ $$
 
 Therefore, in the rare-event/ large-depth regime, the first two terms of the PMF of the binomial distribution converge to:
 
-
-
 $$
 \boxed{\binom{N}{k}p_i^k = \binom{N}{k}\left(\frac{\lambda_i}{N}\right)^k = \frac{N(N-1)\cdots(N-k+1)}{k!}\frac{\lambda_i^k}{N^k} = \frac{\lambda_i^k}{k!}.\overset{\longrightarrow\,1}{\cancel{\prod_{j=0}^{k-1}\left(1-\overset{\longrightarrow \ 0}{\cancel{\frac{j}{N}}}\right)}} = \frac{\lambda_i^k}{k!}.1 = \frac{\lambda_i^k}{k!}}
 $$
-
-
-
 
 Now, let's focus on the third term:
 
@@ -385,13 +398,11 @@ $$
 \left(1-\frac{\lambda_i}{N}\right)^{-k}
 $$
 
-Recall that (this is a well-known result):
-$$
+Recall that (this is a well-known result): $$
 \lim_{N\to\infty} \left(1-\frac{a}{N}\right)^N = e^{-a}
 $$
 
-Therefore as $N\to\infty$, the first term converges to $e^{-\lambda_i}$:
-$$
+Therefore as $N\to\infty$, the first term converges to $e^{-\lambda_i}$: $$
 \lim_{N\to\infty} \left(1-\frac{\lambda_i}{N}\right)^N = e^{-\lambda_i}
 $$
 
@@ -401,17 +412,14 @@ $$
 \lim_{N\to\infty} \left(1-\overset{\longrightarrow\,0}{\cancel{\frac{\lambda_i}{N}}}\right)^{-k} = 1
 $$
 
-That is because $k$ is fixed (it does not grow with $N$). Thus, $\frac{\lambda_i}{N}\to 0$ as $N\to\infty$. 
+That is because $k$ is fixed (it does not grow with $N$). Thus, $\frac{\lambda_i}{N}\to 0$ as $N\to\infty$.
 
 Putting it all together, the third term converges to:
-
 
 $$
 \boxed{\left(1-\frac{\lambda_i}{N}\right)^{N-k} = \left(1-\frac{\lambda_i}{N}\right)^N
 \left(1-\frac{\lambda_i}{N}\right)^{-k} = e^{-\lambda_i}\cdot 1 = e^{-\lambda_i}}
 $$
-
-
 
 Let's bring in the result of the first and second term back, which was $\frac{\lambda_i^k}{k!}$. Now, we get:
 
@@ -419,8 +427,7 @@ $$
 \boxed{\Pr(X_i=k) = e^{-\lambda_i}\frac{\lambda_i^k}{k!}}
 $$
 
-What is a PMF of a Poisson distribution?
-$$
+What is a PMF of a Poisson distribution? $$
 \boxed{\Pr(X_i=k)=e^{-\lambda_i}\frac{\lambda_i^k}{k!}}
 $$
 
@@ -431,11 +438,10 @@ $$
 $$
 :::
 
-:::{.callout-tip icon="false" collapse="true"}
-
+::: {.callout-tip icon="false" collapse="true"}
 ## Why independent Poisson?
 
-Jointly, the multinomial constraint $\sum_i X_i=N$ induces weak negative dependence between barcodes. 
+Jointly, the multinomial constraint $\sum_i X_i=N$ induces weak negative dependence between barcodes.
 
 Intuitively, the total number of reads is a fixed budget: if one barcode receives more reads than expected, fewer reads are available for the others. In a mathematical sense, the covariance between two barcodes is negative in a multinomial model,
 
@@ -456,14 +462,11 @@ X_i \approx \text{Poisson}(\lambda_i), \qquad \lambda_i = Np_i,\quad i=1,\dots,K
 $$
 
 This is why DEL models often treat per-barcode counts as independent Poisson (or overdispersed Negative Binomial): it is an accurate and computationally convenient approximation in the sparse-count regime.
-
 :::
+:::::
+::::::
 
-:::
-:::
-
-:::{.callout-tip icon="false" collapse="true"}
-## Binomial / Beta-Binomial to model per-barcode counts?
+##### Binomial / Beta-Binomial
 
 When modeling a single barcode’s counts conditional on fixed total read depth $N$, we can treat the number of reads assigned to barcode $i$ as the marginal of a multinomial model:
 
@@ -479,7 +482,7 @@ A more overdispersed alternative is the Beta-binomial.
 
 References:
 
-- [Quantitative Comparison of Enrichment from DNA-Encoded Chemical Library Selections](https://pubs.acs.org/doi/10.1021/acscombsci.8b00116) - Introduces a binomial distribution model to compute normalized enrichment z-scores from DEL selections.
+-   [Quantitative Comparison of Enrichment from DNA-Encoded Chemical Library Selections](https://pubs.acs.org/doi/10.1021/acscombsci.8b00116) - Introduces a binomial distribution model to compute normalized enrichment z-scores from DEL selections.
 
 $$
 X_i \sim \text{BetaBinomial}(N, a_i, b_i)
@@ -492,23 +495,28 @@ The Beta prior adds **extra variability in enrichment probability**, analogous t
 
 **The Beta–binomial is the one-dimensional marginal of the Dirichlet–multinomial**: if one barcode is treated as “success” and all others as “failure,” the Dirichlet prior on proportions reduces to a Beta prior for that barcode.
 
-
 Beta–binomial is particularly natural when modeling:
 
-- enrichment of **one barcode vs the background library**
-- **binder vs non‑binder probability** formulations
-- selection experiments where **total sequencing depth is fixed**
+-   enrichment of **one barcode vs the background library**
+-   **binder vs non‑binder probability** formulations
+-   selection experiments where **total sequencing depth is fixed**
 
 **In practice:**
 
-- In large DEL libraries, Beta–binomial can be easier to use than Dirichlet–multinomial because it avoids modeling all barcodes jointly.
+-   In large DEL libraries, Beta–binomial can be easier to use than Dirichlet–multinomial because it avoids modeling all barcodes jointly.
 
-- When counts are small relative to $N$, then $\text{BetaBinomial} \approx \text{Negative Binomial}$. 
+-   [When counts are small relative to $N$, then $\text{BetaBinomial} \approx \text{Negative Binomial}$.]{.highlight-key-point}
 
 **Intuition:**
 
-- **Dirichlet–multinomial** models the *entire library composition*
-- **Beta–binomial** models *one barcode’s share of reads*
-:::
+-   **Dirichlet–multinomial** models the *entire library composition*
+-   **Beta–binomial** models *one barcode’s share of reads*
 
+::::: {.callout-tip icon="false" collapse="true"}
+## Why $\text{BetaBinomial} \approx \text{Negative Binomial}$ when counts are small relative to $N$?
+
+
+
+:::
+:::::
 :::
