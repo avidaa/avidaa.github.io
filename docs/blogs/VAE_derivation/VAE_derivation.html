@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>vae_derivation</title>
+<title>Mathematical Derivation of VAE</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -175,9 +175,7 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#mathematical-derivation-of-vae" id="toc-mathematical-derivation-of-vae" class="nav-link active" data-scroll-target="#mathematical-derivation-of-vae">Mathematical Derivation of VAE</a>
-  <ul class="collapse">
-  <li><a href="#what-is-the-aim-of-this-blog" id="toc-what-is-the-aim-of-this-blog" class="nav-link" data-scroll-target="#what-is-the-aim-of-this-blog">What Is the Aim of This Blog?</a></li>
+  <li><a href="#what-is-the-aim-of-this-blog" id="toc-what-is-the-aim-of-this-blog" class="nav-link active" data-scroll-target="#what-is-the-aim-of-this-blog">What Is the Aim of This Blog?</a></li>
   <li><a href="#introduction-what-are-variational-autoencoders-vaes" id="toc-introduction-what-are-variational-autoencoders-vaes" class="nav-link" data-scroll-target="#introduction-what-are-variational-autoencoders-vaes">Introduction: What Are Variational Autoencoders (VAEs)?</a></li>
   <li><a href="#intuition-what-a-vae-is-really-learning" id="toc-intuition-what-a-vae-is-really-learning" class="nav-link" data-scroll-target="#intuition-what-a-vae-is-really-learning">Intuition: What a VAE Is Really Learning</a></li>
   <li><a href="#assumptions-what-are-the-core-assumptions-of-a-vae-model" id="toc-assumptions-what-are-the-core-assumptions-of-a-vae-model" class="nav-link" data-scroll-target="#assumptions-what-are-the-core-assumptions-of-a-vae-model">Assumptions: What Are the Core Assumptions of a VAE Model?</a></li>
@@ -209,18 +207,31 @@ window.Quarto = {
   <li><a href="#inability-to-directly-measure-true-likelihood" id="toc-inability-to-directly-measure-true-likelihood" class="nav-link" data-scroll-target="#inability-to-directly-measure-true-likelihood">4. Inability to Directly Measure True Likelihood</a></li>
   </ul></li>
   <li><a href="#conclusion-key-takeaways-and-final-remarks" id="toc-conclusion-key-takeaways-and-final-remarks" class="nav-link" data-scroll-target="#conclusion-key-takeaways-and-final-remarks">Conclusion: Key Takeaways and Final Remarks</a></li>
-  </ul></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
-<main class="content column-page-left" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
+<main class="content column-page-left" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Mathematical Derivation of VAE</h1>
+</div>
 
 
 
+<div class="quarto-title-meta column-page-left">
 
-<section id="mathematical-derivation-of-vae" class="level1">
-<h1>Mathematical Derivation of VAE</h1>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
 <section id="what-is-the-aim-of-this-blog" class="level2">
 <h2 class="anchored" data-anchor-id="what-is-the-aim-of-this-blog">What Is the Aim of This Blog?</h2>
 <p>This blog draws upon insights from <a href="https://hunterheidenreich.com/posts/modern-variational-autoencoder-in-pytorch/">this article</a> and <a href="https://lilianweng.github.io/posts/2018-08-12-vae/">this post</a>, with the objective of developing a better understanding of Variational Autoencoders (VAEs) for my own research.</p>
@@ -1071,7 +1082,6 @@ p_\theta(x, z_k) = p_\theta(x|z_k)\; p_\theta(z_k)
 <p>This framework extends seamlessly to Conditional VAEs by conditioning both the encoder and decoder on auxiliary information. The mathematical structure of the ELBO remains unchanged, highlighting the flexibility and generality of variational inference as a modeling paradigm.</p>
 
 
-</section>
 </section>
 
 </main> <!-- /main -->

@@ -1,4 +1,13 @@
-# Modelling DNA Encoded Libraries (DELs)
+---
+title: "Modelling DNA Encoded Libraries (DELs)"
+format: html
+jupyter: python3
+execute:
+  echo: true
+  cache: true
+  freeze: true
+code-fold: true
+---
 
 ## What Is the Aim of This Blog?
 
@@ -8,7 +17,7 @@ This blog aims to design and build an attachment-aware, synthon-level GNN for DN
 
 DNA encoded libraries (DELs) are large collections of small molecules, each tagged with a unique DNA barcode that records its synthetic history. They enable high throughput screening by pooling and sequencing to identify binders to a target. Watch [this](https://www.youtube.com/watch?v=8jLIgTBJmdU) short video that explains DELs in a nutshell.
 
-## Modelling DELs
+## DEL Likelihood Functions
 
 ### What is a correct likelihood function for DELs?
 
@@ -34,6 +43,7 @@ It is useful to separate DEL count models by the **data-generation assumption** 
 <div style="text-align: center;">
   <img src="Independent_Barcode.png" alt="Independent-barcode generation: each barcode generates counts independently; totals add up." width="25%">
 </div>
+[**Figure 1:** Independent-barcode generation: each barcode generates counts independently; totals add up.]{.fig-caption}
 
 **2) Fixed-depth (composition-based) generation**
 
@@ -41,9 +51,10 @@ It is useful to separate DEL count models by the **data-generation assumption** 
 -   Barcodes therefore **share a single pool** of reads, inducing weak negative dependence between barcode counts.
 -   This perspective naturally motivates **Multinomial** and **Dirichlet–multinomial**, and the one-barcode marginal **Binomial/Beta–binomial**.
 
-<div style="text-align: center;">
-  <img src="Fixed_N.png" alt="Fixed-depth generation: a fixed total N is split across barcodes that share one pool." width="25%">
-</div>
+    <div style="text-align: center;">
+    <img src="Fixed_N.png" alt="Fixed-depth generation: a fixed total N is split across barcodes that share one pool." width="25%">
+    </div>
+[**Figure 2:** Fixed-depth generation: a fixed total N is split across barcodes that share one pool.]{.fig-caption}
 
 The likelihoods below are grouped with this distinction in mind.
 
@@ -252,7 +263,7 @@ $$
 
 References:
 
--   There is **no well-known DEL paper** that explicitly uses a Multinomial / Dirichlet-multinomial likelihood, although the model is statistically valid and can be used for DEL data. Check [When to use Multinomial / Dirichlet-multinomial?]{style="color:#d7263d;"} for more details.
+-   There is **no well-known DEL paper** that explicitly uses a Multinomial / Dirichlet-multinomial likelihood, although the model is statistically valid and can be used for DEL data. Check [When to use Multinomial / Dirichlet-multinomial?]{.box-ref-highlight} for more details.
 
 :::::: {.callout-note icon="false" collapse="true"}
 ## When to use Multinomial / Dirichlet-multinomial?
@@ -305,7 +316,10 @@ $$
 X_i \Rightarrow \text{Poisson}(\lambda_i), \quad \lambda_i = Np_i. \quad \text{(K is number of barcodes)}
 $$
 
-Although Multinomial is not independent jointly, but the dependence becomes negligible in sparse DEL settings. Check [Why independent Poisson?]{style="color:#d7263d;"} for more details.
+
+Check [Why under these conditions, the binomial distribution converges to a Poisson distribution?]{.box-ref-highlight} box below for more details.
+
+Although Multinomial is not independent jointly, but the dependence becomes negligible in sparse DEL settings. Check [Why independent Poisson?]{.box-ref-highlight} box below for more details.
 
 So under rare-event / large-depth regime, **the multinomial can be viewed as the product of independent Poisson counts conditioned on a fixed total**:
 
@@ -512,11 +526,305 @@ Beta–binomial is particularly natural when modeling:
 -   **Dirichlet–multinomial** models the *entire library composition*
 -   **Beta–binomial** models *one barcode’s share of reads*
 
-::::: {.callout-tip icon="false" collapse="true"}
+:::: {.callout-tip icon="false" collapse="true"}
 ## Why $\text{BetaBinomial} \approx \text{Negative Binomial}$ when counts are small relative to $N$?
 
+Let's start with Beta-binomial:
+
+$$
+X_i \sim \text{Binomial}(N, p_i) \quad \text{where} \quad p_i \sim \text{Beta}(a, b)
+$$
+
+In the rare-event/ large-depth regime, as $N\to\infty$, the binomial distribution converges to a Poisson distribution:
+
+Check [Why under these conditions, the binomial distribution converges to a Poisson distribution?]{.box-ref-highlight} box in the Multinomial / Dirichlet-multinomial section for more details.
 
 
+In the rare-event / large-depth regime, the Beta distribution converges to a Gamma distribution. Hence, the Beta Binomial distribution turns into a Poisson–Gamma mixture (i.e., Negative Binomial).
+
+Given that we have already shown how the Binomial distribution converges to a Poisson distribution, what is left is to show how Beta distribution converges to Gamma distribution in the rare-event/ large-depth regime.
+
+To understand this, we need to first understand change of variables formula!
+
+::::
 :::
-:::::
-:::
+
+## Example: KinDEL dataset
+
+Let's start with some DEL data. We are using the data from [KinDEL paper](https://arxiv.org/abs/2410.08938). You can learn more about this resource, [here](https://icml.cc/virtual/2025/poster/45034) and access the data, [here](https://github.com/insitro/kindel).
+
+In short, KinDEL is one of the first large, publicly available DNA-Encoded Library (DEL) datasets created specifically to support machine-learning research in drug discovery. The resource contains approximately **81 million small molecules** screened against the **two kinases targets (MAPK14 and DDR1)**, with accompanying benchmark tasks aimed at predictive hit identification and DEL denoising. Beyond raw count data, KinDEL also includes **replicate experiments** and biophysical validation data (on-DNA and off-DNA assays), making it useful for studying how well models recover true binding signals from noisy DEL measurements.
+
+We load only a subsection of the data to keep the example simple and fast to run. In particular, we are loading the data for the DDR1 target, and the first split of the data.
+
+```{python}
+import pandas as pd
+import numpy as np
+
+data = pd.read_parquet("data/df_train_ddr1_split1_random.parquet")
+data.head()
+```
+
+The columns are:
+
+-   `smiles`: Canonical SMILES string for the fully assembled DEL molecule (the tri‑synthon product).
+-   `molecule_hash`: Stable identifier/hash for the assembled molecule (useful for joins and de‑duplication).
+-   `smiles_a`: SMILES for the synthon/fragment at attachment site **A** (cycle/position A).
+-   `smiles_b`: SMILES for the synthon/fragment at attachment site **B** (cycle/position B).
+-   `smiles_c`: SMILES for the synthon/fragment at attachment site **C** (cycle/position C).
+-   `seq_target_1`: **Sequencing count** for target selection replicate 1 (number of unique DNA sequences observed for this molecule after selection against the protein target).
+-   `seq_target_2`: Sequencing count for target selection replicate 2.
+-   `seq_target_3`: Sequencing count for target selection replicate 3.
+-   `seq_matrix_1`: Sequencing count for the **negative control / matrix** replicate 1 (selection without protein target).
+-   `seq_matrix_2`: Sequencing count for the negative control / matrix replicate 2.
+-   `seq_matrix_3`: Sequencing count for the negative control / matrix replicate 3.
+-   `seq_load`: **Pre‑selection** sequencing count (rough estimate of each molecule’s abundance in the library prior to selection).
+-   `y`: Training label used in KinDEL’s benchmarks; in the released 1M training subsets this column is the dataset’s `target_enrichment` value (a Poisson‑enrichment score comparing target vs control/matrix across replicates).
+
+### Basic Exploratory Data Analysis (EDA)
+
+Let's start with some Exploratory Data Analysis (EDA) to understand the data. We start by plotting counts by condition.
+
+```{python}
+import plotnine as gg
+
+data_seq_counts = data.melt(id_vars=['molecule_hash'], value_vars=['seq_target_1', 'seq_target_2', 'seq_target_3', 'seq_matrix_1', 'seq_matrix_2', 'seq_matrix_3', 'seq_load'], value_name='seq_count', var_name='condition')
+
+p = (
+    gg.ggplot(data_seq_counts, gg.aes(x = 'condition', y='seq_count'))
+    + gg.geom_jitter(width=0.05, height=0, size=0.1)
+    + gg.labs(x='Condition', y='Sequencing Count', title='Distribution of Sequencing Counts by Condition')
+)
+p.save("img/kindel_eda_seq_counts.png")
+p.show()
+```
+
+[**Figure 3:** Distribution of counts by condition for KinDEL train ddr1_split1_random dataset.]{.fig-caption}
+
+#### Matrix binders
+
+A key observation from the plot is that some compounds have very high sequencing counts in the matrix (control) conditions. The distribution of matrix counts appears bimodal. This suggests that some molecules may bind strongly to the matrix itself, not just the intended protein target. Such molecules could give high signals in both the target and matrix conditions, making it challenging to tell if they're true protein binders or simply show nonspecific, matrix-binding effects.
+
+<div style="text-align: center;">
+  <img src="NTC_Binders.png" alt="Matrix binders." width="75%">
+</div>
+
+[**Figure 4:** Matrix binders. Molecules with high sequencing counts in matrix (control) conditions. These molecules can confound analysis by mimicking protein hits.]{.fig-caption}
+
+#### High density regions near low counts
+
+A high density region near low counts suggests that most molecules have very low sequencing counts. This is typical for DEL data where most barcodes are rare or absent in a given selection. Indicates a **sparse count structure** consistent with large library size and small per-barcode probabilities.
+
+<div style="text-align: center;">
+  <img src="High_Density_Near_Low_Counts.png" alt="High density regions near low counts." width="75%">
+</div>
+
+[**Figure 5:** Most molecules have very low counts, indicating sparse DEL data.]{.fig-caption}
+
+A better way to visualize this is to plot the cumulative distribution function (CDF) of the sequencing counts.
+
+```{python}
+# Plot ECDF for all sequencing conditions except seq_load 
+seq_conditions = [
+    'seq_target_1', 'seq_target_2', 'seq_target_3',
+    'seq_matrix_1', 'seq_matrix_2', 'seq_matrix_3'
+]
+
+# Melt data for plotnine
+data_ecdf = data.melt(
+    id_vars=['molecule_hash'],
+    value_vars=seq_conditions,
+    var_name='condition',
+    value_name='seq_count'
+)
+
+ecdf_plot = (
+    gg.ggplot(data_ecdf, gg.aes(x='seq_count', color='condition'))
+    + gg.stat_ecdf(size=1)
+    + gg.labs(
+        x='Sequencing Count',
+        y='Cumulative Probability',
+        title='ECDF of Sequencing Counts by Condition'
+    )
+    + gg.theme_bw()
+)
+ecdf_plot.save("img/kindel_ecdf_by_condition.png")
+ecdf_plot.show()
+```
+
+[**Figure 6:** Cumulative distribution function (CDF) of the sequencing counts for all conditions.]{.fig-caption}
+
+
+### Explore replicates correlations
+
+We compute the proportions of the sequencing counts for the matrix and target selection replicates. Then we can compare the proportions for the three replicates to see if they are correlated with each other. We do this for the matrix and target selection replicates.
+
+#### Explore matrix selection replicates correlations
+
+
+```{python}
+
+data_seq_counts_matrix = data[['seq_matrix_1', 'seq_matrix_2', 'seq_matrix_3']]
+
+# compute the proportion of the sequencing counts for the matrix conditions
+data_seq_counts_matrix['seq_matrix_1_prop'] = data_seq_counts_matrix['seq_matrix_1'] / data_seq_counts_matrix['seq_matrix_1'].sum()
+data_seq_counts_matrix['seq_matrix_2_prop'] = data_seq_counts_matrix['seq_matrix_2'] / data_seq_counts_matrix['seq_matrix_2'].sum()
+data_seq_counts_matrix['seq_matrix_3_prop'] = data_seq_counts_matrix['seq_matrix_3'] / data_seq_counts_matrix['seq_matrix_3'].sum()
+
+
+p_1 =(
+    gg.ggplot(data_seq_counts_matrix, gg.aes(x = 'seq_matrix_1_prop', y='seq_matrix_2_prop'))
+    + gg.geom_point(position='jitter', size=0.1, alpha=0.5)
+    + gg.geom_abline(slope=1, intercept=0, color='red')
+    + gg.labs(x='Sequencing Proportion for Matrix 1', y='Sequencing Proportion for Matrix 2') 
+
+)
+
+p_2 = (
+    gg.ggplot(data_seq_counts_matrix, gg.aes(x = 'seq_matrix_1_prop', y='seq_matrix_3_prop'))
+    + gg.geom_point(position='jitter', size=0.1, alpha=0.5)
+    + gg.geom_abline(slope=1, intercept=0, color='red')
+    + gg.labs(x='Sequencing Proportion for Matrix 1', y='Sequencing Proportion for Matrix 3')
+)
+
+p_3 = (
+    gg.ggplot(data_seq_counts_matrix, gg.aes(x = 'seq_matrix_2_prop', y='seq_matrix_3_prop'))
+    + gg.geom_point(position='jitter', size=0.1, alpha=0.5)
+    + gg.geom_abline(slope=1, intercept=0, color='red')
+    + gg.labs(x='Sequencing Proportion for Matrix 2', y='Sequencing Proportion for Matrix 3')
+)
+
+
+(p_1 | p_2 | p_3) + gg.theme(figure_size=(15, 4))
+```
+
+
+#### Explore target selection replicates correlations
+
+```{python}
+
+data_seq_counts_target = data[['seq_target_1', 'seq_target_2', 'seq_target_3']]
+
+# compute the proportion of the sequencing counts for the matrix conditions
+data_seq_counts_target['seq_target_1_prop'] = data_seq_counts_target['seq_target_1'] / data_seq_counts_target['seq_target_1'].sum()
+data_seq_counts_target['seq_target_2_prop'] = data_seq_counts_target['seq_target_2'] / data_seq_counts_target['seq_target_2'].sum()
+data_seq_counts_target['seq_target_3_prop'] = data_seq_counts_target['seq_target_3'] / data_seq_counts_target['seq_target_3'].sum()
+
+
+p_1 =(
+    gg.ggplot(data_seq_counts_target, gg.aes(x = 'seq_target_1_prop', y='seq_target_2_prop'))
+    + gg.geom_point(position='jitter', size=0.1, alpha=0.5)
+    + gg.geom_abline(slope=1, intercept=0, color='red')
+    + gg.labs(x='Sequencing Proportion for Target 1', y='Sequencing Proportion for Target 2') 
+
+)
+
+p_2 = (
+    gg.ggplot(data_seq_counts_target, gg.aes(x = 'seq_target_1_prop', y='seq_target_3_prop'))
+    + gg.geom_point(position='jitter', size=0.1, alpha=0.5)
+    + gg.geom_abline(slope=1, intercept=0, color='red')
+    + gg.labs(x='Sequencing Proportion for Target 1', y='Sequencing Proportion for Target 3')
+)
+
+p_3 = (
+    gg.ggplot(data_seq_counts_target, gg.aes(x = 'seq_target_2_prop', y='seq_target_3_prop'))
+    + gg.geom_point(position='jitter', size=0.1, alpha=0.5)
+    + gg.geom_abline(slope=1, intercept=0, color='red')
+    + gg.labs(x='Sequencing Proportion for Target 2', y='Sequencing Proportion for Target 3')
+)
+
+
+(p_1 | p_2 | p_3) + gg.theme(figure_size=(15, 4))
+```
+
+### Mean–variance relationship of the sequencing counts
+
+Let's plot the mean and variance of the sequencing counts for the matrix and target selection replicates.
+
+In these plots, for each molecule, we plot the mean and variance of the sequencing counts for the matrix and target selection replicates.
+
+#### Mean–variance relationship of the sequencing counts for the matrix conditions
+```{python}
+mv = pd.DataFrame({
+    'mean_matrix': data[['seq_matrix_1','seq_matrix_2','seq_matrix_3']].mean(axis=1),
+    'var_matrix':  data[['seq_matrix_1','seq_matrix_2','seq_matrix_3']].var(axis=1),
+})
+
+(
+    gg.ggplot(mv, gg.aes(x='mean_matrix', y='var_matrix'))
+    + gg.geom_point(size=0.3, alpha=0.3)
+    + gg.geom_abline(slope=1, intercept=0, color='red', linetype='dashed')   # Poisson line
+    + gg.scale_x_log10() + gg.scale_y_log10()
+    + gg.labs(x='Mean count (matrix)', y='Variance (matrix)',
+              title='Mean–Variance: points above red line indicates overdispersion')
+)
+```
+
+#### Mean–variance relationship of the sequencing counts for the target conditions
+
+```{python}
+mv = pd.DataFrame({
+    'mean_target': data[['seq_target_1','seq_target_2','seq_target_3']].mean(axis=1),
+    'var_target':  data[['seq_target_1','seq_target_2','seq_target_3']].var(axis=1),
+})
+
+(
+    gg.ggplot(mv, gg.aes(x='mean_target', y='var_target'))
+    + gg.geom_point(size=0.3, alpha=0.3)
+    + gg.geom_abline(slope=1, intercept=0, color='red', linetype='dashed')   # Poisson line
+    + gg.scale_x_log10() + gg.scale_y_log10()
+    + gg.labs(x='Mean count (target)', y='Variance (target)',
+              title='Mean–Variance: points above red line indicates overdispersion')
+)
+```
+
+The red line is the Poisson line. That is:
+
+$$
+\mathrm{Var}(X) = \mathrm{E}[X]
+$$
+
+This is the Poisson mean–variance relationship.
+
+The points above the red line indicate overdispersion:
+
+$$
+\mathrm{Var}(X) > \mathrm{E}[X]
+$$
+
+This means that the variance is greater than the mean. This is often the case for DEL data because of :
+
+- The extra dispersion introduced by PCR/amplification.
+- Molecule-specific effects
+- Replicate variability
+
+**What does the points below the red line indicate?**
+
+The points below the red line does not necessarily indicate underdispersion. 
+
+Two main reasons for points below the red line:
+
+- **Small-sample variance noise**: With only three replicates, we can get strong estimation noise. Even if the true process is Poisson or NB, some sample variances will fall below the mean purely by chance.
+
+- **Nearly identical replicates**: If the replicates are nearly identical, the variance will be very low.
+Example:
+
+Let's say we have three replicates: (10,10,11). The mean is 10.33 and the variance is 0.33.
+
+Variance is tiny and it falls below the red line.
+In this case, the variance is due to low observed replicate variation NOT necessarily biologically meaningful underdispersion.
+
+**What are the horizental lines in the plots?**
+
+Suggested EDAs:
+
+| EDA                       | Informs                                    |
+|---------------------------|---------------------------------------------|
+| Mean–variance plot        | Poisson vs NB vs Poisson-lognormal          |
+| Zero fraction             | ZIP/ZINB needed or not                      |
+| Count histograms          | Overall distributional shape                |
+| Target vs matrix scatter  | What enrichment looks like                  |
+| Load vs target            | Whether to include offset/normalization     |
+| Synthon-level aggregation | Synthon-level GNN design                    |
+| Library depth             | Whether Multinomial ≈ Poisson holds         |
+

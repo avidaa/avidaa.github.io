@@ -406,3 +406,21 @@ p {
   font-weight: 800;
 }
 
+/* Figure captions */
+.fig-caption {
+  display: block;
+  text-align: center;
+  font-family: 'Merriweather', Georgia, serif;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-top: 0.5em;
+  margin-bottom: 1.5em;
+  line-height: 1.5;
+}
+
+.fig-caption strong {
+  font-style: normal;
+  color: var(--text-primary);
+}
+
