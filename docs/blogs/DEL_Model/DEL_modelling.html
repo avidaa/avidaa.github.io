@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>del_modelling</title>
+<title>Modelling DNA Encoded Libraries (DELs)</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,10 +20,44 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
-<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="../../site_libs/quarto-nav/headroom.min.js"></script>
 <script src="../../site_libs/clipboard/clipboard.min.js"></script>
 <script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
@@ -66,6 +100,9 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
@@ -141,26 +178,42 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#modelling-dna-encoded-libraries-dels" id="toc-modelling-dna-encoded-libraries-dels" class="nav-link active" data-scroll-target="#modelling-dna-encoded-libraries-dels">Modelling DNA Encoded Libraries (DELs)</a>
-  <ul class="collapse">
-  <li><a href="#what-is-the-aim-of-this-blog" id="toc-what-is-the-aim-of-this-blog" class="nav-link" data-scroll-target="#what-is-the-aim-of-this-blog">What Is the Aim of This Blog?</a></li>
+  <li><a href="#what-is-the-aim-of-this-blog" id="toc-what-is-the-aim-of-this-blog" class="nav-link active" data-scroll-target="#what-is-the-aim-of-this-blog">What Is the Aim of This Blog?</a></li>
   <li><a href="#introduction-what-are-dna-encoded-libraries-dels" id="toc-introduction-what-are-dna-encoded-libraries-dels" class="nav-link" data-scroll-target="#introduction-what-are-dna-encoded-libraries-dels">Introduction: What Are DNA Encoded Libraries (DELs)?</a></li>
-  <li><a href="#modelling-dels" id="toc-modelling-dels" class="nav-link" data-scroll-target="#modelling-dels">Modelling DELs</a>
+  <li><a href="#del-likelihood-functions" id="toc-del-likelihood-functions" class="nav-link" data-scroll-target="#del-likelihood-functions">DEL Likelihood Functions</a>
   <ul class="collapse">
   <li><a href="#what-is-a-correct-likelihood-function-for-dels" id="toc-what-is-a-correct-likelihood-function-for-dels" class="nav-link" data-scroll-target="#what-is-a-correct-likelihood-function-for-dels">What is a correct likelihood function for DELs?</a></li>
   </ul></li>
+  <li><a href="#example-kindel-dataset" id="toc-example-kindel-dataset" class="nav-link" data-scroll-target="#example-kindel-dataset">Example: KinDEL dataset</a>
+  <ul class="collapse">
+  <li><a href="#basic-exploratory-data-analysis-eda" id="toc-basic-exploratory-data-analysis-eda" class="nav-link" data-scroll-target="#basic-exploratory-data-analysis-eda">Basic Exploratory Data Analysis (EDA)</a></li>
+  <li><a href="#meanvariance-relationship-of-the-sequencing-counts" id="toc-meanvariance-relationship-of-the-sequencing-counts" class="nav-link" data-scroll-target="#meanvariance-relationship-of-the-sequencing-counts">Mean–variance relationship of the sequencing counts</a></li>
   </ul></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
-<main class="content column-page-left" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
+<main class="content column-page-left" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Modelling DNA Encoded Libraries (DELs)</h1>
+</div>
 
 
 
+<div class="quarto-title-meta column-page-left">
 
-<section id="modelling-dna-encoded-libraries-dels" class="level1">
-<h1>Modelling DNA Encoded Libraries (DELs)</h1>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
 <section id="what-is-the-aim-of-this-blog" class="level2">
 <h2 class="anchored" data-anchor-id="what-is-the-aim-of-this-blog">What Is the Aim of This Blog?</h2>
 <p>This blog aims to design and build an attachment-aware, synthon-level GNN for DNA-encoded library (DEL) data, extending compositional models like DEL-Compose by explicitly encoding where each synthon attaches, rather than treating synthons as context-free fragments.</p>
@@ -169,8 +222,8 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="introduction-what-are-dna-encoded-libraries-dels">Introduction: What Are DNA Encoded Libraries (DELs)?</h2>
 <p>DNA encoded libraries (DELs) are large collections of small molecules, each tagged with a unique DNA barcode that records its synthetic history. They enable high throughput screening by pooling and sequencing to identify binders to a target. Watch <a href="https://www.youtube.com/watch?v=8jLIgTBJmdU">this</a> short video that explains DELs in a nutshell.</p>
 </section>
-<section id="modelling-dels" class="level2">
-<h2 class="anchored" data-anchor-id="modelling-dels">Modelling DELs</h2>
+<section id="del-likelihood-functions" class="level2">
+<h2 class="anchored" data-anchor-id="del-likelihood-functions">DEL Likelihood Functions</h2>
 <section id="what-is-a-correct-likelihood-function-for-dels" class="level3">
 <h3 class="anchored" data-anchor-id="what-is-a-correct-likelihood-function-for-dels">What is a correct likelihood function for DELs?</h3>
 <p>A DEL experiment involves several key stochastic steps that directly impact the statistical modeling of observed counts:</p>
@@ -193,15 +246,17 @@ window.Quarto = {
 <div style="text-align: center;">
 <p><img src="Independent_Barcode.png" alt="Independent-barcode generation: each barcode generates counts independently; totals add up." width="25%"></p>
 </div>
+<p><span class="fig-caption"><strong>Figure 1:</strong> Independent-barcode generation: each barcode generates counts independently; totals add up.</span></p>
 <p><strong>2) Fixed-depth (composition-based) generation</strong></p>
 <ul>
-<li>A sample has a fixed total read depth <strong>N</strong>, and each read is assigned to exactly one barcode.</li>
-<li>Barcodes therefore <strong>share a single pool</strong> of reads, inducing weak negative dependence between barcode counts.</li>
-<li>This perspective naturally motivates <strong>Multinomial</strong> and <strong>Dirichlet–multinomial</strong>, and the one-barcode marginal <strong>Binomial/Beta–binomial</strong>.</li>
-</ul>
+<li><p>A sample has a fixed total read depth <strong>N</strong>, and each read is assigned to exactly one barcode.</p></li>
+<li><p>Barcodes therefore <strong>share a single pool</strong> of reads, inducing weak negative dependence between barcode counts.</p></li>
+<li><p>This perspective naturally motivates <strong>Multinomial</strong> and <strong>Dirichlet–multinomial</strong>, and the one-barcode marginal <strong>Binomial/Beta–binomial</strong>.</p>
 <div style="text-align: center;">
 <p><img src="Fixed_N.png" alt="Fixed-depth generation: a fixed total N is split across barcodes that share one pool." width="25%"></p>
 </div>
+<p><span class="fig-caption"><strong>Figure 2:</strong> Fixed-depth generation: a fixed total N is split across barcodes that share one pool.</span></p></li>
+</ul>
 <p>The likelihoods below are grouped with this distinction in mind.</p>
 </section>
 <section id="common-likelihood-functions-for-dels" class="level4">
@@ -415,7 +470,7 @@ When to use Poisson-Lognormal?
 \]</span></p>
 <p>References:</p>
 <ul>
-<li>There is <strong>no well-known DEL paper</strong> that explicitly uses a Multinomial / Dirichlet-multinomial likelihood, although the model is statistically valid and can be used for DEL data. Check <span style="color:#d7263d;">When to use Multinomial / Dirichlet-multinomial?</span> for more details.</li>
+<li>There is <strong>no well-known DEL paper</strong> that explicitly uses a Multinomial / Dirichlet-multinomial likelihood, although the model is statistically valid and can be used for DEL data. Check <span class="box-ref-highlight">When to use Multinomial / Dirichlet-multinomial?</span> for more details.</li>
 </ul>
 <div class="callout callout-style-default callout-note no-icon callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-8-contents" aria-controls="callout-8" aria-expanded="false" aria-label="Toggle callout">
@@ -482,7 +537,8 @@ X_i \sim \text{Binomial}(N,p_i), \qquad \mathbb{E}[X_i]=Np_i
 <p>Under this scaling (<span class="math inline">\(N\to\infty\)</span>, <span class="math inline">\(p_i\to 0\)</span>, <span class="math inline">\(Np_i\to\text{fixed value}\)</span>), and assuming that Poisson’s parameter, <span class="math inline">\(\lambda_i\)</span>, is equal to <span class="math inline">\(Np_i\)</span>, each marginal converges as <span class="math display">\[
 X_i \Rightarrow \text{Poisson}(\lambda_i), \quad \lambda_i = Np_i. \quad \text{(K is number of barcodes)}
 \]</span></p>
-<p>Although Multinomial is not independent jointly, but the dependence becomes negligible in sparse DEL settings. Check <span style="color:#d7263d;">Why independent Poisson?</span> for more details.</p>
+<p>Check <span class="box-ref-highlight">Why under these conditions, the binomial distribution converges to a Poisson distribution?</span> box below for more details.</p>
+<p>Although Multinomial is not independent jointly, but the dependence becomes negligible in sparse DEL settings. Check <span class="box-ref-highlight">Why independent Poisson?</span> box below for more details.</p>
 <p>So under rare-event / large-depth regime, <strong>the multinomial can be viewed as the product of independent Poisson counts conditioned on a fixed total</strong>:</p>
 <p><span class="math display">\[
 \mathbf{X} \approx \prod_{i=1}^K \text{Poisson}(\lambda_i), \qquad \lambda_i=Np_i.
@@ -683,18 +739,800 @@ Why <span class="math inline">\(\text{BetaBinomial} \approx \text{Negative Binom
 </div>
 <div id="callout-9" class="callout-9-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-
+<p>Let’s start with Beta-binomial:</p>
+<p><span class="math display">\[
+X_i \sim \text{Binomial}(N, p_i) \quad \text{where} \quad p_i \sim \text{Beta}(a, b)
+\]</span></p>
+<p>In the rare-event/ large-depth regime, as <span class="math inline">\(N\to\infty\)</span>, the binomial distribution converges to a Poisson distribution:</p>
+<p>Check <span class="box-ref-highlight">Why under these conditions, the binomial distribution converges to a Poisson distribution?</span> box in the Multinomial / Dirichlet-multinomial section for more details.</p>
+<p>In the rare-event / large-depth regime, the Beta distribution converges to a Gamma distribution. Hence, the Beta Binomial distribution turns into a Poisson–Gamma mixture (i.e., Negative Binomial).</p>
+<p>Given that we have already shown how the Binomial distribution converges to a Poisson distribution, what is left is to show how Beta distribution converges to Gamma distribution in the rare-event/ large-depth regime.</p>
+<p>To understand this, we need to first understand change of variables formula!</p>
 </div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<p>:::</p>
-
-
 </section>
 </section>
+</section>
+</section>
+<section id="example-kindel-dataset" class="level2">
+<h2 class="anchored" data-anchor-id="example-kindel-dataset">Example: KinDEL dataset</h2>
+<p>Let’s start with some DEL data. We are using the data from <a href="https://arxiv.org/abs/2410.08938">KinDEL paper</a>. You can learn more about this resource, <a href="https://icml.cc/virtual/2025/poster/45034">here</a> and access the data, <a href="https://github.com/insitro/kindel">here</a>.</p>
+<p>In short, KinDEL is one of the first large, publicly available DNA-Encoded Library (DEL) datasets created specifically to support machine-learning research in drug discovery. The resource contains approximately <strong>81 million small molecules</strong> screened against the <strong>two kinases targets (MAPK14 and DDR1)</strong>, with accompanying benchmark tasks aimed at predictive hit identification and DEL denoising. Beyond raw count data, KinDEL also includes <strong>replicate experiments</strong> and biophysical validation data (on-DNA and off-DNA assays), making it useful for studying how well models recover true binding signals from noisy DEL measurements.</p>
+<p>We load only a subsection of the data to keep the example simple and fast to run. In particular, we are loading the data for the DDR1 target, and the first split of the data.</p>
+<div id="8271f113" class="cell" data-execution_count="1">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">"ignore"</span>, module<span class="op">=</span><span class="st">"plotnine"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotnine <span class="im">as</span> gg</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div id="69449b6e" class="cell" data-execution_count="2">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> pd.read_parquet(<span class="st">"data/df_train_ddr1_split1_random.parquet"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>data.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">smiles</th>
+<th data-quarto-table-cell-role="th">molecule_hash</th>
+<th data-quarto-table-cell-role="th">smiles_a</th>
+<th data-quarto-table-cell-role="th">smiles_b</th>
+<th data-quarto-table-cell-role="th">smiles_c</th>
+<th data-quarto-table-cell-role="th">seq_target_1</th>
+<th data-quarto-table-cell-role="th">seq_target_2</th>
+<th data-quarto-table-cell-role="th">seq_target_3</th>
+<th data-quarto-table-cell-role="th">seq_matrix_1</th>
+<th data-quarto-table-cell-role="th">seq_matrix_2</th>
+<th data-quarto-table-cell-role="th">seq_matrix_3</th>
+<th data-quarto-table-cell-role="th">seq_load</th>
+<th data-quarto-table-cell-role="th">y</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>CNC(=O)[C@H](CNC(=O)c1ccccc1CNC(=O)c1ccc(-c2no...</td>
+<td>33531ebf0be8ba2787e85a03221df1b41a0512eaf09b1a...</td>
+<td>CNC(=O)[C@H](CN)NC(=O)c1ccc2[nH]ccc2c1</td>
+<td>CC1=NC(=NO1)C1=CC=C(C=C1)C(O)=O</td>
+<td>OC(=O)c1ccccc1CNC(=O)OCC1c2ccccc2-c2ccccc12</td>
+<td>1.0</td>
+<td>6.0</td>
+<td>2.0</td>
+<td>0.0</td>
+<td>4.0</td>
+<td>1.0</td>
+<td>19</td>
+<td>0.352696</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>CNC(=O)[C@H](CCc1ccccc1)NC(=O)CN1C(=O)[C@@H](N...</td>
+<td>519cddc9ad4ab8538ced2bcfbb17e034240c68b9cd52c4...</td>
+<td>CNC(=O)[C@@H](N)CCc1ccccc1</td>
+<td>OC(=O)CC1=CC(Cl)=C(O)C=C1</td>
+<td>OC(=O)CN1c2ccccc2OC[C@H](NC(=O)OCC2c3ccccc3-c3...</td>
+<td>5.0</td>
+<td>9.0</td>
+<td>7.0</td>
+<td>1.0</td>
+<td>1.0</td>
+<td>1.0</td>
+<td>12</td>
+<td>1.482711</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>CNC(=O)c1sc(C2CCN(C(=O)[C@H](CC3CCCCC3)NCc3csc...</td>
+<td>d385e4289ecf6fcce902738ee8ea9ab32c43c31107cc9c...</td>
+<td>CNC(=O)c1sc(C2CCNCC2)nc1C</td>
+<td>BrC1=NC(C=O)=CS1</td>
+<td>OC(=O)[C@H](CC1CCCCC1)NC(=O)OCC1c2ccccc2-c2ccc...</td>
+<td>1.0</td>
+<td>2.0</td>
+<td>2.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>7</td>
+<td>0.440103</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>CNC(=O)c1cccc(CNC(=O)[C@H](CC2CCCCC2)NC(=O)c2c...</td>
+<td>96075c4092ecbba0786c42c576606e70b25d72bcccdc82...</td>
+<td>CNC(=O)c1cccc(CN)c1</td>
+<td>CN(C)C1=CC=CC(=C1)C(O)=O</td>
+<td>OC(=O)[C@H](CC1CCCCC1)NC(=O)OCC1c2ccccc2-c2ccc...</td>
+<td>2.0</td>
+<td>2.0</td>
+<td>4.0</td>
+<td>1.0</td>
+<td>3.0</td>
+<td>0.0</td>
+<td>19</td>
+<td>0.337236</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>CNC(=O)[C@@H](CNC(=O)C1CN(C(=O)CCOC)CCO1)NC(=O...</td>
+<td>dbb42a3997dd44957450af19bb6a4f4f1ffbdef0beafe4...</td>
+<td>CNC(=O)[C@@H](CN)NC(=O)c1cccnc1</td>
+<td>COCCC(O)=O</td>
+<td>OC(=O)C1CN(CCO1)C(=O)OCC1c2ccccc2-c2ccccc12</td>
+<td>4.0</td>
+<td>1.0</td>
+<td>2.0</td>
+<td>1.0</td>
+<td>2.0</td>
+<td>0.0</td>
+<td>26</td>
+<td>0.321008</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>The columns are:</p>
+<ul>
+<li><code>smiles</code>: Canonical SMILES string for the fully assembled DEL molecule (the tri‑synthon product).</li>
+<li><code>molecule_hash</code>: Stable identifier/hash for the assembled molecule (useful for joins and de‑duplication).</li>
+<li><code>smiles_a</code>: SMILES for the synthon/fragment at attachment site <strong>A</strong> (cycle/position A).</li>
+<li><code>smiles_b</code>: SMILES for the synthon/fragment at attachment site <strong>B</strong> (cycle/position B).</li>
+<li><code>smiles_c</code>: SMILES for the synthon/fragment at attachment site <strong>C</strong> (cycle/position C).</li>
+<li><code>seq_target_1</code>: <strong>Sequencing count</strong> for target selection replicate 1 (number of unique DNA sequences observed for this molecule after selection against the protein target).</li>
+<li><code>seq_target_2</code>: Sequencing count for target selection replicate 2.</li>
+<li><code>seq_target_3</code>: Sequencing count for target selection replicate 3.</li>
+<li><code>seq_matrix_1</code>: Sequencing count for the <strong>negative control / matrix</strong> replicate 1 (selection without protein target).</li>
+<li><code>seq_matrix_2</code>: Sequencing count for the negative control / matrix replicate 2.</li>
+<li><code>seq_matrix_3</code>: Sequencing count for the negative control / matrix replicate 3.</li>
+<li><code>seq_load</code>: <strong>Pre‑selection</strong> sequencing count (rough estimate of each molecule’s abundance in the library prior to selection).</li>
+<li><code>y</code>: Training label used in KinDEL’s benchmarks; in the released 1M training subsets this column is the dataset’s <code>target_enrichment</code> value (a Poisson‑enrichment score comparing target vs control/matrix across replicates).</li>
+</ul>
+<section id="basic-exploratory-data-analysis-eda" class="level3">
+<h3 class="anchored" data-anchor-id="basic-exploratory-data-analysis-eda">Basic Exploratory Data Analysis (EDA)</h3>
+<p>Let’s start with some Exploratory Data Analysis (EDA) to understand the data. We start by plotting counts by condition.</p>
+<div id="a24f1206" class="cell" data-execution_count="3">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>data_seq_counts <span class="op">=</span> data.melt(id_vars<span class="op">=</span>[<span class="st">'molecule_hash'</span>], value_vars<span class="op">=</span>[<span class="st">'seq_target_1'</span>, <span class="st">'seq_target_2'</span>, <span class="st">'seq_target_3'</span>, <span class="st">'seq_matrix_1'</span>, <span class="st">'seq_matrix_2'</span>, <span class="st">'seq_matrix_3'</span>, <span class="st">'seq_load'</span>], value_name<span class="op">=</span><span class="st">'seq_count'</span>, var_name<span class="op">=</span><span class="st">'condition'</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> (</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    gg.ggplot(data_seq_counts, gg.aes(x <span class="op">=</span> <span class="st">'condition'</span>, y<span class="op">=</span><span class="st">'seq_count'</span>))</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_jitter(width<span class="op">=</span><span class="fl">0.05</span>, height<span class="op">=</span><span class="dv">0</span>, size<span class="op">=</span><span class="fl">0.1</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.labs(x<span class="op">=</span><span class="st">'Condition'</span>, y<span class="op">=</span><span class="st">'Sequencing Count'</span>, title<span class="op">=</span><span class="st">'Distribution of Sequencing Counts by Condition'</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>p.save(<span class="st">"img/kindel_eda_seq_counts.png"</span>)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>p.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="DEL_modelling_files/figure-html/cell-4-output-1.png" width="672" height="480" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><span class="fig-caption"><strong>Figure 3:</strong> Distribution of counts by condition for KinDEL train ddr1_split1_random dataset.</span></p>
+<section id="matrix-binders" class="level4">
+<h4 class="anchored" data-anchor-id="matrix-binders">Matrix binders</h4>
+<p>A key observation from the plot is that some compounds have very high sequencing counts in the matrix (control) conditions. The distribution of matrix counts appears bimodal. This suggests that some molecules may bind strongly to the matrix itself, not just the intended protein target. Such molecules could give high signals in both the target and matrix conditions, making it challenging to tell if they’re true protein binders or simply show nonspecific, matrix-binding effects.</p>
+<div style="text-align: center;">
+<p><img src="img/NTC_Binders.png" alt="Matrix binders." width="75%"></p>
+</div>
+<p><span class="fig-caption"><strong>Figure 4:</strong> Matrix binders. Molecules with high sequencing counts in matrix (control) conditions. These molecules can confound analysis by mimicking protein hits.</span></p>
+</section>
+<section id="strong-low-count-mass-across-all-conditions" class="level4">
+<h4 class="anchored" data-anchor-id="strong-low-count-mass-across-all-conditions">Strong low-count mass across all conditions</h4>
+<p>A high density region near low counts suggests that most molecules have very low sequencing counts. This is typical for DEL data where most barcodes are rare or absent in a given selection. Indicates a <strong>sparse count structure</strong> consistent with large library size and small per-barcode probabilities.</p>
+<div style="text-align: center;">
+<p><img src="img/High_Density_Near_Low_Counts.png" alt="High density regions near low counts." width="75%"></p>
+</div>
+<p><span class="fig-caption"><strong>Figure 5:</strong> Most molecules have very low counts, indicating sparse DEL data.</span></p>
+<p>A better way to visualize this is to plot the cumulative distribution function (CDF) of the sequencing counts.</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-11-contents" aria-controls="callout-11" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+What it is ECDF plot and how to interpret it?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-11" class="callout-11-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>An ECDF (Empirical Cumulative Distribution Function) shows the cumulative proportion of observations that are less than or equal to a given value. Mathematically, it is defined as:</p>
+<p><span class="math display">\[
+F(x) = \Pr(X \leq x)
+\]</span></p>
+<p>An ECDF transforms raw data into a cumulative probability view, making distributional structure and percentiles immediately interpretable without relying on arbitrary bins or model assumptions. <strong>If the curve is at 0.75 when</strong> <span class="math inline">\(x=10\)</span>, then 75% of the observations are less than or equal to 10.</p>
+<p>Axes are:</p>
+<ul>
+<li>x-axis: the variable of interest (e.g.&nbsp;sequencing count)</li>
+<li>y-axis: the cumulative probability</li>
+</ul>
+<p>Shape tells us:</p>
+<ul>
+<li>Steep section: high density of observations near the value</li>
+<li>Flat section: low density of observations near the value</li>
+<li>Slope: rate of change of the cumulative probability</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="96aa715a" class="cell" data-execution_count="4">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot ECDF faceted by condition, and add vertical line at the 85% quantile for each</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>seq_conditions <span class="op">=</span> [</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">'seq_target_1'</span>, <span class="st">'seq_target_2'</span>, <span class="st">'seq_target_3'</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">'seq_matrix_1'</span>, <span class="st">'seq_matrix_2'</span>, <span class="st">'seq_matrix_3'</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Melt data for plotnine</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>data_ecdf <span class="op">=</span> data.melt(</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    id_vars<span class="op">=</span>[<span class="st">'molecule_hash'</span>],</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    value_vars<span class="op">=</span>seq_conditions,</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    var_name<span class="op">=</span><span class="st">'condition'</span>,</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    value_name<span class="op">=</span><span class="st">'seq_count'</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute the 85th percentile (quantile) for each condition</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>ecdf_thresholds <span class="op">=</span> (</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    data_ecdf.groupby(<span class="st">'condition'</span>)[<span class="st">'seq_count'</span>]</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    .quantile(<span class="fl">0.85</span>)</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    .reset_index()</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>    .rename(columns<span class="op">=</span>{<span class="st">'seq_count'</span>: <span class="st">'quantile_85'</span>})</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Merge quantiles back for vertical line drawing</span></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a><span class="co"># (not strictly necessary, just for convenience)</span></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>data_ecdf <span class="op">=</span> data_ecdf.merge(ecdf_thresholds, on<span class="op">=</span><span class="st">'condition'</span>, how<span class="op">=</span><span class="st">'left'</span>)</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Prepare dataframe for vertical lines</span></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>vline_data <span class="op">=</span> ecdf_thresholds.copy()</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>vline_data[<span class="st">'y_start'</span>] <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>vline_data[<span class="st">'y_end'</span>] <span class="op">=</span> <span class="fl">0.85</span></span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>ecdf_plot <span class="op">=</span> (</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>    gg.ggplot(data_ecdf, gg.aes(x<span class="op">=</span><span class="st">'seq_count'</span>))</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.stat_ecdf(size<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_vline(</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>        data<span class="op">=</span>vline_data,</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>        mapping<span class="op">=</span>gg.aes(xintercept<span class="op">=</span><span class="st">'quantile_85'</span>),</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>        linetype<span class="op">=</span><span class="st">"dashed"</span>, color<span class="op">=</span><span class="st">"red"</span></span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_label(</span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>        data<span class="op">=</span>vline_data.assign(y_pos<span class="op">=</span><span class="fl">0.5</span>),</span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>        mapping<span class="op">=</span>gg.aes(</span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>            x<span class="op">=</span><span class="st">'quantile_85'</span>,</span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>            y<span class="op">=</span><span class="st">'y_pos'</span>,</span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>            label<span class="op">=</span><span class="st">'round(quantile_85, 1)'</span></span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>        color<span class="op">=</span><span class="st">"red"</span>,</span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>        fill<span class="op">=</span><span class="st">"white"</span>,</span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>        size<span class="op">=</span><span class="dv">11</span>,</span>
+<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a>        ha<span class="op">=</span><span class="st">'left'</span>,</span>
+<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a>        va<span class="op">=</span><span class="st">'center'</span>,</span>
+<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a>        nudge_x<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>        label_padding<span class="op">=</span><span class="fl">0.4</span>,</span>
+<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a>        format_string<span class="op">=</span><span class="st">"</span><span class="sc">{:.0f}</span><span class="st">"</span></span>
+<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.facet_wrap(<span class="st">'~condition'</span>, scales<span class="op">=</span><span class="st">'free'</span>)</span>
+<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.labs(</span>
+<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a>        x<span class="op">=</span><span class="st">'Sequencing Count'</span>,</span>
+<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a>        y<span class="op">=</span><span class="st">'Cumulative Probability'</span>,</span>
+<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a>        title<span class="op">=</span><span class="st">'ECDF of Sequencing Counts by Condition (with 85% Quantile)'</span></span>
+<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.theme_bw()</span>
+<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.theme(strip_text<span class="op">=</span>gg.element_text(size<span class="op">=</span><span class="dv">11</span>))</span>
+<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-68"><a href="#cb4-68" aria-hidden="true" tabindex="-1"></a>ecdf_plot.save(<span class="st">"img/kindel_ecdf_by_condition.png"</span>)</span>
+<span id="cb4-69"><a href="#cb4-69" aria-hidden="true" tabindex="-1"></a>ecdf_plot.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="DEL_modelling_files/figure-html/cell-5-output-1.png" width="672" height="480" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><span class="fig-caption"><strong>Figure 6:</strong> Cumulative distribution function (CDF) of the sequencing counts for all conditions with 85% quantile.</span></p>
+<p>The ECDF indicates that most molecules have very low sequencing counts, and the patterns differ between the matrix and target selections. This difference reflects the distinct biological and technical contexts of each selection method.</p>
+<p>For the matrix selection, the distribution mirrors the composition of the input library, highlighting that only a small subset of molecules bind to the matrix, which is a desirable outcome, indicating limited non-specific binding.</p>
+<p>In contrast, the target selection distribution shows higher counts at the 85th percentile, demonstrating that the target protein enriches for specific compounds. This suggests successful binding or functional selection of molecules by the target protein.</p>
+</section>
+<section id="discrete-horizontal-bands" class="level4">
+<h4 class="anchored" data-anchor-id="discrete-horizontal-bands">Discrete horizontal bands</h4>
+<p>The appearance of discrete horizontal bands in the plot reflects the presence of repeated, identical sequencing count values across many molecules. This arises because next-generation sequencing produces integer counts and there are only so many ways that low-abundance molecules can be sampled and counted from a large pool. Especially at lower count levels, a substantial number of molecules will have the same sequencing count (for example, many may have a count of “1”, “2”, and so on), resulting in “steps” in the ECDF plot (Figure 6) or pronounced horizontal bands (Figure 7). This effect is further amplified when the sequencing depth is modest relative to the library complexity, or when many molecules are present at similar low abundance.</p>
+<div style="text-align: center;">
+<p><img src="img/Discrete_horizontal_bands.png" alt="Discrete horizontal bands." width="75%"></p>
+</div>
+<p><span class="fig-caption"><strong>Figure 7:</strong> Discrete horizontal bands. The plot shows how discrete, integer sequencing counts lead to repeated identical values among molecules, appearing as horizontal bands in the ECDF.</span></p>
+<p>Let’s plot the frequency of each sequencing count value (<span class="math inline">\(\leq 20\)</span>) for all conditions. This directly shows why the bands appear: thousands of molecules share the same low integer count.</p>
+<div id="8ccf1ed5" class="cell" data-execution_count="5">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Using the already-melted data_ecdf from earlier</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>count_of_counts <span class="op">=</span> (</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    data_ecdf</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    .groupby([<span class="st">'condition'</span>, <span class="st">'seq_count'</span>])</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    .size()</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    .reset_index(name<span class="op">=</span><span class="st">'n_molecules'</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Truncate at, say, count=20 for visibility</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>count_of_counts_trunc <span class="op">=</span> count_of_counts[count_of_counts[<span class="st">'seq_count'</span>] <span class="op">&lt;=</span> <span class="dv">20</span>]</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>frequency_of_counts_plot <span class="op">=</span> (</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    gg.ggplot(count_of_counts_trunc, gg.aes(x<span class="op">=</span><span class="st">'factor(seq_count)'</span>, y<span class="op">=</span><span class="st">'n_molecules'</span>))</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_col(fill<span class="op">=</span><span class="st">'steelblue'</span>, width<span class="op">=</span><span class="fl">0.7</span>)</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.facet_wrap(<span class="st">'~condition'</span>, scales<span class="op">=</span><span class="st">'free_y'</span>)</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.labs(</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>        x<span class="op">=</span><span class="st">'Sequencing Count'</span>,</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>        y<span class="op">=</span><span class="st">'Number of Molecules'</span>,</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>        title<span class="op">=</span><span class="st">'Frequency of Each Sequencing Count Value (≤ 20)'</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.theme_bw()</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.theme(axis_text_x<span class="op">=</span>gg.element_text(size<span class="op">=</span><span class="dv">8</span>, rotation<span class="op">=</span><span class="dv">90</span>), figure_size<span class="op">=</span>(<span class="dv">15</span>, <span class="dv">4</span>))</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>frequency_of_counts_plot.save(<span class="st">"img/kindel_frequency_of_counts.png"</span>)</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>frequency_of_counts_plot.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="DEL_modelling_files/figure-html/cell-6-output-1.png" width="1440" height="384" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><span class="fig-caption"><strong>Figure 8:</strong> Frequency of each sequencing count value (<span class="math inline">\(\leq 20\)</span>) for all conditions.</span></p>
+<p>Figure 8 confirms that low integer counts dominate across conditions: counts such as 0, 1, 2, and 3 occur for very large numbers of molecules, while higher counts are much rarer. This pile-up at a few small integer values is what produces the visible step-like ECDF behavior and discrete horizontal bands seen in the earlier plots.</p>
+</section>
+<section id="correlations-between-replicates" class="level4">
+<h4 class="anchored">Correlations between replicates</h4>
+<p>Each experimental selection (both <em>matrix</em> and <em>target</em>) was performed in three independent replicates:</p>
+<div style="text-align: center;">
+<p><img src="img/Replicates_Correlations.png" alt="Correlations between replicates." width="75%"></p>
+</div>
+<p><span class="fig-caption"><strong>Figure 9:</strong> Each experimental selection (both <em>matrix</em> and <em>target</em>) was performed in three independent replicates.</span></p>
+<p>To assess the consistency and reproducibility of our DEL experiments, we analyze the correlations between sequencing replicates for both the matrix and target selection conditions. For each molecule, we first compute the proportion of reads it receives in a given replicate, that is, each molecule’s count divided by the total sequencing counts for that replicate. By comparing these proportions across the three independent replicates, we can visualize whether the same molecules tend to be enriched to similar degrees in repeated experiments, which should appear as clustering along the diagonal in scatter plots if the replicates are highly correlated. This approach helps us detect both technical reproducibility (low technical noise) and any systematic shifts between replicates.</p>
+<div id="6c931aa8" class="cell" data-execution_count="6">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>data_seq_counts_matrix <span class="op">=</span> data[[<span class="st">'seq_matrix_1'</span>, <span class="st">'seq_matrix_2'</span>, <span class="st">'seq_matrix_3'</span>]]</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># compute the proportion of the sequencing counts for the matrix conditions</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>data_seq_counts_matrix[<span class="st">'seq_matrix_1_prop'</span>] <span class="op">=</span> data_seq_counts_matrix[<span class="st">'seq_matrix_1'</span>] <span class="op">/</span> data_seq_counts_matrix[<span class="st">'seq_matrix_1'</span>].<span class="bu">sum</span>()</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>data_seq_counts_matrix[<span class="st">'seq_matrix_2_prop'</span>] <span class="op">=</span> data_seq_counts_matrix[<span class="st">'seq_matrix_2'</span>] <span class="op">/</span> data_seq_counts_matrix[<span class="st">'seq_matrix_2'</span>].<span class="bu">sum</span>()</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>data_seq_counts_matrix[<span class="st">'seq_matrix_3_prop'</span>] <span class="op">=</span> data_seq_counts_matrix[<span class="st">'seq_matrix_3'</span>] <span class="op">/</span> data_seq_counts_matrix[<span class="st">'seq_matrix_3'</span>].<span class="bu">sum</span>()</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>data_seq_counts_target <span class="op">=</span> data[[<span class="st">'seq_target_1'</span>, <span class="st">'seq_target_2'</span>, <span class="st">'seq_target_3'</span>]]</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="co"># compute the proportion of the sequencing counts for the target conditions</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>data_seq_counts_target[<span class="st">'seq_target_1_prop'</span>] <span class="op">=</span> data_seq_counts_target[<span class="st">'seq_target_1'</span>] <span class="op">/</span> data_seq_counts_target[<span class="st">'seq_target_1'</span>].<span class="bu">sum</span>()</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>data_seq_counts_target[<span class="st">'seq_target_2_prop'</span>] <span class="op">=</span> data_seq_counts_target[<span class="st">'seq_target_2'</span>] <span class="op">/</span> data_seq_counts_target[<span class="st">'seq_target_2'</span>].<span class="bu">sum</span>()</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>data_seq_counts_target[<span class="st">'seq_target_3_prop'</span>] <span class="op">=</span> data_seq_counts_target[<span class="st">'seq_target_3'</span>] <span class="op">/</span> data_seq_counts_target[<span class="st">'seq_target_3'</span>].<span class="bu">sum</span>()</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>p_1 <span class="op">=</span>(</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    gg.ggplot(data_seq_counts_matrix, gg.aes(x <span class="op">=</span> <span class="st">'seq_matrix_1_prop'</span>, y<span class="op">=</span><span class="st">'seq_matrix_2_prop'</span>))</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_point(position<span class="op">=</span><span class="st">'jitter'</span>, size<span class="op">=</span><span class="fl">0.1</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_abline(slope<span class="op">=</span><span class="dv">1</span>, intercept<span class="op">=</span><span class="dv">0</span>, color<span class="op">=</span><span class="st">'red'</span>)</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.labs(x<span class="op">=</span><span class="st">'Sequencing Proportion for Matrix 1'</span>, y<span class="op">=</span><span class="st">'Sequencing Proportion for Matrix 2'</span>) </span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>p_2 <span class="op">=</span> (</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>    gg.ggplot(data_seq_counts_matrix, gg.aes(x <span class="op">=</span> <span class="st">'seq_matrix_1_prop'</span>, y<span class="op">=</span><span class="st">'seq_matrix_3_prop'</span>))</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_point(position<span class="op">=</span><span class="st">'jitter'</span>, size<span class="op">=</span><span class="fl">0.1</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_abline(slope<span class="op">=</span><span class="dv">1</span>, intercept<span class="op">=</span><span class="dv">0</span>, color<span class="op">=</span><span class="st">'red'</span>)</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.labs(x<span class="op">=</span><span class="st">'Sequencing Proportion for Matrix 1'</span>, y<span class="op">=</span><span class="st">'Sequencing Proportion for Matrix 3'</span>)</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>p_3 <span class="op">=</span> (</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>    gg.ggplot(data_seq_counts_matrix, gg.aes(x <span class="op">=</span> <span class="st">'seq_matrix_2_prop'</span>, y<span class="op">=</span><span class="st">'seq_matrix_3_prop'</span>))</span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_point(position<span class="op">=</span><span class="st">'jitter'</span>, size<span class="op">=</span><span class="fl">0.1</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_abline(slope<span class="op">=</span><span class="dv">1</span>, intercept<span class="op">=</span><span class="dv">0</span>, color<span class="op">=</span><span class="st">'red'</span>)</span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.labs(x<span class="op">=</span><span class="st">'Sequencing Proportion for Matrix 2'</span>, y<span class="op">=</span><span class="st">'Sequencing Proportion for Matrix 3'</span>)</span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>p_4 <span class="op">=</span>(</span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>    gg.ggplot(data_seq_counts_target, gg.aes(x <span class="op">=</span> <span class="st">'seq_target_1_prop'</span>, y<span class="op">=</span><span class="st">'seq_target_2_prop'</span>))</span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_point(position<span class="op">=</span><span class="st">'jitter'</span>, size<span class="op">=</span><span class="fl">0.1</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_abline(slope<span class="op">=</span><span class="dv">1</span>, intercept<span class="op">=</span><span class="dv">0</span>, color<span class="op">=</span><span class="st">'red'</span>)</span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.labs(x<span class="op">=</span><span class="st">'Sequencing Proportion for Target 1'</span>, y<span class="op">=</span><span class="st">'Sequencing Proportion for Target 2'</span>) </span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>p_5 <span class="op">=</span> (</span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a>    gg.ggplot(data_seq_counts_target, gg.aes(x <span class="op">=</span> <span class="st">'seq_target_1_prop'</span>, y<span class="op">=</span><span class="st">'seq_target_3_prop'</span>))</span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_point(position<span class="op">=</span><span class="st">'jitter'</span>, size<span class="op">=</span><span class="fl">0.1</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_abline(slope<span class="op">=</span><span class="dv">1</span>, intercept<span class="op">=</span><span class="dv">0</span>, color<span class="op">=</span><span class="st">'red'</span>)</span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.labs(x<span class="op">=</span><span class="st">'Sequencing Proportion for Target 1'</span>, y<span class="op">=</span><span class="st">'Sequencing Proportion for Target 3'</span>)</span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a>p_6 <span class="op">=</span> (</span>
+<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a>    gg.ggplot(data_seq_counts_target, gg.aes(x <span class="op">=</span> <span class="st">'seq_target_2_prop'</span>, y<span class="op">=</span><span class="st">'seq_target_3_prop'</span>))</span>
+<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_point(position<span class="op">=</span><span class="st">'jitter'</span>, size<span class="op">=</span><span class="fl">0.1</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_abline(slope<span class="op">=</span><span class="dv">1</span>, intercept<span class="op">=</span><span class="dv">0</span>, color<span class="op">=</span><span class="st">'red'</span>)</span>
+<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.labs(x<span class="op">=</span><span class="st">'Sequencing Proportion for Target 2'</span>, y<span class="op">=</span><span class="st">'Sequencing Proportion for Target 3'</span>)</span>
+<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a>(p_1 <span class="op">|</span> p_2 <span class="op">|</span> p_3) <span class="op">/</span> (p_4 <span class="op">|</span> p_5 <span class="op">|</span> p_6) <span class="op">+</span> gg.theme(figure_size<span class="op">=</span>(<span class="dv">15</span>, <span class="dv">8</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<div>
+<figure class="figure">
+<p><img src="DEL_modelling_files/figure-html/cell-7-output-1.png" width="1440" height="768" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><span class="fig-caption"><strong>Figure 10:</strong> Correlations between replicates for the matrix and target selection conditions.</span></p>
+<p>When the points cluster closely along the red <span class="math inline">\(y = x\)</span> diagonal, it shows that replicate pairs are in strong agreement: the same molecules tend to receive similar sequencing proportions in each run. This is the case for the high counts and is more visible in the matrix selection conditions. In contrast, the wide scatter seen at very low proportions is due to sparse DEL counts, where <strong>random sampling noise is most pronounced</strong>. This is normal and explains why low-abundance molecules often appear less reproducible.</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-12-contents" aria-controls="callout-12" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Why is sampling noise dominant at low proportions?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-12" class="callout-12-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Sequencing is a sampling process. Each molecule <span class="math inline">\(i\)</span> has some true (but unknown) proportion <span class="math inline">\(p_i\)</span> in the library. Under the rare-event / large-depth regime, when we sequence a total of <span class="math inline">\(N\)</span> reads, the observed count <span class="math inline">\(n_i\)</span> for molecule <span class="math inline">\(i\)</span> is approximately Poisson-distributed (see <span class="box-ref-highlight">Why under these conditions, the binomial distribution converges to a Poisson distribution?</span> box, in Multinomial / Dirichlet-multinomial section for more details):</p>
+<p><span class="math display">\[n_i \sim \text{Poisson}(\lambda_i), \quad \lambda_i = N \cdot p_i\]</span></p>
+<p>The Poisson distribution has the property that its variance equals its mean:</p>
+<p><span class="math display">\[\mathbb{E}[n_i] = \lambda_i, \quad \text{Var}(n_i) = \lambda_i\]</span></p>
+<p>The observed proportion is <span class="math inline">\(\hat{p}_i = n_i / N\)</span>. Its variance is:</p>
+<p><span class="math display">\[\text{Var}(\hat{p}_i) = \frac{p_i}{N}\]</span></p>
+<p>and the standard deviation is:</p>
+<p><span class="math display">\[\text{SD}(\hat{p}_i) = \sqrt{\text{Var}(\hat{p}_i)} = \sqrt{\frac{p_i}{N}}\]</span></p>
+<p>The key quantity is the <strong>coefficient of variation</strong> (CV), which measures relative noise, or how large the noise is compared to the signal: <span class="math inline">\(CV = \frac{SD}{Mean}\)</span>. It is a dimensionless quantity that is always positive. <strong>The higher the CV, the more noise there is compared to the signal</strong>.</p>
+<p><span class="math display">\[
+\text{CV}(\hat{p}_i)
+= \frac{\text{SD}(\hat{p}_i)}{\mathbb{E}[\hat{p}_i]}
+= \frac{\sqrt{p_i / N}}{p_i}
+= \frac{\sqrt{p_i} \;/\; \sqrt{N}}{p_i}
+= \frac{\sqrt{p_i}}{\sqrt{N} \cdot p_i}
+\]</span></p>
+<p>Divide both numerator and denominator by <span class="math inline">\(\sqrt{p_i}\)</span>: <span class="math display">\[
+\frac{\sqrt{p_i}}{\sqrt{N} \cdot p_i}
+= \frac{\sqrt{p_i} \;/\; \sqrt{p_i}}{(\sqrt{N} \cdot p_i) \;/\; \sqrt{p_i}}
+= \frac{1}{\sqrt{N} \cdot \sqrt{p_i}}
+= \frac{1}{\sqrt{N \cdot p_i}}
+\]</span></p>
+<p>Which means that the CV is the same as: <span class="math display">\[
+\boxed{CV(\hat{p}_i) = \frac{1}{\sqrt{\lambda_i}}}
+\]</span></p>
+<p>Let’s explore the relationship between the coefficient of variation and the proportion of the molecule in the library:</p>
+<ul>
+<li>When <span class="math inline">\(N \cdot p_i\)</span> is <strong>large</strong> (high-abundance molecules), <strong>the CV is small</strong>. The observed proportion <span class="math inline">\(\hat{p}_i\)</span> is a precise estimate of <span class="math inline">\(p_i\)</span>, so two replicates will agree closely.</li>
+<li>When <span class="math inline">\(N \cdot p_i\)</span> is <strong>small</strong> (low-abundance molecules), <strong>the CV blows up</strong>. For example, if the expected count is <span class="math inline">\(\lambda_i = 1\)</span>, then <span class="math inline">\(\text{CV} = 100\%\)</span>. The actual count could easily be 0, 1, 2, or 3, which is wildly different relative to the expectation.</li>
+</ul>
+<p>Since each replicate draws counts <strong>independently</strong>, their sampling errors are uncorrelated. <strong>When both replicates have high relative noise (low <span class="math inline">\(p_i\)</span>), the scatter in the replicate-vs-replicate plot compounds the noise from both, producing the characteristic fan-shaped spread at low proportions</strong>.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-13-contents" aria-controls="callout-13" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Why the correlation is different for the matrix and target selection conditions?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-13" class="callout-13-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<section id="matrix-selection" class="level3">
+<h3 class="anchored" data-anchor-id="matrix-selection">Matrix selection</h3>
+<p>The matrix condition has no target protein present. Molecules are selected purely based on non-specific affinity for the matrix itself. Because this process is largely driven by physical chemistry (e.g., charge, hydrophobicity) rather than specific binding events, the enrichment is relatively stable and reproducible across replicates. As a result, a molecule that gets a high count in matrix replicate 1 tends to get a similarly high count in matrix replicate 2 and 3 and the points cluster better along the diagonal.</p>
+</section>
+<section id="target-selection" class="level3">
+<h3 class="anchored" data-anchor-id="target-selection">Target selection</h3>
+<p>The target selection involves a specific biological interaction between each molecule and the protein (DDR1 in this case). Several factors introduce extra variability here:</p>
+<ul>
+<li><p><strong>Stochastic binding events</strong>: True binders associate and dissociate with the protein in a probabilistic way, and this randomness gets amplified differently in each independent replicate. Here, <span class="highlight-key-point">stochastic binding events are the main source of variability.</span></p></li>
+<li><p><strong>Rare true hits</strong>: The vast majority of molecules do not bind the target protein at all, only a tiny fraction are true binders. For these rare binders, the number of molecules that make it through the entire process (binding, washing, elution, PCR, and sequencing) is very small to begin with. As a result, even minor random changes or noise in any step can cause large swings in their observed counts between replicates. Here, <span class="highlight-key-point">low abundance makes any small random variation in any step matter more in relative terms.</span></p>
+<p><strong>Example</strong>: Suppose there are only 10 true binder molecules recovered in one replicate and 12 in another. That’s a 20% difference, just from a change of two molecules. If one run happens to have harsher washing conditions, or a few more or less molecules are lost by chance at any stage, the difference is amplified because there are so few to start with. These small absolute changes can translate into large relative fluctuations, which is why true binders often show variable and inconsistent counts across replicates.</p></li>
+<li><p><strong>PCR amplification noise</strong>: This multiplicative noise affects any enriched compound. <span class="highlight-key-point">Target-enriched compounds tend to have higher absolute counts (higher <span class="math inline">\(n_{\text{true}}\)</span>), so the variance scales up more dramatically.</span></p>
+<p>Let’s explain this in more detail. PCR amplification is multiplicative. Each molecule is copied many times, and the number of copies varies stochastically. A simple model is:</p>
+<p><span class="math display">\[
+  n_{\text{obs}} = n_{\text{true}} \cdot \epsilon
+  \]</span></p>
+<p>Where:</p>
+<ul>
+<li><span class="math inline">\(n_{\text{obs}}\)</span> is the observed count after PCR amplification.</li>
+<li><span class="math inline">\(n_{\text{true}}\)</span> is the true count before PCR amplification.</li>
+<li><span class="math inline">\(\epsilon\)</span> is the amplification noise (log-normal or gamma distributed), which is a random variable with <span class="math inline">\(\mathbb{E}[\epsilon] = 1\)</span> (so, <span class="math inline">\(\mathbb{E}[n_{\text{obs}}] = n_{\text{true}}\)</span>) and <span class="math inline">\(\epsilon\)</span> is independent of <span class="math inline">\(n_{\text{true}}\)</span>.</li>
+</ul>
+<p>So, the observed count is a product of the true count, <span class="math inline">\(n_{\text{true}}\)</span>, and the amplification noise, <span class="math inline">\(\epsilon\)</span> (a random variable).</p>
+<p>Now, the variance of a constant times a random variable is the square of the constant times the variance of the random variable: <span class="math display">\[
+  \text{Var}(c \cdot X) = c^2 \cdot \text{Var}(X)
+  \]</span></p>
+<p>This follows from the properties of variance: <span class="math display">\[
+  \text{Var}(X)
+  = \mathbb{E}[(X - \mathbb{E}[X])^2]
+  = \mathbb{E}[X^2 - 2X\mathbb{E}[X] + (\mathbb{E}[X])^2]
+  = \mathbb{E}[X^2] - 2\mathbb{E}[X]\mathbb{E}[X] + (\mathbb{E}[X])^2
+  = \mathbb{E}[X^2] - 2\mathbb{E}[X]^2 + \mathbb{E}[X]^2
+  = \mathbb{E}[X^2] - \mathbb{E}[X]^2
+  \]</span></p>
+<p>So,</p>
+<p><span class="math display">\[\text{Var}(cX) = \mathbb{E}[(cX)^2] - (\mathbb{E}[cX])^2 = c^2 \mathbb{E}[X^2] - c^2 (\mathbb{E}[X])^2 = c^2[\mathbb{E}[X^2] - (\mathbb{E}[X])^2] = c^2 \,\text{Var}(X)\]</span></p>
+<p>Therefore, applying this to the simple model, we get:</p>
+<p><span class="math display">\[
+  \text{Var}(n_{\text{obs}}) = n_{\text{true}}^2 \cdot \text{Var}(\epsilon)
+  \]</span></p>
+<p>That is why the variance of target-enriched compounds, with higher <span class="math inline">\(n_{\text{true}}\)</span>, scales up more dramatically.</p></li>
+</ul>
+</section>
+</div>
+</div>
+</div>
+</section>
+<section id="relationship-between-pre-and-post-selection-counts" class="level4">
+<h4 class="anchored" data-anchor-id="relationship-between-pre-and-post-selection-counts">Relationship between pre and post-selection counts</h4>
+<p>Pre-selction counts are represented by <code>seq_load</code> column in the dataset. The pre-selction counts represent the abundance of each molecule in the library prior to any selection. That is, how many copies of each barcode were present before exposing the library to either the matrix or the target protein. <span class="highlight-key-point">Having this pre-selection abundance information is useful because it allows us to distinguish between molecules that appear enriched after selection due to true binding (biological effect) and those that were simply more prevalent in the input library (technical artifact).</span></p>
+<div style="text-align: center;">
+<p><img src="img/pre_post_selection_counts.png" alt="Relationship between pre-selection counts and post-selection counts for matrix, and target" width="75%"></p>
+</div>
+<p><span class="fig-caption"><strong>Figure 11:</strong> Comparing pre- and post-selection counts allows us to account for differences in the original library composition.</span></p>
+<p>Molecules might have higher pre-selection counts due to:</p>
+<ul>
+<li><strong>Synthesis variability</strong>: Some molecules are overrepresented in the input library due to differences in chemical synthesis.</li>
+<li><strong>Sequence preferences</strong>: Certain sequences are preferentially amplified during library preparation.</li>
+</ul>
+<p>Let’s start by plotting the relationship between pre-selection counts and post-selection counts for the matrix and target selection conditions.</p>
+<div id="733a8eb0" class="cell" data-execution_count="7">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>rel <span class="op">=</span> data.copy()</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>rel[<span class="st">"matrix_mean"</span>] <span class="op">=</span> rel[[<span class="st">"seq_matrix_1"</span>, <span class="st">"seq_matrix_2"</span>, <span class="st">"seq_matrix_3"</span>]].mean(axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>rel[<span class="st">"target_mean"</span>] <span class="op">=</span> rel[[<span class="st">"seq_target_1"</span>, <span class="st">"seq_target_2"</span>, <span class="st">"seq_target_3"</span>]].mean(axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>rel[<span class="st">"log_seq_load"</span>] <span class="op">=</span> np.log1p(rel[<span class="st">"seq_load"</span>])</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>rel[<span class="st">"log_matrix_mean"</span>] <span class="op">=</span> np.log1p(rel[<span class="st">"matrix_mean"</span>])</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>rel[<span class="st">"log_target_mean"</span>] <span class="op">=</span> np.log1p(rel[<span class="st">"target_mean"</span>])</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>rel_long <span class="op">=</span> pd.concat(</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    [</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>        rel[[<span class="st">"log_seq_load"</span>, <span class="st">"log_matrix_mean"</span>]].rename(columns<span class="op">=</span>{<span class="st">"log_seq_load"</span>: <span class="st">"x"</span>, <span class="st">"log_matrix_mean"</span>: <span class="st">"y"</span>}).assign(panel<span class="op">=</span><span class="st">"Load vs Matrix"</span>),</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>        rel[[<span class="st">"log_seq_load"</span>, <span class="st">"log_target_mean"</span>]].rename(columns<span class="op">=</span>{<span class="st">"log_seq_load"</span>: <span class="st">"x"</span>, <span class="st">"log_target_mean"</span>: <span class="st">"y"</span>}).assign(panel<span class="op">=</span><span class="st">"Load vs Target"</span>),</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>        rel[[<span class="st">"log_matrix_mean"</span>, <span class="st">"log_target_mean"</span>]].rename(columns<span class="op">=</span>{<span class="st">"log_matrix_mean"</span>: <span class="st">"x"</span>, <span class="st">"log_target_mean"</span>: <span class="st">"y"</span>}).assign(panel<span class="op">=</span><span class="st">"Matrix vs Target"</span>),</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    ],</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    ignore_index<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>(</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    gg.ggplot(rel_long, gg.aes(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>))</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_point(alpha<span class="op">=</span><span class="fl">0.1</span>, size<span class="op">=</span><span class="fl">0.25</span>)</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_abline(slope<span class="op">=</span><span class="dv">1</span>, intercept<span class="op">=</span><span class="dv">0</span>, color<span class="op">=</span><span class="st">"red"</span>)</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.facet_wrap(<span class="st">"~panel"</span>, scales<span class="op">=</span><span class="st">"free"</span>)</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.labs(x<span class="op">=</span><span class="st">"log1p(count)"</span>, y<span class="op">=</span><span class="st">"log1p(count)"</span>, title<span class="op">=</span><span class="st">"Pairwise relationships: seq_load, matrix, and target"</span>)</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.theme_bw()</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.theme(figure_size<span class="op">=</span>(<span class="dv">13</span>, <span class="dv">4</span>))</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<div>
+<figure class="figure">
+<p><img src="DEL_modelling_files/figure-html/cell-8-output-1.png" width="1248" height="384" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><span class="fig-caption"><strong>Figure 12:</strong> Pairwise relationships between <code>seq_load</code>, matrix mean, and target mean counts (log scale).</span></p>
+<div id="426cfa5a" class="cell" data-execution_count="8">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># compute the Spearman correlation matrix</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>corr_tbl <span class="op">=</span> rel[[<span class="st">"log_seq_load"</span>, <span class="st">"log_matrix_mean"</span>, <span class="st">"log_target_mean"</span>]].corr(method<span class="op">=</span><span class="st">"spearman"</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the Spearman correlation matrix as a lower triangle heatmap</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a mask for the upper triangle</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>mask <span class="op">=</span> np.triu(np.ones_like(corr_tbl, dtype<span class="op">=</span><span class="bu">bool</span>))</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">5</span>, <span class="dv">4</span>))</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> sns.heatmap(</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    corr_tbl, </span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    mask<span class="op">=</span>mask, </span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    annot<span class="op">=</span><span class="va">True</span>, </span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    fmt<span class="op">=</span><span class="st">".2f"</span>, </span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    cmap<span class="op">=</span><span class="st">"vlag"</span>, </span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    vmin<span class="op">=-</span><span class="dv">1</span>, </span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>    vmax<span class="op">=</span><span class="dv">1</span>, </span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    square<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>    cbar_kws<span class="op">=</span>{<span class="st">"shrink"</span>: <span class="fl">.8</span>}</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Spearman Correlation Matrix (log-transformed)</span><span class="ch">\n</span><span class="st">Pre-selection, Matrix, Target"</span>)</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="DEL_modelling_files/figure-html/cell-9-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><span class="fig-caption"><strong>Figure 13:</strong> Spearman correlation matrix between log-transformed pre-selection abundance (<code>seq_load</code>), matrix counts, and target counts.</span></p>
+<p>Interpretation guide:</p>
+<ul>
+<li>High <code>seq_load</code> to matrix correlation means non-specific counts are strongly driven by baseline library abundance.</li>
+<li>High matrix to target correlation means target counts may be dominated by background effects.</li>
+<li>Molecules with consistently high <code>target_vs_matrix</code> are stronger candidates for target-specific enrichment.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="meanvariance-relationship-of-the-sequencing-counts" class="level3">
+<h3 class="anchored" data-anchor-id="meanvariance-relationship-of-the-sequencing-counts">Mean–variance relationship of the sequencing counts</h3>
+<p>Let’s plot the mean and variance of the sequencing counts for the matrix and target selection replicates.</p>
+<p>In these plots, for each molecule, we plot the mean and variance of the sequencing counts for the matrix and target selection replicates.</p>
+<section id="meanvariance-relationship-of-the-sequencing-counts-for-the-matrix-conditions" class="level4">
+<h4 class="anchored" data-anchor-id="meanvariance-relationship-of-the-sequencing-counts-for-the-matrix-conditions">Mean–variance relationship of the sequencing counts for the matrix conditions</h4>
+<div id="dab6b776" class="cell" data-execution_count="9">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>mv <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">'mean_matrix'</span>: data[[<span class="st">'seq_matrix_1'</span>,<span class="st">'seq_matrix_2'</span>,<span class="st">'seq_matrix_3'</span>]].mean(axis<span class="op">=</span><span class="dv">1</span>),</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">'var_matrix'</span>:  data[[<span class="st">'seq_matrix_1'</span>,<span class="st">'seq_matrix_2'</span>,<span class="st">'seq_matrix_3'</span>]].var(axis<span class="op">=</span><span class="dv">1</span>),</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>(</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    gg.ggplot(mv, gg.aes(x<span class="op">=</span><span class="st">'mean_matrix'</span>, y<span class="op">=</span><span class="st">'var_matrix'</span>))</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_point(size<span class="op">=</span><span class="fl">0.3</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_abline(slope<span class="op">=</span><span class="dv">1</span>, intercept<span class="op">=</span><span class="dv">0</span>, color<span class="op">=</span><span class="st">'red'</span>, linetype<span class="op">=</span><span class="st">'dashed'</span>)   <span class="co"># Poisson line</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.scale_x_log10() <span class="op">+</span> gg.scale_y_log10()</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.labs(x<span class="op">=</span><span class="st">'Mean count (matrix)'</span>, y<span class="op">=</span><span class="st">'Variance (matrix)'</span>,</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>              title<span class="op">=</span><span class="st">'Mean–Variance: points above red line indicates overdispersion'</span>)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>/Users/kxcg607/Library/CloudStorage/OneDrive-AZCollaboration/MyPersonalGit/avidaa.github.io/blogs/ODE_Gen_AI/.venv/lib/python3.11/site-packages/pandas/core/arraylike.py:402: RuntimeWarning: divide by zero encountered in log10</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<div>
+<figure class="figure">
+<p><img src="DEL_modelling_files/figure-html/cell-10-output-2.png" width="672" height="480" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="meanvariance-relationship-of-the-sequencing-counts-for-the-target-conditions" class="level4">
+<h4 class="anchored" data-anchor-id="meanvariance-relationship-of-the-sequencing-counts-for-the-target-conditions">Mean–variance relationship of the sequencing counts for the target conditions</h4>
+<div id="5c08e6cc" class="cell" data-execution_count="10">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>mv <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">'mean_target'</span>: data[[<span class="st">'seq_target_1'</span>,<span class="st">'seq_target_2'</span>,<span class="st">'seq_target_3'</span>]].mean(axis<span class="op">=</span><span class="dv">1</span>),</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">'var_target'</span>:  data[[<span class="st">'seq_target_1'</span>,<span class="st">'seq_target_2'</span>,<span class="st">'seq_target_3'</span>]].var(axis<span class="op">=</span><span class="dv">1</span>),</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>(</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    gg.ggplot(mv, gg.aes(x<span class="op">=</span><span class="st">'mean_target'</span>, y<span class="op">=</span><span class="st">'var_target'</span>))</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_point(size<span class="op">=</span><span class="fl">0.3</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_abline(slope<span class="op">=</span><span class="dv">1</span>, intercept<span class="op">=</span><span class="dv">0</span>, color<span class="op">=</span><span class="st">'red'</span>, linetype<span class="op">=</span><span class="st">'dashed'</span>)   <span class="co"># Poisson line</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.scale_x_log10() <span class="op">+</span> gg.scale_y_log10()</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.labs(x<span class="op">=</span><span class="st">'Mean count (target)'</span>, y<span class="op">=</span><span class="st">'Variance (target)'</span>,</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>              title<span class="op">=</span><span class="st">'Mean–Variance: points above red line indicates overdispersion'</span>)</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>/Users/kxcg607/Library/CloudStorage/OneDrive-AZCollaboration/MyPersonalGit/avidaa.github.io/blogs/ODE_Gen_AI/.venv/lib/python3.11/site-packages/pandas/core/arraylike.py:402: RuntimeWarning: divide by zero encountered in log10</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<div>
+<figure class="figure">
+<p><img src="DEL_modelling_files/figure-html/cell-11-output-2.png" width="672" height="480" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The red line is the Poisson line. That is:</p>
+<p><span class="math display">\[
+\mathrm{Var}(X) = \mathrm{E}[X]
+\]</span></p>
+<p>This is the Poisson mean–variance relationship.</p>
+<p>The points above the red line indicate overdispersion:</p>
+<p><span class="math display">\[
+\mathrm{Var}(X) &gt; \mathrm{E}[X]
+\]</span></p>
+<p>This means that the variance is greater than the mean. This is often the case for DEL data because of :</p>
+<ul>
+<li>The extra dispersion introduced by PCR/amplification.</li>
+<li>Molecule-specific effects</li>
+<li>Replicate variability</li>
+</ul>
+<p><strong>What does the points below the red line indicate?</strong></p>
+<p>The points below the red line does not necessarily indicate underdispersion.</p>
+<p>Two main reasons for points below the red line:</p>
+<ul>
+<li><p><strong>Small-sample variance noise</strong>: With only three replicates, we can get strong estimation noise. Even if the true process is Poisson or NB, some sample variances will fall below the mean purely by chance.</p></li>
+<li><p><strong>Nearly identical replicates</strong>: If the replicates are nearly identical, the variance will be very low. Example:</p></li>
+</ul>
+<p>Let’s say we have three replicates: (10,10,11). The mean is 10.33 and the variance is 0.33.</p>
+<p>Variance is tiny and it falls below the red line. In this case, the variance is due to low observed replicate variation NOT necessarily biologically meaningful underdispersion.</p>
+<p><strong>What are the horizental lines in the plots?</strong></p>
+<p>Suggested EDAs:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>EDA</th>
+<th>Informs</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Mean–variance plot</td>
+<td>Poisson vs NB vs Poisson-lognormal</td>
+</tr>
+<tr class="even">
+<td>Zero fraction</td>
+<td>ZIP/ZINB needed or not</td>
+</tr>
+<tr class="odd">
+<td>Count histograms</td>
+<td>Overall distributional shape</td>
+</tr>
+<tr class="even">
+<td>Target vs matrix scatter</td>
+<td>What enrichment looks like</td>
+</tr>
+<tr class="odd">
+<td>Load vs target</td>
+<td>Whether to include offset/normalization</td>
+</tr>
+<tr class="even">
+<td>Synthon-level aggregation</td>
+<td>Synthon-level GNN design</td>
+</tr>
+<tr class="odd">
+<td>Library depth</td>
+<td>Whether Multinomial ≈ Poisson holds</td>
+</tr>
+</tbody>
+</table>
+
+
 </section>
 </section>
 </section>

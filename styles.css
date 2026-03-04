@@ -406,6 +406,12 @@ p {
   font-weight: 800;
 }
 
+/* Fix math overflow in collapsible callouts - prevents equations from jumping out */
+.callout-collapse .callout-body-container,
+.callout-collapse .callout-body {
+  overflow-x: auto;
+}
+
 /* Figure captions */
 .fig-caption {
   display: block;
