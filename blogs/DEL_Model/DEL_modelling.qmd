@@ -41,7 +41,7 @@ It is useful to separate DEL count models by the **data-generation assumption** 
 -   This perspective naturally motivates **Poisson**, **Negative Binomial**, **Poisson–lognormal**, and their zero-inflated variants.
 
 ::: {style="text-align: center;"}
-<img src="Independent_Barcode.png" alt="Independent-barcode generation: each barcode generates counts independently; totals add up." width="25%"/>
+<img src="img/Independent_Barcode.png" alt="Independent-barcode generation: each barcode generates counts independently; totals add up." width="25%"/>
 :::
 
 [**Figure 1:** Independent-barcode generation: each barcode generates counts independently; totals add up.]{.fig-caption}
@@ -55,7 +55,7 @@ It is useful to separate DEL count models by the **data-generation assumption** 
 -   This perspective naturally motivates **Multinomial** and **Dirichlet–multinomial**, and the one-barcode marginal **Binomial/Beta–binomial**.
 
     ::: {style="text-align: center;"}
-    <img src="Fixed_N.png" alt="Fixed-depth generation: a fixed total N is split across barcodes that share one pool." width="25%"/>
+    <img src="img/Fixed_N.png" alt="Fixed-depth generation: a fixed total N is split across barcodes that share one pool." width="25%"/>
     :::
 
     [**Figure 2:** Fixed-depth generation: a fixed total N is split across barcodes that share one pool.]{.fig-caption}
@@ -995,8 +995,20 @@ Molecules might have higher pre-selection counts due to:
 -   **Synthesis variability**: Some molecules are overrepresented in the input library due to differences in chemical synthesis.
 -   **Sequence preferences**: Certain sequences are preferentially amplified during library preparation.
 
-Let's start by plotting the relationship between pre-selection counts and post-selection counts for the matrix and target selection conditions. 
+Let's start by plotting the relationship between pre-selection counts and post-selection counts for the matrix and target selection conditions. Here, we take the mean of the post-selection counts for the matrix and target selection conditions across the three replicates. Then, we log-transform the pre-selection counts and the mean of the post-selection counts to make the plot interpretable.
 
+::: {.callout-note icon="false" collapse="true"}
+
+## Why log-transforming data with `log1p(x)` (i.e., `log(x + 1)`) makes the data interpretable?
+
+DEL sequencing counts and means are highly skewed and span several orders of magnitude, with many zeros and a few very large values. 
+
+`log1p(x)` makes the plot interpretable, because: 
+
+  - `log1p(0) = 0` (so zeros remain zeros, avoiding -inf)
+  - `log1p(x)` compresses large values, reduces skew, and reveals structure across the full dynamic range. For example, a value of 1000 becomes `log1p(1000) = 6.9`, which is much more manageable and interpretable.
+  - Without log-transform, details at low and medium counts would be obscured by a few outliers (e.g., very large values).
+:::
 ```{python}
 
 rel = data.copy()
@@ -1011,8 +1023,7 @@ rel["log_target_mean"] = np.log1p(rel["target_mean"])
 rel_long = pd.concat(
     [
         rel[["log_seq_load", "log_matrix_mean"]].rename(columns={"log_seq_load": "x", "log_matrix_mean": "y"}).assign(panel="Load vs Matrix"),
-        rel[["log_seq_load", "log_target_mean"]].rename(columns={"log_seq_load": "x", "log_target_mean": "y"}).assign(panel="Load vs Target"),
-        rel[["log_matrix_mean", "log_target_mean"]].rename(columns={"log_matrix_mean": "x", "log_target_mean": "y"}).assign(panel="Matrix vs Target"),
+        rel[["log_seq_load", "log_target_mean"]].rename(columns={"log_seq_load": "x", "log_target_mean": "y"}).assign(panel="Load vs Target"),        
     ],
     ignore_index=True,
 )
@@ -1024,14 +1035,40 @@ rel_long = pd.concat(
     + gg.facet_wrap("~panel", scales="free")
     + gg.labs(x="log1p(count)", y="log1p(count)", title="Pairwise relationships: seq_load, matrix, and target")
     + gg.theme_bw()
-    + gg.theme(figure_size=(13, 4))
 )
 ```
 
 [**Figure 12:** Pairwise relationships between `seq_load`, matrix mean, and target mean counts (log scale).]{.fig-caption}
 
-TODO: 1. Do we need Matrix vs Target here? Or does it need its own section?
-2. We need interpretation for the plots
+The scatter plots of log-transformed pre-selection counts (seq_load) versus post-selection means (matrix and target conditions) reveal three features:
+
+- **Dense mass below the diagonal:**  
+  Most molecules have lower post-selection than pre-selection counts, forming a dense cluster below the $y=x$ line. This reflects the fact that most compounds do not bind the target (or the matrix), so they get washed away during the selection step. The horizontal and vertical lines within this mass are due to integer-valued counts in the post and pre-selection counts.
+  
+
+- **Points along the diagonal at high counts:**  
+  Some molecules fall near the diagonal, indicating their post-selection count matches their initial abundance. These predominantly represent molecules overrepresented in the input library due to synthesis or sequencing biases, not because of selective binding. Thus, high counts can result from technical factors, and not all apparent "hits" are true binders.
+
+- **Points above the diagonal (enriched molecules):**  
+  Molecules above the $y=x$ line have higher post-selection than pre-selection counts. In the "Load vs Matrix" panel, these are likely non-specific binders to the matrix; in the "Load vs Target" panel, they are candidate true binders to the target (e.g., DDR1). More above-diagonal points in the "Load vs Target" panel is a positive signal: target selection is enriching for compounds beyond what the background alone explains.
+
+::: {.callout-note icon="false" collapse="true"}
+## What is the modelling implication of the above plots?
+
+Since high post-selection counts can reflect either true biological enrichment or simply high initial abundance, it's essential to adjust for pre-selection abundance (seq_load) when modeling to accurately identify binders.
+
+:::
+
+
+TODO: 
+
+1. Add a section about the Spearman correlation matrix.
+2. Add a section about matrix vs target.
+3. Add a section about the mean-variance relationship of the sequencing counts.
+4. Add a section on modelling the counts, it shoudld take both pre-selection and matrix selections into account and compare different likelihoods.
+5. Don't forget the Beta to Gamma relationship.
+
+Then we can wrap up this section by mentioning that here we are not taking the compounds structures into account. That would be another post.
 
 
 ```{python}
