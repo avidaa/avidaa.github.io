@@ -180,11 +180,12 @@ $$
 X_i \sim \text{NB}(\mu_i, \phi) \quad \text{with probability } 1 - \pi_i \quad \text{(for ZINB)}
 $$
 
-The interpretation of ZIP, ZINB is that with probability $\pi_i$, the observation is a **structural zero** (e.g., synthesis failure / true absence), **otherwise counts follow Poisson or Negative Binomial**. Zero inflated models should be treated as a *diagnostic driven choice*, **not a default likelihood choice**.
+In ZIP/ZINB, with probability $\pi_i$ an observation is a **structural zero** (e.g., true absence or synthesis failure), and otherwise counts follow Poisson or Negative Binomial. In DEL data, *structural absence is rarely observed directly, so zero inflation often reflects dropouts or technical noise*; it can improve fit, but overdispersed Negative Binomial models are often sufficient, so zero inflation should be a diagnostic-driven choice, not a default.
 
 References:
 
 -   [DEL-Ranking: Ranking-Correction Denoising Framework for Elucidating Molecular Affinities in DNA-Encoded Libraries](https://openreview.net/forum?id=QfyZ28FpVY) - Check the reviewers comments.
+-   [Compositional Deep Probabilistic Models of DNA-Encoded Libraries](https://arxiv.org/abs/2310.13769) - ZIP used to model DEL data.
 
 ::: {.callout-note icon="false" collapse="true"}
 ## When to use Zero-inflated models?
@@ -195,11 +196,10 @@ Zero inflated models assume that there are two mechanisms that produce zeros:
     -   Synthesis failure for certain barcodes
     -   Missing synthons or ligation errors for certain barcodes
     -   Amplification failure where barcode dropout during amplification
-    -   Library filtering steps
     -   Compound absence in the selection pool
 -   **Observed zeros**: these are zeros that are due to the fact that the molecule was not sequenced.
 
-Structural zeros are conceptually different from **sampling zeros**, which Poisson or Negative Binomial can already explain. [This is important because many apparent extra zeros are already explained by **overdispersion** in the Negative Binomial model, *not* a separate zero-generation process.]{style="color: #d7263d;"}
+Structural zeros are conceptually different from **sampling zeros**, which Poisson or Negative Binomial can already explain. [This is important because many apparent extra zeros are already explained by **overdispersion** in the Negative Binomial model, *not* a separate zero-generation process.]{.highlight-key-point}
 
 Zero inflated models are reasonable when:
 
@@ -736,7 +736,7 @@ In contrast, the target selection distribution shows higher counts at the 85th p
 
 #### Discrete horizontal bands
 
-The appearance of discrete horizontal bands in the plot reflects the presence of repeated, identical sequencing count values across many molecules. This arises because next-generation sequencing produces integer counts and there are only so many ways that low-abundance molecules can be sampled and counted from a large pool. Especially at lower count levels, a substantial number of molecules will have the same sequencing count (for example, many may have a count of "1", "2", and so on), resulting in "steps" in the ECDF plot (Figure 6) or pronounced horizontal bands (Figure 7). This effect is further amplified when the sequencing depth is modest relative to the library complexity, or when many molecules are present at similar low abundance.
+The appearance of discrete horizontal bands in the plot reflects the presence of repeated, identical sequencing count values across many molecules. This arises because next-generation sequencing produces integer counts and there are only so many ways that low-abundance molecules can be sampled and counted from a large pool. Especially at lower count levels, a substantial number of molecules will have the same sequencing count (for example, many may have a count of "1", "2", and so on), resulting in "steps" in the ECDF plot (**Figure 6**) or pronounced horizontal bands (**Figure 7**). This effect is further amplified when the sequencing depth is modest relative to the library complexity, or when many molecules are present at similar low abundance.
 
 ::: {style="text-align: center;"}
 <img src="img/Discrete_horizontal_bands.png" alt="Discrete horizontal bands." width="75%"/>
@@ -779,7 +779,7 @@ frequency_of_counts_plot.show()
 
 [**Figure 8:** Frequency of each sequencing count value ($\leq 20$) for all conditions.]{.fig-caption}
 
-Figure 8 confirms that low integer counts dominate across conditions: counts such as 0, 1, 2, and 3 occur for very large numbers of molecules, while higher counts are much rarer. This pile-up at a few small integer values is what produces the visible step-like ECDF behavior and discrete horizontal bands seen in the earlier plots.
+**Figure 8** confirms that low integer counts dominate across conditions: counts such as 0, 1, 2, and 3 occur for very large numbers of molecules, while higher counts are much rarer. This pile-up at a few small integer values is what produces the visible step-like ECDF behavior and discrete horizontal bands seen in the earlier plots.
 
 
 
@@ -793,7 +793,7 @@ Each experimental selection (both *matrix* and *target*) was performed in three 
 
 [**Figure 9:** Each experimental selection (both *matrix* and *target*) was performed in three independent replicates.]{.fig-caption}
 
-To assess the consistency and reproducibility of our DEL experiments, we analyze the correlations between sequencing replicates for both the matrix and target selection conditions. For each molecule, we first compute the proportion of reads it receives in a given replicate, that is, each molecule's count divided by the total sequencing counts for that replicate. By comparing these proportions across the three independent replicates, we can visualize whether the same molecules tend to be enriched to similar degrees in repeated experiments, which should appear as clustering along the diagonal in scatter plots if the replicates are highly correlated. This approach helps us detect both technical reproducibility (low technical noise) and any systematic shifts between replicates.
+To assess reproducibility, we compare replicate-level sequencing proportions for both matrix and target selections. For each replicate, molecule counts are normalized by the replicate total, then compared pairwise. We use two complementary views: scatter plots (**Figure 10**) for pattern shape and deviation from the $y=x$ line, and a Spearman correlation heatmap (**Figure 11**) for a compact quantitative summary of pairwise agreement.
 
 ```{python}
 
@@ -864,7 +864,7 @@ p_6 = (
 [**Figure 10:** Correlations between replicates for the matrix and target selection conditions.]{.fig-caption}
 
 
-When the points cluster closely along the red $y = x$ diagonal, it shows that replicate pairs are in strong agreement: the same molecules tend to receive similar sequencing proportions in each run. This is the case for the high counts and is more visible in the matrix selection conditions. In contrast, the wide scatter seen at very low proportions is due to sparse DEL counts, where **random sampling noise is most pronounced**. This is normal and explains why low-abundance molecules often appear less reproducible.
+In **Figure 10**, stronger clustering along the red $y=x$ line indicates better agreement between replicate pairs. Agreement is generally clearer for matrix replicates and for higher-abundance molecules. The broad spread at very low proportions is expected in sparse DEL data, where sampling noise dominates; this reduces apparent concordance for low-abundance molecules without necessarily indicating experimental failure.
 
 ::: {.callout-note icon="false" collapse="true"}
 ## Why is sampling noise dominant at low proportions?
@@ -979,6 +979,57 @@ The target selection involves a specific biological interaction between each mol
     
 :::
 
+To complement **Figure 10**, we summarize replicate agreement with a Spearman correlation matrix. Spearman correlation is rank-based, so it asks whether molecules ranked high in one replicate also tend to rank high in another, without assuming a strictly linear relationship.
+
+```{python}
+# collect replicate counts
+rep_counts = data[
+    [
+        "seq_matrix_1", "seq_matrix_2", "seq_matrix_3",
+        "seq_target_1", "seq_target_2", "seq_target_3",
+    ]
+].copy()
+
+# convert counts to within-replicate proportions
+for col in rep_counts.columns:
+    rep_counts[f"{col}_prop"] = rep_counts[col] / rep_counts[col].sum()
+
+rep_prop_cols = [
+    "seq_matrix_1_prop", "seq_matrix_2_prop", "seq_matrix_3_prop",
+    "seq_target_1_prop", "seq_target_2_prop", "seq_target_3_prop",
+]
+
+# Spearman correlation matrix across replicate proportions
+corr_tbl = rep_counts[rep_prop_cols].corr(method="spearman")
+
+# lower-triangle heatmap
+mask = np.triu(np.ones_like(corr_tbl, dtype=bool))
+
+plt.figure(figsize=(6, 5))
+ax = sns.heatmap(
+    corr_tbl,
+    mask=mask,
+    annot=True,
+    fmt=".2f",
+    cmap="vlag",
+    vmin=-1,
+    vmax=1,
+    square=True,
+    cbar_kws={"shrink": 0.8},
+)
+ax.set_title("Spearman Correlation Matrix Across Replicates (Proportions)")
+plt.tight_layout()
+plt.show()
+```
+
+[**Figure 11:** Spearman correlation matrix across matrix and target replicates (using within-replicate proportions).]{.fig-caption}
+
+Together, **Figures 10** and **11** support a consistent interpretation: 
+
+within-condition replicate correlations are positive and informative (typically stronger for matrix than target), while low-abundance regions remain noisy due to sampling variation. Cross-condition correlations (matrix vs target) are expected to be lower because they reflect different biological/technical mechanisms.
+
+When fitting count models, this replicate-to-replicate variation should be modeled explicitly rather than ignored.
+
 #### Relationship between pre and post-selection counts 
 
 Pre-selction counts are represented by `seq_load` column in the dataset. The pre-selction counts represent the abundance of each molecule in the library prior to any selection. That is, how many copies of each barcode were present before exposing the library to either the matrix or the target protein. [Having this pre-selection abundance information is useful because it allows us to distinguish between molecules that appear enriched after selection due to true binding (biological effect) and those that were simply more prevalent in the input library (technical artifact).]{.highlight-key-point}  
@@ -988,7 +1039,7 @@ Pre-selction counts are represented by `seq_load` column in the dataset. The pre
 <img src="img/pre_post_selection_counts.png" alt="Relationship between pre-selection counts and post-selection counts for matrix, and target" width="75%"/> 
 :::
 
-[**Figure 11:** Comparing pre- and post-selection counts allows us to account for differences in the original library composition.]{.fig-caption}
+[**Figure 12:** Comparing pre- and post-selection counts allows us to account for differences in the original library composition.]{.fig-caption}
 
 Molecules might have higher pre-selection counts due to:
 
@@ -1033,42 +1084,37 @@ rel_long = pd.concat(
     + gg.geom_point(alpha=0.1, size=0.25)
     + gg.geom_abline(slope=1, intercept=0, color="red")
     + gg.facet_wrap("~panel", scales="free")
-    + gg.labs(x="log1p(count)", y="log1p(count)", title="Pairwise relationships: seq_load, matrix, and target")
+    + gg.labs(
+        x="log1p (seq_load)", 
+        y="log1p (matrix_mean) or log1p (target_mean)", 
+        title="Pairwise relationships: seq_load, matrix, and target"
+    )
     + gg.theme_bw()
 )
 ```
 
-[**Figure 12:** Pairwise relationships between `seq_load`, matrix mean, and target mean counts (log scale).]{.fig-caption}
+[**Figure 13:** Pairwise relationships between `seq_load`, matrix mean, and target mean counts (log scale).]{.fig-caption}
 
-The scatter plots of log-transformed pre-selection counts (seq_load) versus post-selection means (matrix and target conditions) reveal three features:
+The scatter plots of log-transformed pre-selection counts (`seq_load`) versus post-selection mean counts (matrix and target) show three consistent patterns:
 
-- **Dense mass below the diagonal:**  
-  Most molecules have lower post-selection than pre-selection counts, forming a dense cluster below the $y=x$ line. This reflects the fact that most compounds do not bind the target (or the matrix), so they get washed away during the selection step. The horizontal and vertical lines within this mass are due to integer-valued counts in the post and pre-selection counts.
-  
+- **Dense cloud below the diagonal:**  
+  Most molecules lie below the $y=x$ line, meaning post-selection counts are lower than pre-selection counts. This is expected for non-binders that are depleted during selection. The visible horizontal and vertical banding reflects integer count discreteness after log transformation.
 
-- **Points along the diagonal at high counts:**  
-  Some molecules fall near the diagonal, indicating their post-selection count matches their initial abundance. These predominantly represent molecules overrepresented in the input library due to synthesis or sequencing biases, not because of selective binding. Thus, high counts can result from technical factors, and not all apparent "hits" are true binders.
+- **High-count points near the diagonal:**  
+  Molecules near the diagonal have post-selection counts close to their initial abundance. Many of these likely reflect input-library overrepresentation (for example, synthesis or sequencing bias as mentioned above) rather than selective enrichment. So, large counts alone should not be interpreted as evidence of binding.
 
-- **Points above the diagonal (enriched molecules):**  
-  Molecules above the $y=x$ line have higher post-selection than pre-selection counts. In the "Load vs Matrix" panel, these are likely non-specific binders to the matrix; in the "Load vs Target" panel, they are candidate true binders to the target (e.g., DDR1). More above-diagonal points in the "Load vs Target" panel is a positive signal: target selection is enriching for compounds beyond what the background alone explains.
+- **Points above the diagonal (enrichment):**  
+  Molecules above $y=x$ have higher post-selection than pre-selection counts. In "Load vs Matrix," these are plausible non-specific matrix binders; in "Load vs Target," they are candidate target binders (e.g., DDR1). A larger above-diagonal population in the target panel suggests enrichment beyond background matrix effects.
 
 ::: {.callout-note icon="false" collapse="true"}
 ## What is the modelling implication of the above plots?
 
 Since high post-selection counts can reflect either true biological enrichment or simply high initial abundance, it's essential to adjust for pre-selection abundance (seq_load) when modeling to accurately identify binders.
-
 :::
 
+**Figure 13** shows the relationship between pre and post-selection counts for the matrix and target selection conditions. We can also provide a concise quantitative summary of how strongly these variables move together. 
 
-TODO: 
-
-1. Add a section about the Spearman correlation matrix.
-2. Add a section about matrix vs target.
-3. Add a section about the mean-variance relationship of the sequencing counts.
-4. Add a section on modelling the counts, it shoudld take both pre-selection and matrix selections into account and compare different likelihoods.
-5. Don't forget the Beta to Gamma relationship.
-
-Then we can wrap up this section by mentioning that here we are not taking the compounds structures into account. That would be another post.
+Again, Spearman correlation is a good choice since it is rank-based, asking whether molecules with higher `seq_load` also tend to have higher matrix or target counts, without assuming a linear relationship. The Spearman correlation matrix therefore complements **Figure 13** by turning the visual trends into directly comparable pairwise association measures.
 
 
 ```{python}
@@ -1096,106 +1142,229 @@ plt.tight_layout()
 plt.show()
 ```
 
-[**Figure 13:** Spearman correlation matrix between log-transformed pre-selection abundance (`seq_load`), matrix counts, and target counts.]{.fig-caption}
+[**Figure 14:** Spearman correlation matrix between log-transformed pre-selection abundance (`seq_load`), matrix counts, and target counts.]{.fig-caption}
+
+The correlation matrix shows high correlation between `seq_load` and matrix counts, and low correlation between `seq_load` and target counts. This is consistent with the visual patterns in **Figure 13** where matrix counts mostly track library composition and have a tighter scatter whereas target counts reflect enrichment, not just library compoistion and hence have a looser scatter.
+
+Another correlation that is interesting to look at is the correlation between matrix and target counts. High correlation here means target counts may be dominated by background effects. Let's look at the correlation between matrix and target counts.
 
 
+#### Relationship between matrix and target counts
 
-Interpretation guide:
+Exploring the relationship between matrix and target counts can help us to understand if the target counts are dominated by background effects or are truly enriched by the target protein.
 
-- High `seq_load` to matrix correlation means non-specific counts are strongly driven by baseline library abundance.
-- High matrix to target correlation means target counts may be dominated by background effects.
-- Molecules with consistently high `target_vs_matrix` are stronger candidates for target-specific enrichment.
+::: {style="text-align: center;"}
+<img src="img/matrix_vs_target_counts.png" alt="Relationship between matrix and target counts" width="75%"/> 
+:::
 
-
-********************************************************************************
-
-
-### Mean–variance relationship of the sequencing counts
-
-Let's plot the mean and variance of the sequencing counts for the matrix and target selection replicates.
-
-In these plots, for each molecule, we plot the mean and variance of the sequencing counts for the matrix and target selection replicates.
-
-#### Mean–variance relationship of the sequencing counts for the matrix conditions
+[**Figure 15:** Relationship between matrix and target counts.]{.fig-caption}
 
 ```{python}
-mv = pd.DataFrame({
-    'mean_matrix': data[['seq_matrix_1','seq_matrix_2','seq_matrix_3']].mean(axis=1),
-    'var_matrix':  data[['seq_matrix_1','seq_matrix_2','seq_matrix_3']].var(axis=1),
-})
-
+rel_long = pd.concat(
+    [
+        rel[["log_matrix_mean", "log_target_mean"]].rename(columns={"log_matrix_mean": "x", "log_target_mean": "y"}).assign(panel="Matrix vs Target"),
+    ],
+    ignore_index=True,
+)
 (
-    gg.ggplot(mv, gg.aes(x='mean_matrix', y='var_matrix'))
-    + gg.geom_point(size=0.3, alpha=0.3)
-    + gg.geom_abline(slope=1, intercept=0, color='red', linetype='dashed')   # Poisson line
-    + gg.scale_x_log10() + gg.scale_y_log10()
-    + gg.labs(x='Mean count (matrix)', y='Variance (matrix)',
-              title='Mean–Variance: points above red line indicates overdispersion')
+    gg.ggplot(rel_long, gg.aes(x="x", y="y"))
+    + gg.geom_point(alpha=0.1, size=0.25)
+    + gg.geom_abline(slope=1, intercept=0, color="red")
+    + gg.labs(x="log1p (matrix_mean)", y="log1p (target_mean)", title="Pairwise relationships: matrix, target")
+    + gg.theme_bw()
 )
 ```
 
-#### Mean–variance relationship of the sequencing counts for the target conditions
+[**Figure 16:** Relationship between mean of matrix and target replicates counts (log scale).]{.fig-caption}
+
+This plot compares the mean matrix and target counts (across three replicates) for each molecule, with the red line indicating equality (i.e., $y = x$). The vertical lines are due to integer-valued counts in the matrix and target selections. 
+
+While there is a general positive relationship (0.67 based on Spearman correlation on **Figure 14**), reflecting that target counts include matrix-derived background, many points appear above the diagonal. That is higher target counts than matrix counts. This indicates specific enrichment in the target condition beyond background effects.
+
+
+#### Relationship between mean and variance of the sequencing counts
+
+The mean–variance relationship of the sequencing counts is a useful diagnostic tool to check if the data is overdispersed or underdispersed.
+
+- Overdispersion: The variance is greater than the mean.
+- Underdispersion: The variance is less than the mean.
+
+[In DEL data, underdispersion is often rare and overdispersion is often the norm.]{.highlight-key-point}
+
+The following factors contribute to inflating the variance above the mean: 
+
+- PCR amplification
+- Molecule-specific amplification biases
+- Replicate-to-replicate technical variability. 
+
+**True underdispersion is uncommon**; when variance appears below the mean, it is often due to small-sample noise (e.g., with only a few replicates) rather than a genuinely underdispersed process.
+
+
+As can be seen from the plot in **Figure 3**, the sequencing count distributions are right-skewed and heavy-tailed. While a heavy right tail suggests the presence of high-count outliers and large variability, it does not alone confirm overdispersion in the strict statistical sense (where the variance exceeds the mean). Overdispersion should be directly assessed by comparing the sample mean and variance of counts across replicates. Let's plot the mean and variance of the sequencing counts for the matrix and target selection replicates to examine this directly.
 
 ```{python}
+# Compute mean and variance for both matrix and target replicates
 mv = pd.DataFrame({
-    'mean_target': data[['seq_target_1','seq_target_2','seq_target_3']].mean(axis=1),
-    'var_target':  data[['seq_target_1','seq_target_2','seq_target_3']].var(axis=1),
+    'mean_matrix': data[['seq_matrix_1', 'seq_matrix_2', 'seq_matrix_3']].mean(axis=1),
+    'var_matrix':  data[['seq_matrix_1', 'seq_matrix_2', 'seq_matrix_3']].var(axis=1),
+    'mean_target': data[['seq_target_1', 'seq_target_2', 'seq_target_3']].mean(axis=1),
+    'var_target':  data[['seq_target_1', 'seq_target_2', 'seq_target_3']].var(axis=1),
 })
 
-(
-    gg.ggplot(mv, gg.aes(x='mean_target', y='var_target'))
+# Melt for long format for plotting
+mv_long = pd.concat([
+    mv[['mean_matrix', 'var_matrix']].rename(columns={'mean_matrix': 'mean', 'var_matrix': 'var'}).assign(condition='Matrix'),
+    mv[['mean_target', 'var_target']].rename(columns={'mean_target': 'mean', 'var_target': 'var'}).assign(condition='Target'),
+], ignore_index=True)
+
+mean_var_plot = (
+    gg.ggplot(mv_long, gg.aes(x='mean', y='var'))
     + gg.geom_point(size=0.3, alpha=0.3)
-    + gg.geom_abline(slope=1, intercept=0, color='red', linetype='dashed')   # Poisson line
+    + gg.geom_abline(slope=1, intercept=0, color='red', linetype='dashed')
     + gg.scale_x_log10() + gg.scale_y_log10()
-    + gg.labs(x='Mean count (target)', y='Variance (target)',
-              title='Mean–Variance: points above red line indicates overdispersion')
+    + gg.facet_wrap('~condition', scales='free')
+    + gg.labs(
+        x='Mean count',
+        y='Variance',
+        title='Mean–Variance by Condition: points above red line indicate overdispersion'
+    )
+    + gg.theme_bw()
 )
+
+mean_var_plot
 ```
 
-The red line is the Poisson line. That is:
+[**Figure 17:** Mean–variance relationship of the sequencing counts for the matrix and target selection conditions.]{.fig-caption}
+
+The red line is the Poisson assumption, which means the variance is equal to the mean:
 
 $$
 \mathrm{Var}(X) = \mathrm{E}[X]
 $$
 
-This is the Poisson mean–variance relationship.
-
-The points above the red line indicate overdispersion:
+The points above the red line indicate overdispersion, which means the variance is greater than the mean:
 
 $$
 \mathrm{Var}(X) > \mathrm{E}[X]
 $$
 
-This means that the variance is greater than the mean. This is often the case for DEL data because of :
+Both matrix and target conditions show clear overdispersion: most points lie above the red Poisson line (Var = Mean), so variance exceeds the mean across the count range. 
 
--   The extra dispersion introduced by PCR/amplification.
--   Molecule-specific effects
--   Replicate variability
+**In the matrix condition**, the overdispersion is mainly due to technical noise (PCR, sequencing) and non-specific matrix binding. Molecules with similar mean counts can still vary a lot across replicates.
 
-**What does the points below the red line indicate?**
+**In the target condition**, the overdispersion includes the same technical sources plus biological variability from true target binding. Enriched binders can have high mean and high variance, while non-binders stay near the low-count region.
 
-The points below the red line does not necessarily indicate underdispersion.
+In the matrix condition, the points with high mean and low variance on the right side of the plot are likely to be the same compounds that are present in all three replicates and is discussed in the Matrix binders section.
+
+The horizental lines in the plots are due to integer-valued counts in the matrix and target selections, as mentioned in the previous section.
+
+::: {.callout-note icon="false" collapse="true"}
+## What does the points below the red line indicate?
+
+The points below the red line does not necessarily indicate underdispersion, which means the variance is less than the mean:
+
+$$
+\mathrm{Var}(X) < \mathrm{E}[X]
+$$
 
 Two main reasons for points below the red line:
 
 -   **Small-sample variance noise**: With only three replicates, we can get strong estimation noise. Even if the true process is Poisson or NB, some sample variances will fall below the mean purely by chance.
 
--   **Nearly identical replicates**: If the replicates are nearly identical, the variance will be very low. Example:
+-   **Nearly identical replicates**: If the replicates are nearly identical, the variance will be very low. 
+    
+    **Example**: Let's say we have three replicates: (10,10,11). The mean is 10.33 and the variance is 0.33.
+    Variance is tiny and it falls below the red line. In this case, the variance is due to low observed replicate variation NOT necessarily biologically meaningful underdispersion.
 
-Let's say we have three replicates: (10,10,11). The mean is 10.33 and the variance is 0.33.
+:::
 
-Variance is tiny and it falls below the red line. In this case, the variance is due to low observed replicate variation NOT necessarily biologically meaningful underdispersion.
+### Choosing appropriate likelihood functions
 
-**What are the horizental lines in the plots?**
+We choose likelihood functions based on two EDA findings:
 
-Suggested EDAs:
+- **Rare-event, high-depth counts:**  
+  As shown in [Strong low-count mass across all conditions](#strong-low-count-mass-across-all-conditions), most molecules have very low counts. This sparse regime is well described by independent-barcode (rate-based) models such as Poisson, Negative Binomial, and Poisson-Lognormal.
 
-| EDA                       | Informs                                 |
-|---------------------------|-----------------------------------------|
-| Mean–variance plot        | Poisson vs NB vs Poisson-lognormal      |
-| Zero fraction             | ZIP/ZINB needed or not                  |
-| Count histograms          | Overall distributional shape            |
-| Target vs matrix scatter  | What enrichment looks like              |
-| Load vs target            | Whether to include offset/normalization |
-| Synthon-level aggregation | Synthon-level GNN design                |
-| Library depth             | Whether Multinomial ≈ Poisson holds     |
+  In this setting, fixed-depth (composition-based) models become approximately equivalent to rate-based models, which further supports focusing on the independent-barcode view. (See [Two data-generation perspectives for DEL counts](#two-data-generation-perspectives-for-dels), [Multinomial / Dirichlet-Multinomial](#multinomial-dirichlet-multinomial), and [Binomial / Beta-Binomial](#binomial-beta-binomial).)
+
+- **Overdispersion:**  
+  In [Mean–variance relationship of the sequencing counts](#relationship-between-mean-and-variance-of-the-sequencing-counts), the variance is consistently larger than the mean, indicating overdispersion. This rules out a pure Poisson assumption and favors likelihoods that explicitly model extra-Poisson variability.
+
+Taken together, the data support **Negative Binomial** and **Poisson-Lognormal** as the most appropriate likelihoods for DEL rate-based count modeling in this analysis.
+
+### Considerations for modeling parameters of the likelihood functions
+
+EDA highlights three key non-target/technical effects that should be explicitly modeled, as they can inflate or distort observed post-selection counts.
+
+- **Matrix-driven background:**
+    As discussed in [Matrix binders](#matrix-binders), some compounds are consistently enriched in the matrix condition, and this pattern is reproducible across replicates (see [Correlations between replicates](#correlations-between-replicates)). In addition, [Relationship between matrix and target counts](#relationship-between-matrix-and-target-counts) shows that matrix and target counts are correlated. Together, these results indicate that part of the target signal can reflect non-specific matrix binding rather than true target affinity.
+
+- **Library composition effects:**
+    [Relationship between pre and post-selection counts](#relationship-between-pre-and-post-selection-counts) shows that pre-selection abundance is correlated with post-selection counts. This implies that baseline library representation can propagate into both matrix and target readouts, independently of binding strength.
+
+- **Replicate-level variation:**
+    The [Correlations between replicates](#correlations-between-replicates) analysis (including the Spearman summary in Figure 11) shows that replicate agreement is substantial but not perfect, especially in low-abundance regions where sampling and technical noise are strongest. This indicates that replicate-to-replicate shifts should be modeled explicitly (e.g., with replicate random effects or condition-specific replicate offsets), rather than absorbed into enrichment parameters.
+
+In practice, likelihood parameterization should separate background structure (matrix effects and input composition), replicate-level technical variation, and true target-dependent enrichment. Doing so improves both the accuracy of enrichment estimates and the biological interpretability of model outputs.
+
+
+## Modelling DEL counts
+
+Following the McElreath Bayesian workflow, we model DEL counts in the following order:
+
+1. **State the causal assumptions (DAG first).**  
+   Clarify which variables influence counts (e.g., library composition, matrix effects, target effects, replicate variation) and identify potential confounding paths.
+
+2. **Write the full generative model.**  
+   Specify the likelihood, priors, and deterministic relationships (including background, enrichment, and replicate terms) before fitting any parameters.
+
+3. **Run prior predictive simulation.**  
+   Simulate synthetic counts from priors to check whether assumptions are plausible. We use this to:
+   - verify prior scales are reasonable,
+   - detect impossible predictions,
+   - understand implied behavior before seeing data.
+
+4. **Fit the model to data.**  
+   Estimate the posterior (using variational inference here for scalability on large DEL datasets).
+
+5. **Inspect posterior inferences.**  
+   Summarize posterior distributions, credible intervals, and parameter dependencies to understand uncertainty and identifiability.
+
+6. **Perform posterior predictive checks.**  
+   Generate replicated datasets from the fitted model and compare them with observed data. Key diagnostics include:
+   - variance mismatch (likelihood may be misspecified),
+   - tail mismatch (distributional assumptions may be wrong),
+   - missing structure such as multimodality (latent structure may be missing).
+
+7. **Compare candidate models by predictive performance.**  
+   Use WAIC, LOO cross-validation, and stacking when useful.
+
+8. **Revise and expand the model if needed.**  
+   If predictive checks fail, iterate by changing:
+   - likelihood family,
+   - hierarchical structure,
+   - predictors/interactions,
+   - nonlinear terms,
+   - mixture components.
+
+9. **Interpret and decide.**  
+   Use the posterior to interpret parameters, generate predictions via posterior predictive distributions, and evaluate causal contrasts/counterfactuals when the causal assumptions support them.
+    
+********************************************************************************
+
+
+TODO:
+
+
+1. Don't forget the Beta to Gamma relationship.
+
+2. Don't forget to change the aim of the blog post to be more focused on DEL likelihood functions and the consideration for modelling parameters of the likelihood functions.
+
+3. I think modelling should be the next blog post. This one is aleady too long.
+
+
+
+
+
+Idea for the next blog on GenAI: https://apps.allenimmunology.org/aifi/resources/parse-10m-cytokines/
+********************************************************************************
