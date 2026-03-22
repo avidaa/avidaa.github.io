@@ -9,6 +9,11 @@ execute:
 code-fold: true
 ---
 
+::: {.callout-note icon="false"}
+## Update:
+This post was updated in March 2026. Notably, the section on [Limitations: What Are the Key Limitations of VAEs?](#published-vae-variants) has been revised to include a clearer taxonomy of VAE variants. In addition, I have added a new subsection on [Jacobian-Regularized VAEs ("Jacobian VAE")](#jacobian-regularized-vaes-jacobian-vae), reflecting recent discussions with a colleague on this topic.
+:::
+
 ## What Is the Aim of This Blog?
 
 This blog draws upon insights from [this article](https://hunterheidenreich.com/posts/modern-variational-autoencoder-in-pytorch/) and [this post](https://lilianweng.github.io/posts/2018-08-12-vae/), with the objective of developing a better understanding of Variational Autoencoders (VAEs) for my own research.
@@ -741,9 +746,188 @@ For evaluating reconstruction quality specifically:
 :::
 :::::
 
-------------------------------------------------------------------------
+[]{#published-vae-variants}
 
-Despite these limitations, VAEs remain a powerful and widely-used framework. Many extensions and variants have been developed to address these issues, including $\beta$-VAE, WAE (Wasserstein Auto-Encoders), VQ-VAE (Vector Quantized VAE), and many others.
+Despite these limitations, VAEs remain a powerful and widely-used framework. The zoo of published variants is large, but most practical ideas still cluster into a handful of families, according to **which ingredient of the VAE they change** (objective, latent distributions, decoder/likelihood, or local geometry). The list below is a **road map, not a catalogue**: every bullet is representative, not exhaustive.
+
+-   **Tighter Monte Carlo objectives.** Multi-sample importance-weighted bounds ([IWAE](https://arxiv.org/abs/1509.00519) and follow-ons) improve estimation of the marginal likelihood, that is $p_\theta(x) = \int p_\theta(x|z) p_\theta(z) \, dz$, and gradient quality, while keeping the same generative story $p_\theta(x,z)=p_\theta(x|z)p_\theta(z)$.
+
+-   **Reweighted KL and independence-seeking objectives.** [$\beta$-VAE](https://openreview.net/forum?id=Sy2fzU9gl), [FactorVAE](https://arxiv.org/abs/1802.05983), [$\beta$-TCVAE](https://arxiv.org/abs/1802.04942), and related methods reshape the ELBO to stress independence, total correlation, or other structure in $q_\phi(z|x)$, often motivated by disentanglement.
+
+-   **Different regularizers on latent or data distributions.** Wasserstein / MMD-style autoencoders (e.g., [WAE](https://arxiv.org/abs/1711.01558)) swap the KL for other distances or penalties; adversarial regularization of the encoder or latent space also fits here.
+
+-   **Richer priors and approximate posteriors.** [Normalizing flows](https://arxiv.org/abs/1908.09257) in $q_\phi(z|x)$ or $p_\theta(z)$, learned mixture priors ([VampPrior](https://arxiv.org/abs/1705.07120)), and hierarchical or ladder architectures (e.g. [NVAE](https://arxiv.org/abs/2007.03898) , [VDVAE](https://arxiv.org/pdf/2011.10650), and [LVAE](https://arxiv.org/abs/1602.02282)) increase the flexibility of latent inference and the top-level prior.
+
+-   **Different latent variable types.** Vector quantization ([VQ-VAE](https://arxiv.org/abs/1711.00937) and successors), categorical or mixed continuous--discrete bottlenecks, and codebook-based latents change the support of $z$ rather than only tuning a Gaussian ELBO.
+
+-   **More expressive decoders and likelihoods.** Autoregressive pixels, [decoders built from normalizing flows](https://arxiv.org/abs/2004.05617), and, especially in recent image systems, hybrids that pair a latent bottleneck with diffusion or score-based decoders (e.g. [Multimodal ELBO with Diffusion Decoders](https://arxiv.org/abs/2408.16883)) aim to fix the classic blur / limited likelihood of shallow Gaussian decoders.
+
+-   **Explicit geometry of the decoder map.** Penalties on the **Jacobian** such as [Jacobian $L_1$ regularization](https://arxiv.org/abs/2106.02923) (and related spectral or orthogonality constraints on sensitivities $\partial x / \partial z$) regularize *how* latent directions move the reconstruction, complementing the purely probabilistic knobs in the items above. They **do not replace** the ELBO; they sit beside it.
+
+[]{#jacobian-regularized-vaes-jacobian-vae}
+
+::: {.callout-note icon="false" collapse="true"}
+## Jacobian-Regularized VAEs ("Jacobian VAE") {#jacobian-regularized-vaes-jacobian-vae}
+
+A "Jacobian VAE" refers to a standard VAE whose loss function is enhanced with an additional penalty on the Jacobian of the decoder, that is, on how changes in the latent space affect the reconstructed output. This Jacobian-based term acts as an explicit geometric regularizer, added on top of the usual ELBO objective. There is no separate probabilistic derivation for this regularizer; it supplements the standard approach. A notable example is the Jacobian $L_1$ regularization introduced by Rhodes and Lee ([arXiv:2106.02923](https://arxiv.org/abs/2106.02923), NeurIPS 2021), which encourages local disentanglement in the learned latent representations.
+
+### What problem is it trying to solve?
+
+When training VAEs for unsupervised representation learning, a major challenge is **identifiability**: different latent parameterizations can produce essentially the same reconstructions. In particular, the latent space often has **rotational** (and more generally, linear) ambiguities. If $U$ is an orthogonal matrix with $U^\top U = I$, we can replace a latent vector $\vec{z}$ by $U\vec{z}$ and adjust the decoder accordingly, often with little or no loss in reconstruction quality. Because a sufficiently flexible decoder can absorb such transformations, there is generally **no unique latent basis** preferred by reconstruction alone. The result is a **non-identifiable latent space**, where multiple equally valid coordinate systems explain the same data.
+
+One important attempt to address this is the **$\beta$-VAE** (discussed in under [Posterior collapse](#posterior-collapse)), which modifies the standard ELBO by increasing the weight on the KL term:
+
+$$
+\mathcal{L}_{\beta\text{-VAE}} = \mathbb{E}_{q_\phi(z|x)}[\log p_\theta(x|z)] - \beta \, \mathrm{KL}(q_\phi(z|x)\;||\;p(z)), \qquad \beta > 1
+$$
+
+Compared with a standard VAE, this places stronger pressure on the latent space to stay close to the prior and to use dimensions more independently. In practice, this often encourages different latent coordinates to capture different factors of variation, so the learned axes become more interpretable. However, this only helps **partially**: if several latent directions influence the decoder with similar strength, then the model can still rotate those directions among themselves without substantially changing reconstruction quality. In other words, $\beta$-VAE encourages factorization, but it does not fully remove the remaining rotational ambiguity.
+
+**Mental model:** imagine two latent knobs that together control an object's **horizontal position** and **brightness**. A plain VAE may learn two mixed knobs, where turning either knob changes *both* position and brightness. A $\beta$-VAE often helps separate these effects somewhat, but the model may still treat any rotated combination of those two knobs as equally good. Jacobian-based regularization goes one step further: it prefers a basis where one knob changes **mostly one kind of feature** and the other knob changes **another**, because that produces a sparser and more axis-aligned local sensitivity pattern in the decoder. In this sense, the Jacobian penalty **breaks the symmetry** that reconstruction loss alone leaves unresolved and encourages **local disentanglement**.
+
+### How does it work?
+
+To make the Jacobian idea concrete, it helps to separate the roles of the **encoder** and **decoder** and to use notation that distinguishes **latent-space** quantities from **data-space** quantities. The encoder takes an observed data point $x$ and outputs the parameters of the approximate posterior, typically a latent mean and latent standard deviation:
+
+$$
+q_\phi(z|x) = \mathcal{N}(\color{blue}{\mu_z(x)} \color{black}{, \mathrm{diag}(\sigma_z^2(x))})
+$$
+
+This is the distribution from which we sample the latent variable $z$. The decoder then works in the opposite direction: given a latent code $z$, it defines a conditional distribution over possible reconstructions, written as $p_\theta(x|z)$.
+
+In many common VAEs for continuous data, this decoder likelihood is chosen to be Gaussian:
+
+$$
+p_\theta(x|z) = \mathcal{N}(x; \color{green}{\mu_x(z)} \color{black}{, \sigma_x^2 I})
+$$
+
+Here the subscripts are meant to be mnemonic:
+
+-   $\color{blue}{\mu_z(x)}$ and $\color{black}{\sigma_z(x)}$ are the encoder outputs because they parameterize a distribution over the **latent variable** $z$.
+-   $\color{green}{\mu_x(z)}$ is the decoder output because it parameterizes a distribution over the **data variable** $x$.
+
+In other words, the encoder mean, $\color{blue}{\mu_z(x)}$, lives in **latent space**, while the decoder mean, $\color{green}{\mu_x(z)}$, lives in **data space**. In the Gaussian case, the neural network in the decoder outputs $\color{green}{\mu_x(z)}$, the **mean of the reconstruction distribution**. If a different likelihood is used, such as Bernoulli for binary images, the decoder may instead output probabilities or logits; the same idea still applies. For Jacobian regularization, we differentiate the decoder's output map with respect to the latent variable. The **generative Jacobian** is therefore:
+
+$$
+J_\theta(z)
+=
+\frac{
+\overbrace{\partial \color{green}{\mu_x(z)}}^{\text{data space}}
+}{
+\underbrace{\partial z^\top}_{\text{latent space}}
+}
+\in \mathbb{R}^{D \times d}
+$$
+
+where $D$ is the dimension of the data space and $d$ is the dimension of the latent space. Thus, the Jacobian is a **local linear map** from **latent space** to **data space**: it tells us how a small change in a latent coordinate $z_j$ changes the reconstructed output coordinate $x_i$ (where $x_i$ is the $i$-th coordinate of the data vector $x$). In particular, entry $[J_\theta(z)]_{ij}$ measures the sensitivity of the $i$-th data-space coordinate to perturbations in the $j$-th latent-space coordinate.
+
+**Jacobian $L_1$ regularization** (Rhodes & Lee) adds a term proportional to an $L_1$ norm of this Jacobian to the training objective, schematically:
+
+$$\mathcal{L} = -\text{ELBO}(\theta, \phi; x) + \lambda \, \mathbb{E}_{z \sim q_\phi(z|x)}\left[\|J_\theta(z)\|_1\right]$$
+
+(with $\lambda > 0$). The Jacobian $L_1$ norm can be written explicitly as:
+
+$$
+\|J_\theta(z)\|_1
+=
+\sum_{i=1}^{D}\sum_{j=1}^{d}\left|[J_\theta(z)]_{ij}\right|
+=
+\sum_{i=1}^{D}\sum_{j=1}^{d}\left|\frac{\partial \mu_{x,i}(z)}{\partial z_j}\right|
+$$
+
+The $L_1$ penalty encourages **sparsity** because it adds up the absolute values of all local sensitivities $\left|\frac{\partial \mu_{x,i}(z)}{\partial z_j}\right|$. To reduce this cost, the model is encouraged to make many of these sensitivities exactly zero or very small, so that each latent direction affects only a limited subset of output coordinates rather than weakly affecting everything.
+
+It is helpful to compare this with an $L_2$ penalty.
+
+For example, the corresponding Jacobian $L_2$ penalty would be:
+
+$$
+\|J_\theta(z)\|_2^2
+=
+\sum_{i=1}^{D}\sum_{j=1}^{d}\left([J_\theta(z)]_{ij}\right)^2
+=
+\sum_{i=1}^{D}\sum_{j=1}^{d}\left(\frac{\partial \mu_{x,i}(z)}{\partial z_j}\right)^2
+$$
+
+Suppose one latent variable influences the output with sensitivities $[1,1,0,0,0]$. Then its $L_1$ cost is $1+1=2$. If the same total effect is spread across many outputs, for example $[0.4,0.4,0.4,0.4,0.4]$, the $L_1$ cost is still $5 \times 0.4 = 2$. In other words, under $L_1$, **spreading influence across many small entries is not cheaper** than concentrating it into a few larger ones.
+
+By contrast, under $L_2$ the first pattern has cost $1^2 + 1^2 = 2$, while the second has cost $5 \times 0.4^2 = 0.8$. So $L_2$ prefers to **spread** influence over many small nonzero entries, whereas $L_1$ is more compatible with having **many zeros and a few active effects**. In the Jacobian setting, this means $L_1$ encourages a decoder where each latent coordinate changes only a smaller, more selective part of the output. Because 
+$L_1$ is also *not invariant under arbitrary rotations* of the columns of $J$, it can **pick a preferred orientation** among otherwise equivalent latent bases.
+
+
+The phrase **"not invariant under arbitrary rotations"** means the following. Suppose, in a simple two-dimensional latent space, the local decoder Jacobian is:
+
+$$
+J =
+\begin{bmatrix}
+1 & 0 \\
+0 & 1
+\end{bmatrix}.
+$$
+
+Its $L_1$ cost is $|1|+|0|+|0|+|1| = 2$. Now rotate the latent basis by $45^\circ$. In that rotated basis, the same local transformation can be represented by a Jacobian whose columns are mixtures of the original ones, for example:
+
+$$
+\tilde{J} =
+\begin{bmatrix}
+\tfrac{1}{\sqrt{2}} & \tfrac{1}{\sqrt{2}} \\
+\tfrac{1}{\sqrt{2}} & -\tfrac{1}{\sqrt{2}}
+\end{bmatrix}.
+$$
+
+This rotated Jacobian represents the same overall local geometry up to a change of latent coordinates, but its $L_1$ cost is:
+
+$$
+\left\|\tilde{J}\right\|_1
+=
+2 \times \left|\tfrac{1}{\sqrt{2}}\right| + 2 \times \left|\tfrac{1}{\sqrt{2}}\right|
+= 4 \cdot \tfrac{1}{\sqrt{2}}
+= \tfrac{4}{\sqrt{2}}
+= \tfrac{4\sqrt{2}}{\sqrt{2}\cdot\sqrt{2}}
+= \tfrac{4\sqrt{2}}{2}
+= 2\sqrt{2}
+>
+2.
+$$
+
+So although both bases can be equally good for reconstruction, the $L_1$ penalty **prefers the axis-aligned version** because it is sparser. That is what it means to say that $L_1$ can **pick a preferred orientation**: among many rotated latent bases that reconstruct equally well, it favors the one in which each latent direction has a more concentrated, less mixed effect on the output.
+
+In practice, computing the full $D \times d$ Jacobian matrix explicitly is expensive. For a decoder that maps a latent vector $z \in \mathbb{R}^d$ to a reconstructed data space vector $\color{green}{\mu_x(z)}\color{black} \in \mathbb{R}^D$, the full Jacobian has $D \times d$ entries. For a $64 \times 64$ image with $d = 32$ latent dimensions that is already $64 \times 64 \times 32 = 131{,}072$ entries, requiring $d$ separate backward passes to fill in each column. This becomes prohibitive for large images.
+
+Instead, two efficient approaches are commonly used:
+
+-   **Column-wise (forward-mode) Jacobian-vector products (JVPs):** For each latent dimension $j$, a single forward-mode autodiff pass computes the column $\partial \color{green}{\mu_x(z)}\color{black} / \partial z_j \in \mathbb{R}^D$, that is, how the entire output changes when only $z_j$ is perturbed. This requires $d$ JVP passes total, which is affordable when the latent dimension is small.
+
+-   **Row-wise (reverse-mode) vector-Jacobian products (VJPs):** A standard backpropagation pass computes a row $v^\top J_\theta(z)$ for a chosen vector $v \in \mathbb{R}^D$. To estimate the full $L_1$ norm without computing all rows, a random vector $v$ can be used in a stochastic estimator. This is more efficient when $D \gg d$.
+
+In both cases, only a subset of Jacobian entries is computed per training step, which introduces statistical noise into the penalty estimate. Managing that noise, its variance and its effect on gradient quality, is a practical consideration that the original paper and follow-up implementations address carefully. The key point is that the Jacobian $L_1$ penalty is not free to compute, and implementation choices here directly affect both training speed and stability.
+
+::: {.callout-tip icon="false" collapse="true"}
+## Pros and cons
+
+**Pros**
+
+-   Targets a concrete failure mode of "soft" disentanglement methods: **remaining rotational symmetry** when singular values of the generative map are similar.
+-   **Principled connection** to classical ICA-style goals via sparsity of local sensitivities.
+-   Reported gains on **local** disentanglement metrics and qualitative axis alignment in multi-object / multi-part image settings (see the paper's experiments).
+
+**Cons**
+
+-   **Extra compute and memory** per step compared to a plain VAE; large decoders make full Jacobians expensive, so implementations need care.
+-   Another hyperparameter **$\lambda$** trading reconstruction / ELBO quality against regularization; too strong a penalty can **hurt likelihood and reconstruction**.
+-   Like other unsupervised disentanglement claims, evaluation can be **dataset- and metric-dependent**; "disentanglement" is not uniquely defined.
+:::
+
+### Related approaches
+
+-   **$\beta$-VAE and variants (FactorVAE, $\beta$-TCVAE, etc.):** reweight or decompose the KL term to encourage independence of latent factors. Kumar and Poole show that $\beta$-VAE also induces **implicit** regularization related to **Jacobian and Hessian** structure of the decoder ([arXiv:2002.00041](https://arxiv.org/abs/2002.00041)), connecting VAE training to Jacobian-based autoencoder heuristics.
+-   **Orthogonal Jacobian regularization (OroJaR, ICCV 2021):** encourages **orthogonality** between sensitivities of different latent dimensions (a different geometric constraint than elementwise $L_1$ sparsity).
+-   **Sparse VAE / Identifiable Deep Generative Models via Sparse Decoding (Moran et al., 2021, [arXiv:2110.10804](https://arxiv.org/abs/2110.10804)):** pursues the same underlying goal as Jacobian $L_1$ regularization: making each observed feature depend on only a small subset of latent factors. But it reaches it through a different route. Instead of penalizing the Jacobian at training time, it places a **sparsity prior directly on the decoder** so that each output coordinate is structurally linked to only a few latents. This architectural sparsity allows the authors to prove formal **identifiability guarantees**: given enough data, the true latent factors can be uniquely recovered. This is a stronger statement than what Jacobian $L_1$ regularization offers, where sparsity is encouraged as a soft penalty but not guaranteed. The Sparse VAE can therefore be thought of as a **principled, provably identifiable** alternative that targets the same non-identifiability problem from the model structure rather than from the loss function.
+-   **Spectral / Jacobian norms in autoencoders:** broader literature on penalizing Jacobian norms for smoothness, robustness, or identifiability outside the VAE setup; the VAE case combines these ideas with the ELBO.
+-   **Supervised or semi-supervised constraints:** when factor labels or group structure are available, auxiliary losses often achieve more reliable axis semantics than purely unsupervised Jacobian penalties.
+
+:::
+
 
 ## Conclusion: Key Takeaways and Final Remarks
 
