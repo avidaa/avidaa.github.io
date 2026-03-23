@@ -894,13 +894,17 @@ So although both bases can be equally good for reconstruction, the $L_1$ penalty
 
 In practice, computing the full $D \times d$ Jacobian matrix explicitly is expensive. For a decoder that maps a latent vector $z \in \mathbb{R}^d$ to a reconstructed data space vector $\color{green}{\mu_x(z)}\color{black} \in \mathbb{R}^D$, the full Jacobian has $D \times d$ entries. For a $64 \times 64$ image with $d = 32$ latent dimensions that is already $64 \times 64 \times 32 = 131{,}072$ entries, requiring $d$ separate backward passes to fill in each column. This becomes prohibitive for large images.
 
-Instead, two efficient approaches are commonly used:
+Instead, two efficient strategies are commonly used, both of which avoid materialising the full matrix.
 
--   **Column-wise (forward-mode) Jacobian-vector products (JVPs):** For each latent dimension $j$, a single forward-mode autodiff pass computes the column $\partial \color{green}{\mu_x(z)}\color{black} / \partial z_j \in \mathbb{R}^D$, that is, how the entire output changes when only $z_j$ is perturbed. This requires $d$ JVP passes total, which is affordable when the latent dimension is small.
+**Approach 1 — ask "what happens to the whole output if I wiggle one latent?"**
 
--   **Row-wise (reverse-mode) vector-Jacobian products (VJPs):** A standard backpropagation pass computes a row $v^\top J_\theta(z)$ for a chosen vector $v \in \mathbb{R}^D$. To estimate the full $L_1$ norm without computing all rows, a random vector $v$ can be used in a stochastic estimator. This is more efficient when $D \gg d$.
+Think of the Jacobian as a table with $D$ rows (one per output coordinate) and $d$ columns (one per latent dimension). The $j$-th column answers the question: *if I nudge latent $z_j$ by a tiny amount, how does the entire reconstruction $\color{green}{\mu_x(z)}$ change?* This is a $D$-dimensional vector and it can be computed in a single **forward pass with a tagged perturbation**: you push the input through the network as normal, but simultaneously carry along a small perturbation in the $z_j$ direction, and the network output delivers the full column as a by-product. Doing this once per latent dimension fills the Jacobian column by column in exactly $d$ passes. This is called a **forward-mode JVP (Jacobian-vector product)** and is a good choice when $d$ is small, since the cost is $d \times$ one forward pass.
 
-In both cases, only a subset of Jacobian entries is computed per training step, which introduces statistical noise into the penalty estimate. Managing that noise, its variance and its effect on gradient quality, is a practical consideration that the original paper and follow-up implementations address carefully. The key point is that the Jacobian $L_1$ penalty is not free to compute, and implementation choices here directly affect both training speed and stability.
+**Approach 2 — ask "how does each output coordinate depend on all latents together?"**
+
+Standard backpropagation (reverse mode) works in the opposite direction: it takes a single output coordinate and propagates gradients back to all inputs. That gives you one *row* of the Jacobian per backward pass. Because there are $D$ rows (potentially millions for an image), computing all rows would require $D$ backward passes, which is far too expensive. The trick is to instead pick a random vector $v \in \mathbb{R}^D$ and compute $v^\top J_\theta(z)$ in one backward pass. This is called a **reverse-mode VJP (vector-Jacobian product)**. By choosing $v$ randomly many times, you can build a statistical estimate of the $L_1$ norm without ever computing the full matrix. This approach is more efficient when $D \gg d$, since the cost per estimate is just one backward pass, regardless of $D$.
+
+The practical trade-off is that both approaches introduce some noise into the penalty estimate. Managing that noise carefully, choosing the right number of passes and the right random vectors, directly affects training stability, and is one of the engineering considerations when implementing Jacobian-regularized VAEs.
 
 ::: {.callout-tip icon="false" collapse="true"}
 ## Pros and cons
