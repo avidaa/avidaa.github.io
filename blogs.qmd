@@ -14,7 +14,6 @@ A concise walkthrough of the mathematical foundations behind Variational Autoenc
 
 [Read more](blogs/VAE_derivation/VAE_derivation.qmd)
 
-------------------------------------------------------------------------
 
 ## Modelling DNA-Encoded Libraries (DELs) - Part 1
 
