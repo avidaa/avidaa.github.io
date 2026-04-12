@@ -1094,6 +1094,8 @@ p = (
 p.save("img/kindel_eda_seq_counts.png")
 p.show()
 ```
+![Distribution of counts by condition for the KinDEL DDR1 `split1_random` training subset.](img/kindel_eda_seq_counts.png){#fig-seq-counts width="75%"}
+
 
 #### Matrix binders {#matrix-binders}
 

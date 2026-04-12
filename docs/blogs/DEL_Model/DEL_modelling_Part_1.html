@@ -1391,6 +1391,16 @@ Figure&nbsp;3: Distribution of counts by condition for the KinDEL DDR1 <code>spl
 </div>
 </div>
 </div>
+<div id="fig-seq-counts" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-seq-counts-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="img/kindel_eda_seq_counts.png" class="img-fluid figure-img" style="width:75.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-seq-counts-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Distribution of counts by condition for the KinDEL DDR1 <code>split1_random</code> training subset.
+</figcaption>
+</figure>
+</div>
 <section id="matrix-binders" class="level4">
 <h4 class="anchored" data-anchor-id="matrix-binders">Matrix binders</h4>
 <p>A key observation from the plot is that some compounds have very high sequencing counts in the matrix (control) conditions. The distribution of matrix counts appears bimodal. This suggests that some molecules may bind strongly to the matrix itself, rather than only the intended protein target. Such molecules could give high signals in both the target and matrix conditions, making it challenging to tell if they’re true protein binders or simply show nonspecific, matrix-binding effects.</p>
@@ -1400,7 +1410,7 @@ Figure&nbsp;3: Distribution of counts by condition for the KinDEL DDR1 <code>spl
 <img src="img/NTC_Binders.png" class="img-fluid figure-img" style="width:75.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-matrix-binders-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4: Matrix binders. Molecules with high sequencing counts in matrix (control) conditions. These molecules can confound analysis by mimicking protein hits.
+Figure&nbsp;5: Matrix binders. Molecules with high sequencing counts in matrix (control) conditions. These molecules can confound analysis by mimicking protein hits.
 </figcaption>
 </figure>
 </div>
@@ -1414,7 +1424,7 @@ Figure&nbsp;4: Matrix binders. Molecules with high sequencing counts in matrix (
 <img src="img/High_Density_Near_Low_Counts.png" class="img-fluid figure-img" style="width:75.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-low-count-mass-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5: Most molecules have very low counts, indicating sparse DEL data.
+Figure&nbsp;6: Most molecules have very low counts, indicating sparse DEL data.
 </figcaption>
 </figure>
 </div>
@@ -1530,7 +1540,7 @@ F(x) = \Pr(X \leq x)
 <img src="DEL_modelling_Part_1_files/figure-html/fig-ecdf-counts-output-1.png" width="672" height="480" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ecdf-counts-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6: Cumulative distribution function (CDF) of the sequencing counts for all conditions with the 85th percentile marked.
+Figure&nbsp;7: Cumulative distribution function (CDF) of the sequencing counts for all conditions with the 85th percentile marked.
 </figcaption>
 </figure>
 </div>
@@ -1542,14 +1552,14 @@ Figure&nbsp;6: Cumulative distribution function (CDF) of the sequencing counts f
 </section>
 <section id="discrete-horizontal-bands" class="level4">
 <h4 class="anchored" data-anchor-id="discrete-horizontal-bands">Discrete horizontal bands</h4>
-<p>The appearance of discrete horizontal bands in the plot reflects repeated, identical sequencing count values across many molecules. This happens because next-generation sequencing produces integer counts, and low-abundance molecules are often observed at the same small values. As a result, low integer counts are repeated across many molecules, producing visible steps in the ECDF (<a href="#fig-ecdf-counts" class="quarto-xref">Figure&nbsp;6</a>) and horizontal banding in scatter-style plots (<a href="#fig-discrete-bands" class="quarto-xref">Figure&nbsp;7</a>). This effect is especially noticeable when sequencing depth is modest relative to library complexity or when many molecules have similarly low abundance.</p>
+<p>The appearance of discrete horizontal bands in the plot reflects repeated, identical sequencing count values across many molecules. This happens because next-generation sequencing produces integer counts, and low-abundance molecules are often observed at the same small values. As a result, low integer counts are repeated across many molecules, producing visible steps in the ECDF (<a href="#fig-ecdf-counts" class="quarto-xref">Figure&nbsp;7</a>) and horizontal banding in scatter-style plots (<a href="#fig-discrete-bands" class="quarto-xref">Figure&nbsp;8</a>). This effect is especially noticeable when sequencing depth is modest relative to library complexity or when many molecules have similarly low abundance.</p>
 <div id="fig-discrete-bands" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-discrete-bands-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="img/Discrete_horizontal_bands.png" class="img-fluid figure-img" style="width:75.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-discrete-bands-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7: Discrete horizontal bands. The plot shows how discrete, integer sequencing counts lead to repeated identical values among molecules, appearing as horizontal bands in the ECDF.
+Figure&nbsp;8: Discrete horizontal bands. The plot shows how discrete, integer sequencing counts lead to repeated identical values among molecules, appearing as horizontal bands in the ECDF.
 </figcaption>
 </figure>
 </div>
@@ -1592,13 +1602,13 @@ Figure&nbsp;7: Discrete horizontal bands. The plot shows how discrete, integer s
 <img src="DEL_modelling_Part_1_files/figure-html/fig-count-frequency-output-1.png" width="1440" height="384" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-count-frequency-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;8: Frequency of each sequencing count value (<span class="math inline">\(\leq 20\)</span>) for all conditions.
+Figure&nbsp;9: Frequency of each sequencing count value (<span class="math inline">\(\leq 20\)</span>) for all conditions.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p><a href="#fig-count-frequency" class="quarto-xref">Figure&nbsp;8</a> confirms that low integer counts dominate across conditions: counts such as 0, 1, 2, and 3 occur for very large numbers of molecules, while higher counts are much rarer. This pile-up at a few small integer values is what produces the visible step-like ECDF behaviour and discrete horizontal bands seen in the earlier plots.</p>
+<p><a href="#fig-count-frequency" class="quarto-xref">Figure&nbsp;9</a> confirms that low integer counts dominate across conditions: counts such as 0, 1, 2, and 3 occur for very large numbers of molecules, while higher counts are much rarer. This pile-up at a few small integer values is what produces the visible step-like ECDF behaviour and discrete horizontal bands seen in the earlier plots.</p>
 </section>
 <section id="correlations-between-replicates" class="level4">
 <h4 class="anchored">Correlations between replicates</h4>
@@ -1609,11 +1619,11 @@ Figure&nbsp;8: Frequency of each sequencing count value (<span class="math inlin
 <img src="img/Replicates_Correlations.png" class="img-fluid figure-img" style="width:75.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-replicate-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9: Each experimental selection (both <em>matrix</em> and <em>target</em>) was performed in three independent replicates.
+Figure&nbsp;10: Each experimental selection (both <em>matrix</em> and <em>target</em>) was performed in three independent replicates.
 </figcaption>
 </figure>
 </div>
-<p>To assess reproducibility, we compare replicate-level sequencing proportions for both matrix and target selections. For each replicate, molecule counts are normalised by the replicate total and then compared pairwise. These comparisons are summarised in three complementary ways: scatter plots (<a href="#fig-replicate-scatter" class="quarto-xref">Figure&nbsp;10</a>) show pattern shape and deviation from the <span class="math inline">\(y=x\)</span> line, a Spearman correlation heatmap (<a href="#fig-replicate-heatmap" class="quarto-xref">Figure&nbsp;11</a>) provides a compact quantitative summary of pairwise agreement, and a replicate-support plot (<a href="#fig-replicate-support" class="quarto-xref">Figure&nbsp;12</a>) shows how often molecules are observed at all across replicates.</p>
+<p>To assess reproducibility, we compare replicate-level sequencing proportions for both matrix and target selections. For each replicate, molecule counts are normalised by the replicate total and then compared pairwise. These comparisons are summarised in three complementary ways: scatter plots (<a href="#fig-replicate-scatter" class="quarto-xref">Figure&nbsp;11</a>) show pattern shape and deviation from the <span class="math inline">\(y=x\)</span> line, a Spearman correlation heatmap (<a href="#fig-replicate-heatmap" class="quarto-xref">Figure&nbsp;12</a>) provides a compact quantitative summary of pairwise agreement, and a replicate-support plot (<a href="#fig-replicate-support" class="quarto-xref">Figure&nbsp;13</a>) shows how often molecules are observed at all across replicates.</p>
 <div id="cell-fig-replicate-scatter" class="cell" data-execution_count="9">
 <details class="code-fold">
 <summary>Code</summary>
@@ -1687,13 +1697,13 @@ Figure&nbsp;9: Each experimental selection (both <em>matrix</em> and <em>target<
 <img src="DEL_modelling_Part_1_files/figure-html/fig-replicate-scatter-output-1.png" width="1440" height="768" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-replicate-scatter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;10: Correlations between replicates for the matrix and target selection conditions.
+Figure&nbsp;11: Correlations between replicates for the matrix and target selection conditions.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>In <a href="#fig-replicate-scatter" class="quarto-xref">Figure&nbsp;10</a>, stronger clustering along the red <span class="math inline">\(y=x\)</span> line indicates better agreement between replicate pairs. Agreement is generally clearer for matrix replicates and for higher-abundance molecules. The broad spread at very low proportions is expected in sparse DEL data, where sampling noise dominates; this reduces apparent concordance for low-abundance molecules without necessarily indicating experimental failure.</p>
+<p>In <a href="#fig-replicate-scatter" class="quarto-xref">Figure&nbsp;11</a>, stronger clustering along the red <span class="math inline">\(y=x\)</span> line indicates better agreement between replicate pairs. Agreement is generally clearer for matrix replicates and for higher-abundance molecules. The broad spread at very low proportions is expected in sparse DEL data, where sampling noise dominates; this reduces apparent concordance for low-abundance molecules without necessarily indicating experimental failure.</p>
 <div class="callout callout-style-default callout-note no-icon callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-15-contents" aria-controls="callout-15" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -1797,7 +1807,7 @@ Why do matrix and target replicates show different correlation patterns?
 </div>
 </div>
 </div>
-<p>To complement <a href="#fig-replicate-scatter" class="quarto-xref">Figure&nbsp;10</a>, we summarise replicate agreement with a Spearman correlation matrix. Spearman correlation is rank-based, so it asks whether molecules ranked high in one replicate also tend to rank high in another, without assuming a strictly linear relationship.</p>
+<p>To complement <a href="#fig-replicate-scatter" class="quarto-xref">Figure&nbsp;11</a>, we summarise replicate agreement with a Spearman correlation matrix. Spearman correlation is rank-based, so it asks whether molecules ranked high in one replicate also tend to rank high in another, without assuming a strictly linear relationship.</p>
 <div id="cell-fig-replicate-heatmap" class="cell" data-execution_count="10">
 <details class="code-fold">
 <summary>Code</summary>
@@ -1847,7 +1857,7 @@ Why do matrix and target replicates show different correlation patterns?
 <img src="DEL_modelling_Part_1_files/figure-html/fig-replicate-heatmap-output-1.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-replicate-heatmap-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;11: Spearman correlation matrix across matrix and target replicates using within-replicate proportions.
+Figure&nbsp;12: Spearman correlation matrix across matrix and target replicates using within-replicate proportions.
 </figcaption>
 </figure>
 </div>
@@ -1937,13 +1947,13 @@ Figure&nbsp;11: Spearman correlation matrix across matrix and target replicates 
 <img src="DEL_modelling_Part_1_files/figure-html/fig-replicate-support-output-1.png" width="960" height="384" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-replicate-support-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;12: Fraction of molecules observed in 0, 1, 2, or 3 replicates for matrix and target selections.
+Figure&nbsp;13: Fraction of molecules observed in 0, 1, 2, or 3 replicates for matrix and target selections.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>Together, <a href="#fig-replicate-scatter" class="quarto-xref">Figure&nbsp;10</a>, <a href="#fig-replicate-heatmap" class="quarto-xref">Figure&nbsp;11</a>, and <a href="#fig-replicate-support" class="quarto-xref">Figure&nbsp;12</a> support a consistent interpretation:</p>
+<p>Together, <a href="#fig-replicate-scatter" class="quarto-xref">Figure&nbsp;11</a>, <a href="#fig-replicate-heatmap" class="quarto-xref">Figure&nbsp;12</a>, and <a href="#fig-replicate-support" class="quarto-xref">Figure&nbsp;13</a> support a consistent interpretation:</p>
 <p>within-condition replicate correlations are positive and informative (typically stronger for matrix than target), while low-abundance regions remain noisy due to sampling variation. Cross-condition correlations (matrix vs target) are expected to be lower because they reflect different biological/technical mechanisms.</p>
 <p>The replicate-support view adds an important nuance: many molecules are absent from all three matrix replicates, whereas target counts are much more often observed in two or three replicates. This reinforces two modelling points:</p>
 <ul>
@@ -1961,7 +1971,7 @@ Figure&nbsp;12: Fraction of molecules observed in 0, 1, 2, or 3 replicates for m
 <img src="img/pre_post_selection_counts.png" class="img-fluid figure-img" style="width:75.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pre-post-overview-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;13: Comparing pre- and post-selection counts allows us to account for differences in the original library composition.
+Figure&nbsp;14: Comparing pre- and post-selection counts allows us to account for differences in the original library composition.
 </figcaption>
 </figure>
 </div>
@@ -2033,7 +2043,7 @@ Why use log1p(x) here?
 <img src="DEL_modelling_Part_1_files/figure-html/fig-pre-post-scatter-output-1.png" width="672" height="480" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pre-post-scatter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;14: Pairwise relationships between <code>seq_load</code>, matrix mean, and target mean counts on the log scale.
+Figure&nbsp;15: Pairwise relationships between <code>seq_load</code>, matrix mean, and target mean counts on the log scale.
 </figcaption>
 </figure>
 </div>
@@ -2064,8 +2074,8 @@ What is the modelling implication of the above plots?
 </div>
 </div>
 </div>
-<p><a href="#fig-pre-post-scatter" class="quarto-xref">Figure&nbsp;14</a> shows the relationship between pre- and post-selection counts for the matrix and target selection conditions. We can also provide a concise quantitative summary of how strongly these variables move together.</p>
-<p>Again, Spearman correlation is a good choice since it is rank-based, asking whether molecules with higher <code>seq_load</code> also tend to have higher matrix or target counts, without assuming a linear relationship. The Spearman correlation matrix therefore complements <a href="#fig-pre-post-scatter" class="quarto-xref">Figure&nbsp;14</a> by turning the visual trends into directly comparable pairwise association measures.</p>
+<p><a href="#fig-pre-post-scatter" class="quarto-xref">Figure&nbsp;15</a> shows the relationship between pre- and post-selection counts for the matrix and target selection conditions. We can also provide a concise quantitative summary of how strongly these variables move together.</p>
+<p>Again, Spearman correlation is a good choice since it is rank-based, asking whether molecules with higher <code>seq_load</code> also tend to have higher matrix or target counts, without assuming a linear relationship. The Spearman correlation matrix therefore complements <a href="#fig-pre-post-scatter" class="quarto-xref">Figure&nbsp;15</a> by turning the visual trends into directly comparable pairwise association measures.</p>
 <div id="cell-fig-pre-post-corr" class="cell" data-execution_count="13">
 <details class="code-fold">
 <summary>Code</summary>
@@ -2099,13 +2109,13 @@ What is the modelling implication of the above plots?
 <img src="DEL_modelling_Part_1_files/figure-html/fig-pre-post-corr-output-1.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pre-post-corr-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;15: Spearman correlation matrix between log-transformed pre-selection abundance (<code>seq_load</code>), matrix counts, and target counts.
+Figure&nbsp;16: Spearman correlation matrix between log-transformed pre-selection abundance (<code>seq_load</code>), matrix counts, and target counts.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>The correlation matrix shows high correlation between <code>seq_load</code> and matrix counts, and lower correlation between <code>seq_load</code> and target counts. This is consistent with the visual patterns in <a href="#fig-pre-post-scatter" class="quarto-xref">Figure&nbsp;14</a>: matrix counts mostly track library composition and have a tighter scatter, whereas target counts reflect enrichment rather than just library composition and therefore have a looser scatter.</p>
+<p>The correlation matrix shows high correlation between <code>seq_load</code> and matrix counts, and lower correlation between <code>seq_load</code> and target counts. This is consistent with the visual patterns in <a href="#fig-pre-post-scatter" class="quarto-xref">Figure&nbsp;15</a>: matrix counts mostly track library composition and have a tighter scatter, whereas target counts reflect enrichment rather than just library composition and therefore have a looser scatter.</p>
 <p>Another useful quantity to examine is the correlation between matrix and target counts. High correlation here suggests that target counts may be dominated by background effects.</p>
 </section>
 <section id="relationship-between-matrix-and-target-counts" class="level4">
@@ -2117,7 +2127,7 @@ Figure&nbsp;15: Spearman correlation matrix between log-transformed pre-selectio
 <img src="img/matrix_vs_target_counts.png" class="img-fluid figure-img" style="width:75.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-matrix-target-overview-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;16: Relationship between matrix and target counts.
+Figure&nbsp;17: Relationship between matrix and target counts.
 </figcaption>
 </figure>
 </div>
@@ -2145,14 +2155,14 @@ Figure&nbsp;16: Relationship between matrix and target counts.
 <img src="DEL_modelling_Part_1_files/figure-html/fig-matrix-target-scatter-output-1.png" width="672" height="480" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-matrix-target-scatter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;17: Relationship between mean matrix and target replicate counts on the log scale.
+Figure&nbsp;18: Relationship between mean matrix and target replicate counts on the log scale.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
 <p>This plot compares the mean matrix and target counts (across three replicates) for each molecule, with the red line indicating equality (i.e., <span class="math inline">\(y = x\)</span>). The vertical lines are due to integer-valued counts in the matrix and target selections.</p>
-<p>While there is a general positive relationship (0.67 based on the Spearman correlation in <a href="#fig-pre-post-corr" class="quarto-xref">Figure&nbsp;15</a>), reflecting that target counts include matrix-derived background, many points appear above the diagonal. In other words, many molecules have higher target counts than matrix counts. This indicates specific enrichment in the target condition beyond background effects.</p>
+<p>While there is a general positive relationship (0.67 based on the Spearman correlation in <a href="#fig-pre-post-corr" class="quarto-xref">Figure&nbsp;16</a>), reflecting that target counts include matrix-derived background, many points appear above the diagonal. In other words, many molecules have higher target counts than matrix counts. This indicates specific enrichment in the target condition beyond background effects.</p>
 </section>
 <section id="crude-enrichment-relative-to-matrix-background" class="level4">
 <h4 class="anchored" data-anchor-id="crude-enrichment-relative-to-matrix-background">Crude enrichment relative to matrix background</h4>
@@ -2198,7 +2208,7 @@ Figure&nbsp;17: Relationship between mean matrix and target replicate counts on 
 <img src="DEL_modelling_Part_1_files/figure-html/fig-enrichment-vs-load-output-1.png" width="672" height="480" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-enrichment-vs-load-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;18: Crude target-over-matrix enrichment plotted against pre-selection abundance. The dashed line marks equal target and matrix signal.
+Figure&nbsp;19: Crude target-over-matrix enrichment plotted against pre-selection abundance. The dashed line marks equal target and matrix signal.
 </figcaption>
 </figure>
 </div>
@@ -2228,7 +2238,7 @@ Figure&nbsp;18: Crude target-over-matrix enrichment plotted against pre-selectio
 <li>Replicate-to-replicate technical variability.</li>
 </ul>
 <p><strong>True underdispersion is uncommon</strong>; when variance appears below the mean, it is often due to small-sample noise (e.g., with only a few replicates) rather than a genuinely underdispersed process.</p>
-<p>As seen in <a href="#fig-seq-counts" class="quarto-xref">Figure&nbsp;3</a>, the sequencing count distributions are right-skewed and heavy-tailed. That suggests large variability, but it does not by itself establish overdispersion in the strict statistical sense. To assess that directly, we compare the sample mean and variance across replicates for the matrix and target conditions.</p>
+<p>As seen in <a href="#fig-seq-counts" class="quarto-xref">Figure&nbsp;4</a>, the sequencing count distributions are right-skewed and heavy-tailed. That suggests large variability, but it does not by itself establish overdispersion in the strict statistical sense. To assess that directly, we compare the sample mean and variance across replicates for the matrix and target conditions.</p>
 <div id="cell-fig-mean-variance" class="cell" data-execution_count="16">
 <details class="code-fold">
 <summary>Code</summary>
@@ -2272,7 +2282,7 @@ Figure&nbsp;18: Crude target-over-matrix enrichment plotted against pre-selectio
 <img src="DEL_modelling_Part_1_files/figure-html/fig-mean-variance-output-2.png" width="672" height="480" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mean-variance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;19: Mean-variance relationship of the sequencing counts for the matrix and target selection conditions.
+Figure&nbsp;20: Mean-variance relationship of the sequencing counts for the matrix and target selection conditions.
 </figcaption>
 </figure>
 </div>
@@ -2336,7 +2346,7 @@ In <a href="#relationship-between-mean-and-variance-of-the-sequencing-counts">Re
 <ul>
 <li><p><strong>Matrix-driven background:</strong> As discussed in <a href="#matrix-binders">Matrix binders</a>, some compounds are consistently enriched in the matrix condition, and this pattern is reproducible across replicates (see <a href="#correlations-between-replicates">Correlations between replicates</a>). In addition, <a href="#relationship-between-matrix-and-target-counts">Relationship between matrix and target counts</a> shows that matrix and target counts are correlated. Together, these results indicate that part of the target signal can reflect non-specific matrix binding rather than true target affinity.</p></li>
 <li><p><strong>Library composition effects:</strong> <a href="#relationship-between-pre-and-post-selection-counts">Relationship between pre and post-selection counts</a> shows that pre-selection abundance is correlated with post-selection counts. This implies that baseline library representation can propagate into both matrix and target readouts, independently of binding strength.</p></li>
-<li><p><strong>Replicate-level variation:</strong> The <a href="#correlations-between-replicates">Correlations between replicates</a> analysis (including the Spearman summary in <a href="#fig-replicate-heatmap" class="quarto-xref">Figure&nbsp;11</a>) shows that replicate agreement is substantial but not perfect, especially in low-abundance regions where sampling and technical noise are strongest. This indicates that replicate-to-replicate shifts should be modelled explicitly (e.g., with replicate random effects or condition-specific replicate offsets), rather than absorbed into enrichment parameters.</p></li>
+<li><p><strong>Replicate-level variation:</strong> The <a href="#correlations-between-replicates">Correlations between replicates</a> analysis (including the Spearman summary in <a href="#fig-replicate-heatmap" class="quarto-xref">Figure&nbsp;12</a>) shows that replicate agreement is substantial but not perfect, especially in low-abundance regions where sampling and technical noise are strongest. This indicates that replicate-to-replicate shifts should be modelled explicitly (e.g., with replicate random effects or condition-specific replicate offsets), rather than absorbed into enrichment parameters.</p></li>
 </ul>
 <p>In practice, likelihood parameterisation should separate background structure (matrix effects and input composition), replicate-level technical variation, and true target-dependent enrichment. Doing so improves both the accuracy of enrichment estimates and the biological interpretability of model outputs.</p>
 </section>
@@ -2361,19 +2371,19 @@ In <a href="#relationship-between-mean-and-variance-of-the-sequencing-counts">Re
 <li><strong>Target binding</strong> is the only cause that flows exclusively into the target counts, on top of what matrix background and library composition already contribute. This is the signal of interest.</li>
 <li><strong>Replicate effects and technical noise</strong> operate at the observation stage. Because we have replicate matrix and target measurements but not replicate pre-selection counts, this noise enters the model at the point where latent rates become observed read counts.</li>
 </ul>
-<p><a href="#fig-causal-sketch" class="quarto-xref">Figure&nbsp;20</a> summarises this structure in three layers. On the left are the <strong>latent causes</strong>: library composition and input abundance, matrix-background propensity, target-binding propensity, and condition-specific replicate effects (sampling, PCR, and run variation). These feed into the middle layer of <strong>condition-specific latent count intensities</strong> for pre-selection, matrix, and target. The right layer contains the <strong>observed sequencing counts</strong>: <code>seq_load</code> for pre-selection, together with replicated matrix (<code>seq_matrix_1</code>, <code>seq_matrix_2</code>, <code>seq_matrix_3</code>) and target (<code>seq_target_1</code>, <code>seq_target_2</code>, <code>seq_target_3</code>) read counts, which are noisy draws from those latent intensities.</p>
+<p><a href="#fig-causal-sketch" class="quarto-xref">Figure&nbsp;21</a> summarises this structure in three layers. On the left are the <strong>latent causes</strong>: library composition and input abundance, matrix-background propensity, target-binding propensity, and condition-specific replicate effects (sampling, PCR, and run variation). These feed into the middle layer of <strong>condition-specific latent count intensities</strong> for pre-selection, matrix, and target. The right layer contains the <strong>observed sequencing counts</strong>: <code>seq_load</code> for pre-selection, together with replicated matrix (<code>seq_matrix_1</code>, <code>seq_matrix_2</code>, <code>seq_matrix_3</code>) and target (<code>seq_target_1</code>, <code>seq_target_2</code>, <code>seq_target_3</code>) read counts, which are noisy draws from those latent intensities.</p>
 <div id="fig-causal-sketch" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-causal-sketch-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="img/Causal_Sketch.png" class="img-fluid figure-img" style="width:75.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-causal-sketch-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;20: Causal sketch of DEL sequencing counts.
+Figure&nbsp;21: Causal sketch of DEL sequencing counts.
 </figcaption>
 </figure>
 </div>
 <p><span class="highlight-key-point">The causal sketch also makes it clear why a simple enrichment ratio, for example, dividing target counts by matrix counts, is not a satisfying answer to the DEL hit identification problem. Such a ratio partially cancels the matrix background, but it ignores library composition entirely, so a molecule that is abundant in the input library will still look enriched even if it does not bind the target.</span></p>
-<p><a href="#fig-causal-sketch" class="quarto-xref">Figure&nbsp;20</a> is the blueprint for the modelling approach in Part 2. Each latent cause is translated into a specific component of a probabilistic count model so that true binding signal can be separated from background and technical noise.</p>
+<p><a href="#fig-causal-sketch" class="quarto-xref">Figure&nbsp;21</a> is the blueprint for the modelling approach in Part 2. Each latent cause is translated into a specific component of a probabilistic count model so that true binding signal can be separated from background and technical noise.</p>
 </section>
 </section>
 <section id="key-takeaways-and-next-steps" class="level2">
