@@ -8,6 +8,17 @@ execute:
   freeze: true
 code-fold: true
 ---
+```{python}
+import warnings
+warnings.filterwarnings("ignore", module="plotnine")
+
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+import plotnine as gg
+
+```
 
 ## What Is the Aim of This Blog?
 
@@ -643,7 +654,7 @@ beta_shape_df["b"] = pd.Categorical(
     ordered=True,
 )
 
-(
+beta_shape_plot = (
     gg.ggplot(beta_shape_df, gg.aes(x="p", y="density", color="b"))
     + gg.geom_line(size=1.1)
     + gg.coord_cartesian(xlim=(0, 0.2))
@@ -659,9 +670,16 @@ beta_shape_df["b"] = pd.Categorical(
     )
     + gg.theme_bw()
 )
+
+beta_shape_plot.save("img/kindel_beta_shape_plot.png", verbose=False)
 ```
 
+<div style="text-align: center;">
+  <img src="img/kindel_beta_shape_plot.png" alt="Effect of increasing b in a Beta(a, b) prior while keeping a = 2 fixed." style="max-width: 100%; height: auto;">
+</div>
+
 [**Figure:** Effect of increasing $b$ in a Beta$(a,b)$ prior while keeping $a = 2$ fixed.]{.fig-caption}
+
 
 ::: {.callout-note icon="false" collapse="true"}
 ## Why should $p^{(N)}$ and $\text{Beta}(a,b^{(N)})$ depend on sequencing depth?
@@ -793,8 +811,12 @@ beta_depth_plot = (
     )
 )
 
-beta_depth_plot.show()
+beta_depth_plot.save("img/kindel_beta_depth_plot.png", verbose=False)
 ```
+
+<div style="text-align: center;">
+  <img src="img/kindel_beta_depth_plot.png" alt="Comparison of the example priors Beta(2, 10^3) and Beta(2, 10^6) on the success-probability scale." style="max-width: 100%; height: auto;">
+</div>
 
 [**Figure:** Comparison of the example priors $\text{Beta}(2, 1 \cdot 10^3)$ and $\text{Beta}(2, 1 \cdot 10^6)$ on the success-probability scale.]{.fig-caption}
 
@@ -1044,17 +1066,7 @@ KinDEL is one of the first large public DEL datasets designed to support machine
 
 We load only a subset of the data to keep the example simple and fast to run. In particular, we use the data for the DDR1 target from the first split.
 
-```{python}
-import warnings
-warnings.filterwarnings("ignore", module="plotnine")
 
-import pandas as pd
-import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
-import plotnine as gg
-
-```
 
 ```{python}
 data = pd.read_parquet("data/df_train_ddr1_split1_random.parquet")
@@ -1099,13 +1111,13 @@ p.save("img/kindel_eda_seq_counts.png")
 
 A key observation from the plot is that some compounds have very high sequencing counts in the matrix (control) conditions. The distribution of matrix counts appears bimodal. This suggests that some molecules may bind strongly to the matrix itself, rather than only the intended protein target. Such molecules could give high signals in both the target and matrix conditions, making it challenging to tell if they're true protein binders or simply show nonspecific, matrix-binding effects.
 
-![Matrix binders. Molecules with high sequencing counts in matrix (control) conditions. These molecules can confound analysis by mimicking protein hits.](img/NTC_Binders.png){#fig-matrix-binders width="75%"}
+![Matrix binders. Molecules with high sequencing counts in matrix (control) conditions. These molecules can confound analysis by mimicking protein hits.](img/NTC_Binders.png){#fig-matrix-binders }
 
 #### Strong low-count mass across all conditions {#strong-low-count-mass-across-all-conditions}
 
 A high-density region near low counts suggests that most molecules have very low sequencing counts. This is typical of DEL data, where most barcodes are rare or absent in a given selection. This indicates a **sparse count structure** consistent with large library size and small per-barcode probabilities.
 
-![Most molecules have very low counts, indicating sparse DEL data.](img/High_Density_Near_Low_Counts.png){#fig-low-count-mass width="75%"}
+![Most molecules have very low counts, indicating sparse DEL data.](img/High_Density_Near_Low_Counts.png){#fig-low-count-mass }
 
 A better way to visualise this is to plot the cumulative distribution function (CDF) of the sequencing counts.
 
@@ -1133,10 +1145,8 @@ The shape tells us:
 :::
 
 ```{python}
-#| label: fig-ecdf-counts
-#| fig-cap: Cumulative distribution function (CDF) of the sequencing counts for all conditions with the 85th percentile marked.
 # Plot ECDF faceted by condition, and add vertical line at the 85% quantile for each
-
+#| output: false
 seq_conditions = [
     'seq_target_1', 'seq_target_2', 'seq_target_3',
     'seq_matrix_1', 'seq_matrix_2', 'seq_matrix_3'
@@ -1203,8 +1213,9 @@ ecdf_plot = (
 )
 
 ecdf_plot.save("img/kindel_ecdf_by_condition.png")
-ecdf_plot.show()
 ```
+
+![Cumulative distribution function (CDF) of the sequencing counts for all conditions with the 85th percentile marked.](img/kindel_ecdf_by_condition.png){#fig-ecdf-counts }  
 
 The ECDF indicates that most molecules have very low sequencing counts, and the patterns differ between the matrix and target selections. This difference reflects the distinct biological and technical contexts of each selection method.
 
@@ -1216,13 +1227,12 @@ In contrast, the target selection distribution shows higher counts at the 85th p
 
 The appearance of discrete horizontal bands in the plot reflects repeated, identical sequencing count values across many molecules. This happens because next-generation sequencing produces integer counts, and low-abundance molecules are often observed at the same small values. As a result, low integer counts are repeated across many molecules, producing visible steps in the ECDF (@fig-ecdf-counts) and horizontal banding in scatter-style plots (@fig-discrete-bands). This effect is especially noticeable when sequencing depth is modest relative to library complexity or when many molecules have similarly low abundance.
 
-![Discrete horizontal bands. The plot shows how discrete, integer sequencing counts lead to repeated identical values among molecules, appearing as horizontal bands in the ECDF.](img/Discrete_horizontal_bands.png){#fig-discrete-bands width="75%"}
+![Discrete horizontal bands. The plot shows how discrete, integer sequencing counts lead to repeated identical values among molecules, appearing as horizontal bands in the ECDF.](img/Discrete_horizontal_bands.png){#fig-discrete-bands }
 
 We next plot the frequency of each sequencing count value ($\leq 20$) for all conditions. This directly shows why the bands appear: thousands of molecules share the same low integer count.
 
 ```{python}
-#| label: fig-count-frequency
-#| fig-cap: Frequency of each sequencing count value ($\leq 20$) for all conditions.
+#| output: false
 
 # Using the already-melted data_ecdf from earlier
 count_of_counts = (
@@ -1250,8 +1260,9 @@ frequency_of_counts_plot = (
 )
 
 frequency_of_counts_plot.save("img/kindel_frequency_of_counts.png")
-frequency_of_counts_plot.show()
 ```
+
+![Frequency of each sequencing count value ($\leq 20$) for all conditions.](img/kindel_frequency_of_counts.png){#fig-count-frequency }  
 
 @fig-count-frequency confirms that low integer counts dominate across conditions: counts such as 0, 1, 2, and 3 occur for very large numbers of molecules, while higher counts are much rarer. This pile-up at a few small integer values is what produces the visible step-like ECDF behaviour and discrete horizontal bands seen in the earlier plots.
 
@@ -1259,13 +1270,12 @@ frequency_of_counts_plot.show()
 
 Each experimental selection (both *matrix* and *target*) was performed in three independent replicates:
 
-![Each experimental selection (both *matrix* and *target*) was performed in three independent replicates.](img/Replicates_Correlations.png){#fig-replicate-design width="75%"}
+![Each experimental selection (both *matrix* and *target*) was performed in three independent replicates.](img/Replicates_Correlations.png){#fig-replicate-design }
 
 To assess reproducibility, we compare replicate-level sequencing proportions for both matrix and target selections. For each replicate, molecule counts are normalised by the replicate total and then compared pairwise. These comparisons are summarised in three complementary ways: scatter plots (@fig-replicate-scatter) show pattern shape and deviation from the $y=x$ line, a Spearman correlation heatmap (@fig-replicate-heatmap) provides a compact quantitative summary of pairwise agreement, and a replicate-support plot (@fig-replicate-support) shows how often molecules are observed at all across replicates.
 
 ```{python}
-#| label: fig-replicate-scatter
-#| fig-cap: Correlations between replicates for the matrix and target selection conditions.
+#| output: false
 
 data_seq_counts_matrix = data[['seq_matrix_1', 'seq_matrix_2', 'seq_matrix_3']]
 
@@ -1328,8 +1338,11 @@ p_6 = (
 
 
 
-(p_1 | p_2 | p_3) / (p_4 | p_5 | p_6) + gg.theme(figure_size=(15, 8))
+replicate_corr_plot = (p_1 | p_2 | p_3) / (p_4 | p_5 | p_6) + gg.theme(figure_size=(15, 8))
+replicate_corr_plot.save("img/Replicates_Correlations.png", verbose=False)
 ```
+
+![Correlations between replicates for the matrix and target selection conditions.](img/Replicates_Correlations.png){#fig-replicate-scatter }  
 
 In @fig-replicate-scatter, stronger clustering along the red $y=x$ line indicates better agreement between replicate pairs. Agreement is generally clearer for matrix replicates and for higher-abundance molecules. The broad spread at very low proportions is expected in sparse DEL data, where sampling noise dominates; this reduces apparent concordance for low-abundance molecules without necessarily indicating experimental failure.
 
@@ -1442,8 +1455,7 @@ The target selection involves a specific biological interaction between each mol
 To complement @fig-replicate-scatter, we summarise replicate agreement with a Spearman correlation matrix. Spearman correlation is rank-based, so it asks whether molecules ranked high in one replicate also tend to rank high in another, without assuming a strictly linear relationship.
 
 ```{python}
-#| label: fig-replicate-heatmap
-#| fig-cap: Spearman correlation matrix across matrix and target replicates using within-replicate proportions.
+#| output: false
 # collect replicate counts
 rep_counts = data[
     [
@@ -1481,14 +1493,15 @@ ax = sns.heatmap(
 )
 ax.set_title("Spearman Correlation Matrix Across Replicates (Proportions)")
 plt.tight_layout()
-plt.show()
+plt.savefig("img/kindel_replicate_heatmap.png")
 ```
+
+![Spearman correlation matrix across matrix and target replicates using within-replicate proportions.](img/kindel_replicate_heatmap.png){#fig-replicate-heatmap }  
 
 One more view is useful here: for each molecule, we count in how many of the three replicate experiments the sequencing count is greater than zero. This gives a simple measure of **replicate support**. A molecule detected in all three replicates has much stronger support than a molecule detected in only one replicate, while a molecule with zero counts in all replicates is a clear example of dropout in that condition. Framing the data this way makes the prevalence of dropout immediately visible and complements the pairwise correlation plots above, which show agreement only among the molecules that are observed.
 
 ```{python}
-#| label: fig-replicate-support
-#| fig-cap: Fraction of molecules observed in 0, 1, 2, or 3 replicates for matrix and target selections.
+#| output: false
 replicate_support = pd.concat(
     [
         pd.DataFrame({
@@ -1560,8 +1573,9 @@ replicate_support_plot = (
 )
 
 replicate_support_plot.save("img/kindel_replicate_support.png")
-replicate_support_plot.show()
 ```
+
+![Fraction of molecules observed in 0, 1, 2, or 3 replicates for matrix and target selections.](img/kindel_replicate_support.png){#fig-replicate-support }  
 
 Together, @fig-replicate-scatter, @fig-replicate-heatmap, and @fig-replicate-support support a consistent interpretation:
 
@@ -1578,7 +1592,7 @@ When fitting count models, this replicate-to-replicate variation should be model
 
 Pre-selection counts are given by the `seq_load` column. They represent the abundance of each molecule in the library before any matrix or target selection takes place. That is, they capture how many copies of each barcode were present before exposure to either condition. [This pre-selection abundance information helps distinguish true post-selection enrichment from molecules that were simply more abundant in the input library.]{.highlight-key-point}
 
-![Comparing pre- and post-selection counts allows us to account for differences in the original library composition.](img/pre_post_selection_counts.png){#fig-pre-post-overview width="75%"}
+![Comparing pre- and post-selection counts allows us to account for differences in the original library composition.](img/pre_post_selection_counts.png){#fig-pre-post-overview }
 
 Molecules might have higher pre-selection counts due to:
 
@@ -1600,8 +1614,7 @@ DEL sequencing counts and means are highly skewed and span several orders of mag
 :::
 
 ```{python}
-#| label: fig-pre-post-scatter
-#| fig-cap: Pairwise relationships between `seq_load`, matrix mean, and target mean counts on the log scale.
+#| output: false
 
 rel = data.copy()
 rel["matrix_mean"] = rel[["seq_matrix_1", "seq_matrix_2", "seq_matrix_3"]].mean(axis=1)
@@ -1620,7 +1633,7 @@ rel_long = pd.concat(
     ignore_index=True,
 )
 
-(
+pre_post_scatter_plot = (
     gg.ggplot(rel_long, gg.aes(x="x", y="y"))
     + gg.geom_point(alpha=0.1, size=0.25)
     + gg.geom_abline(slope=1, intercept=0, color="red")
@@ -1632,7 +1645,10 @@ rel_long = pd.concat(
     )
     + gg.theme_bw()
 )
+pre_post_scatter_plot.save("img/kindel_pre_post_scatter.png", verbose=False)
 ```
+
+![Pairwise relationships between `seq_load`, matrix mean, and target mean counts on the log scale.](img/kindel_pre_post_scatter.png){#fig-pre-post-scatter }  
 
 The scatter plots of log-transformed pre-selection counts (`seq_load`) versus post-selection mean counts (matrix and target) show three consistent patterns:
 
@@ -1656,8 +1672,7 @@ Because high post-selection counts can reflect either true enrichment or high in
 Again, Spearman correlation is a good choice since it is rank-based, asking whether molecules with higher `seq_load` also tend to have higher matrix or target counts, without assuming a linear relationship. The Spearman correlation matrix therefore complements @fig-pre-post-scatter by turning the visual trends into directly comparable pairwise association measures.
 
 ```{python}
-#| label: fig-pre-post-corr
-#| fig-cap: Spearman correlation matrix between log-transformed pre-selection abundance (`seq_load`), matrix counts, and target counts.
+#| output: false
 # compute the Spearman correlation matrix
 corr_tbl = rel[["log_seq_load", "log_matrix_mean", "log_target_mean"]].corr(method="spearman")
 # Plot the Spearman correlation matrix as a lower triangle heatmap
@@ -1679,8 +1694,10 @@ ax = sns.heatmap(
 )
 plt.title("Spearman Correlation Matrix (log-transformed)\nPre-selection, Matrix, Target")
 plt.tight_layout()
-plt.show()
+plt.savefig("img/kindel_pre_post_corr.png")
 ```
+
+![Spearman correlation matrix between log-transformed pre-selection abundance (`seq_load`), matrix counts, and target counts.](img/kindel_pre_post_corr.png){#fig-pre-post-corr }  
 
 The correlation matrix shows high correlation between `seq_load` and matrix counts, and lower correlation between `seq_load` and target counts. This is consistent with the visual patterns in @fig-pre-post-scatter: matrix counts mostly track library composition and have a tighter scatter, whereas target counts reflect enrichment rather than just library composition and therefore have a looser scatter.
 
@@ -1690,25 +1707,27 @@ Another useful quantity to examine is the correlation between matrix and target 
 
 Exploring the relationship between matrix and target counts helps us understand whether the target counts are dominated by background effects or are truly enriched by the target protein.
 
-![Relationship between matrix and target counts.](img/matrix_vs_target_counts.png){#fig-matrix-target-overview width="75%"}
+![Relationship between matrix and target counts.](img/matrix_vs_target_counts.png){#fig-matrix-target-overview }
 
 ```{python}
-#| label: fig-matrix-target-scatter
-#| fig-cap: Relationship between mean matrix and target replicate counts on the log scale.
+#| output: false
 rel_long = pd.concat(
     [
         rel[["log_matrix_mean", "log_target_mean"]].rename(columns={"log_matrix_mean": "x", "log_target_mean": "y"}).assign(panel="Matrix vs Target"),
     ],
     ignore_index=True,
 )
-(
+matrix_target_scatter_plot = (
     gg.ggplot(rel_long, gg.aes(x="x", y="y"))
     + gg.geom_point(alpha=0.1, size=0.25)
     + gg.geom_abline(slope=1, intercept=0, color="red")
     + gg.labs(x="log1p (matrix_mean)", y="log1p (target_mean)", title="Pairwise relationships: matrix, target")
     + gg.theme_bw()
 )
+matrix_target_scatter_plot.save("img/kindel_matrix_target_scatter.png", verbose=False)
 ```
+
+![Relationship between mean matrix and target replicate counts on the log scale.](img/kindel_matrix_target_scatter.png){#fig-matrix-target-scatter }  
 
 This plot compares the mean matrix and target counts (across three replicates) for each molecule, with the red line indicating equality (i.e., $y = x$). The vertical lines are due to integer-valued counts in the matrix and target selections.
 
@@ -1719,8 +1738,7 @@ While there is a general positive relationship (0.67 based on the Spearman corre
 Because a molecule can be abundant in the input library and still show non-specific matrix binding, it is useful to combine the previous two ideas into a single diagnostic. A simple way to do that is to plot a crude target-over-matrix enrichment score against pre-selection abundance. This is not a substitute for a probabilistic model, but it provides an intuitive preview of the modelling target.
 
 ```{python}
-#| label: fig-enrichment-vs-load
-#| fig-cap: Crude target-over-matrix enrichment plotted against pre-selection abundance. The dashed line marks equal target and matrix signal.
+#| output: false
 rel["log2_target_over_matrix"] = np.log2((rel["target_mean"] + 1) / (rel["matrix_mean"] + 1))
 
 enrichment_plot = (
@@ -1749,9 +1767,11 @@ enrichment_plot = (
     )
 )
 
-enrichment_plot.save("img/kindel_target_over_matrix_enrichment_vs_load.png")
-enrichment_plot.show()
+enrichment_plot.save("img/kindel_target_over_matrix_enrichment_vs_load.png", verbose=False)
 ```
+
+![Crude target-over-matrix enrichment plotted against pre-selection abundance. The dashed line marks equal target and matrix signal.](img/kindel_target_over_matrix_enrichment_vs_load.png){#fig-enrichment-vs-load }  
+
 
 This plot brings the previous EDA results together in a single view. The x-axis shows how abundant a molecule was before selection, while the y-axis shows whether its average target count is higher or lower than its average matrix count.
 
@@ -1783,8 +1803,7 @@ The following factors contribute to inflating the variance above the mean:
 As seen in @fig-seq-counts, the sequencing count distributions are right-skewed and heavy-tailed. That suggests large variability, but it does not by itself establish overdispersion in the strict statistical sense. To assess that directly, we compare the sample mean and variance across replicates for the matrix and target conditions.
 
 ```{python}
-#| label: fig-mean-variance
-#| fig-cap: Mean-variance relationship of the sequencing counts for the matrix and target selection conditions.
+#| output: false
 # Compute mean and variance for both matrix and target replicates
 mv = pd.DataFrame({
     'mean_matrix': data[['seq_matrix_1', 'seq_matrix_2', 'seq_matrix_3']].mean(axis=1),
@@ -1813,8 +1832,10 @@ mean_var_plot = (
     + gg.theme_bw()
 )
 
-mean_var_plot
+mean_var_plot.save("img/kindel_mean_variance.png", verbose=False)
 ```
+
+![Mean-variance relationship of the sequencing counts for the matrix and target selection conditions.](img/kindel_mean_variance.png){#fig-mean-variance }  
 
 The red line marks the Poisson benchmark, where the variance equals the mean:
 
@@ -1907,7 +1928,7 @@ Drawing on everything identified in the EDA, the four latent causes of DEL seque
 
 @fig-causal-sketch summarises this structure in three layers. On the left are the **latent causes**: library composition and input abundance, matrix-background propensity, target-binding propensity, and condition-specific replicate effects (sampling, PCR, and run variation). These feed into the middle layer of **condition-specific latent count intensities** for pre-selection, matrix, and target. The right layer contains the **observed sequencing counts**: `seq_load` for pre-selection, together with replicated matrix (`seq_matrix_1`, `seq_matrix_2`, `seq_matrix_3`) and target (`seq_target_1`, `seq_target_2`, `seq_target_3`) read counts, which are noisy draws from those latent intensities.
 
-![Causal sketch of DEL sequencing counts.](img/Causal_Sketch.png){#fig-causal-sketch width="75%"}
+![Causal sketch of DEL sequencing counts.](img/Causal_Sketch.png){#fig-causal-sketch }
 
 [The causal sketch also makes it clear why a simple enrichment ratio, for example, dividing target counts by matrix counts, is not a satisfying answer to the DEL hit identification problem. Such a ratio partially cancels the matrix background, but it ignores library composition entirely, so a molecule that is abundant in the input library will still look enriched even if it does not bind the target.]{.highlight-key-point}
 

@@ -218,6 +218,19 @@ window.Quarto = {
 </header>
 
 
+<div id="8231fca5" class="cell" data-execution_count="2">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">"ignore"</span>, module<span class="op">=</span><span class="st">"plotnine"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotnine <span class="im">as</span> gg</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
 <section id="what-is-the-aim-of-this-blog" class="level2">
 <h2 class="anchored" data-anchor-id="what-is-the-aim-of-this-blog">What Is the Aim of This Blog?</h2>
 <p>This three-part series develops a probabilistic framework for DNA-encoded library (DEL) data. The goal is to explain noisy sequencing counts in terms of latent compound-level and synthon-level effects so that true enrichment can be separated from technical and compositional artefacts. Part 1 focuses on likelihood choice, data-generation assumptions, and the modelling implications of background effects, library composition, and replicate variation.</p>
@@ -839,55 +852,53 @@ p^{(N)} \sim \text{Beta}(a, b^{(N)})
 \]</span></p>
 <p>The superscript <span class="math inline">\((N)\)</span> does <strong>not</strong> index a barcode. It indicates that we are considering a whole sequence of random variables, one for each sequencing depth <span class="math inline">\(N\)</span>.</p>
 <p>So when <span class="math inline">\(N\)</span> changes, the prior changes as well. In particular, the second Beta parameter grows with <span class="math inline">\(N\)</span>, which pushes typical values of <span class="math inline">\(p^{(N)}\)</span> toward zero. This is the scaling we want in a rare-event setting, where each individual barcode should occupy only a tiny fraction of the total reads even as the total read depth becomes large.</p>
-<div id="97d0e8df" class="cell" data-execution_count="1">
+<div id="0d79c5ed" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotnine <span class="im">as</span> gg</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> beta <span class="im">as</span> beta_dist</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>beta_shape_df <span class="op">=</span> pd.DataFrame({<span class="st">"p"</span>: np.linspace(<span class="fl">1e-4</span>, <span class="fl">0.3</span>, <span class="dv">800</span>)})</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>beta_shape_df <span class="op">=</span> pd.concat(</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    [</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        beta_shape_df.assign(b<span class="op">=</span><span class="st">"b = 2"</span>, density<span class="op">=</span>beta_dist.pdf(beta_shape_df[<span class="st">"p"</span>], a<span class="op">=</span><span class="dv">2</span>, b<span class="op">=</span><span class="dv">2</span>)),</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        beta_shape_df.assign(b<span class="op">=</span><span class="st">"b = 10"</span>, density<span class="op">=</span>beta_dist.pdf(beta_shape_df[<span class="st">"p"</span>], a<span class="op">=</span><span class="dv">2</span>, b<span class="op">=</span><span class="dv">10</span>)),</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        beta_shape_df.assign(b<span class="op">=</span><span class="st">"b = 50"</span>, density<span class="op">=</span>beta_dist.pdf(beta_shape_df[<span class="st">"p"</span>], a<span class="op">=</span><span class="dv">2</span>, b<span class="op">=</span><span class="dv">50</span>)),</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        beta_shape_df.assign(b<span class="op">=</span><span class="st">"b = 200"</span>, density<span class="op">=</span>beta_dist.pdf(beta_shape_df[<span class="st">"p"</span>], a<span class="op">=</span><span class="dv">2</span>, b<span class="op">=</span><span class="dv">200</span>)),</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    ],</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    ignore_index<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>beta_shape_df[<span class="st">"b"</span>] <span class="op">=</span> pd.Categorical(</span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    beta_shape_df[<span class="st">"b"</span>],</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    categories<span class="op">=</span>[<span class="st">"b = 2"</span>, <span class="st">"b = 10"</span>, <span class="st">"b = 50"</span>, <span class="st">"b = 200"</span>],</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    ordered<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>(</span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    gg.ggplot(beta_shape_df, gg.aes(x<span class="op">=</span><span class="st">"p"</span>, y<span class="op">=</span><span class="st">"density"</span>, color<span class="op">=</span><span class="st">"b"</span>))</span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_line(size<span class="op">=</span><span class="fl">1.1</span>)</span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.coord_cartesian(xlim<span class="op">=</span>(<span class="dv">0</span>, <span class="fl">0.2</span>))</span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.scale_color_manual(</span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>        values<span class="op">=</span>[<span class="st">"#1f77b4"</span>, <span class="st">"#ff7f0e"</span>, <span class="st">"#2ca02c"</span>, <span class="st">"#d62728"</span>],</span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>        breaks<span class="op">=</span>[<span class="st">"b = 2"</span>, <span class="st">"b = 10"</span>, <span class="st">"b = 50"</span>, <span class="st">"b = 200"</span>],</span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.labs(</span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>        x<span class="op">=</span><span class="st">"Success probability p"</span>,</span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>        y<span class="op">=</span><span class="st">"Beta density"</span>,</span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>        color<span class="op">=</span><span class="st">"Beta parameter"</span>,</span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>        title<span class="op">=</span><span class="st">"Holding a fixed, larger b shifts Beta(a, b) toward smaller p"</span>,</span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.theme_bw()</span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotnine <span class="im">as</span> gg</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> beta <span class="im">as</span> beta_dist</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>beta_shape_df <span class="op">=</span> pd.DataFrame({<span class="st">"p"</span>: np.linspace(<span class="fl">1e-4</span>, <span class="fl">0.3</span>, <span class="dv">800</span>)})</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>beta_shape_df <span class="op">=</span> pd.concat(</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    [</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>        beta_shape_df.assign(b<span class="op">=</span><span class="st">"b = 2"</span>, density<span class="op">=</span>beta_dist.pdf(beta_shape_df[<span class="st">"p"</span>], a<span class="op">=</span><span class="dv">2</span>, b<span class="op">=</span><span class="dv">2</span>)),</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>        beta_shape_df.assign(b<span class="op">=</span><span class="st">"b = 10"</span>, density<span class="op">=</span>beta_dist.pdf(beta_shape_df[<span class="st">"p"</span>], a<span class="op">=</span><span class="dv">2</span>, b<span class="op">=</span><span class="dv">10</span>)),</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>        beta_shape_df.assign(b<span class="op">=</span><span class="st">"b = 50"</span>, density<span class="op">=</span>beta_dist.pdf(beta_shape_df[<span class="st">"p"</span>], a<span class="op">=</span><span class="dv">2</span>, b<span class="op">=</span><span class="dv">50</span>)),</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>        beta_shape_df.assign(b<span class="op">=</span><span class="st">"b = 200"</span>, density<span class="op">=</span>beta_dist.pdf(beta_shape_df[<span class="st">"p"</span>], a<span class="op">=</span><span class="dv">2</span>, b<span class="op">=</span><span class="dv">200</span>)),</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    ],</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    ignore_index<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>beta_shape_df[<span class="st">"b"</span>] <span class="op">=</span> pd.Categorical(</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    beta_shape_df[<span class="st">"b"</span>],</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    categories<span class="op">=</span>[<span class="st">"b = 2"</span>, <span class="st">"b = 10"</span>, <span class="st">"b = 50"</span>, <span class="st">"b = 200"</span>],</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    ordered<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>beta_shape_plot <span class="op">=</span> (</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    gg.ggplot(beta_shape_df, gg.aes(x<span class="op">=</span><span class="st">"p"</span>, y<span class="op">=</span><span class="st">"density"</span>, color<span class="op">=</span><span class="st">"b"</span>))</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_line(size<span class="op">=</span><span class="fl">1.1</span>)</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.coord_cartesian(xlim<span class="op">=</span>(<span class="dv">0</span>, <span class="fl">0.2</span>))</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.scale_color_manual(</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>        values<span class="op">=</span>[<span class="st">"#1f77b4"</span>, <span class="st">"#ff7f0e"</span>, <span class="st">"#2ca02c"</span>, <span class="st">"#d62728"</span>],</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>        breaks<span class="op">=</span>[<span class="st">"b = 2"</span>, <span class="st">"b = 10"</span>, <span class="st">"b = 50"</span>, <span class="st">"b = 200"</span>],</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.labs(</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>        x<span class="op">=</span><span class="st">"Success probability p"</span>,</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>        y<span class="op">=</span><span class="st">"Beta density"</span>,</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>        color<span class="op">=</span><span class="st">"Beta parameter"</span>,</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>        title<span class="op">=</span><span class="st">"Holding a fixed, larger b shifts Beta(a, b) toward smaller p"</span>,</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.theme_bw()</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>beta_shape_plot.save(<span class="st">"img/kindel_beta_shape_plot.png"</span>, verbose<span class="op">=</span><span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="1">
-<div>
-<figure class="figure">
-<p><img src="DEL_modelling_Part_1_files/figure-html/cell-2-output-1.png" width="672" height="480" class="figure-img"></p>
-</figure>
 </div>
-</div>
+<div style="text-align: center;">
+<p><img src="img/kindel_beta_shape_plot.png" alt="Effect of increasing b in a Beta(a, b) prior while keeping a = 2 fixed." style="max-width: 100%; height: auto;"></p>
 </div>
 <p><span class="fig-caption"><strong>Figure:</strong> Effect of increasing <span class="math inline">\(b\)</span> in a Beta<span class="math inline">\((a,b)\)</span> prior while keeping <span class="math inline">\(a = 2\)</span> fixed.</span></p>
 <div class="callout callout-style-default callout-note no-icon callout-titled">
@@ -957,65 +968,61 @@ N\,\mathbb{E}[p^{(N)}]
 <p>So the scaling is not arbitrary. It makes the prior on <span class="math inline">\(p^{(N)}\)</span> shift toward smaller probabilities as sequencing depth increases, while the induced prior on <span class="math inline">\(\lambda^{(N)} = Np^{(N)}\)</span> stays on a stable, interpretable count scale.</p>
 <p><span class="highlight-key-point">This is why the scaling <span class="math inline">\(b^{(N)} = \eta N\)</span> matters: it prevents the implied count scale from blowing up with <span class="math inline">\(N\)</span> and sets up the next derivation, where the prior on <span class="math inline">\(p^{(N)}\)</span> becomes a Gamma prior on <span class="math inline">\(\lambda^{(N)}\)</span>.</span></p>
 <p>The plot below is meant only to visualise this scaling. For the concrete example above with <span class="math inline">\(a = 2\)</span> and <span class="math inline">\(\eta = 1\)</span>, it compares the priors induced by two sequencing depths, <span class="math inline">\(N = 10^3\)</span> and <span class="math inline">\(N = 10^6\)</span>. As depth increases, the Beta density shifts sharply toward smaller values of <span class="math inline">\(p\)</span>, so that the corresponding Poisson-scale quantity <span class="math inline">\(\lambda^{(N)} = Np^{(N)}\)</span> remains on a stable count scale rather than diverging with <span class="math inline">\(N\)</span>.</p>
-<div id="4b5b251d" class="cell" data-execution_count="2">
+<div id="9f4f7067" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotnine <span class="im">as</span> gg</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> beta <span class="im">as</span> beta_dist</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mizani.formatters <span class="im">import</span> scientific_format</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>beta_example <span class="op">=</span> pd.DataFrame({</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"p"</span>: np.logspace(<span class="op">-</span><span class="dv">8</span>, <span class="op">-</span><span class="dv">1</span>, <span class="dv">800</span>),</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>beta_example <span class="op">=</span> pd.concat(</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    [</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>        beta_example.assign(</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>            N<span class="op">=</span><span class="st">"N = 10^3"</span>,</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>            density<span class="op">=</span>beta_dist.pdf(beta_example[<span class="st">"p"</span>], a<span class="op">=</span><span class="dv">2</span>, b<span class="op">=</span><span class="dv">10</span><span class="op">**</span><span class="dv">3</span>),</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>        ),</span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>        beta_example.assign(</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>            N<span class="op">=</span><span class="st">"N = 10^6"</span>,</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>            density<span class="op">=</span>beta_dist.pdf(beta_example[<span class="st">"p"</span>], a<span class="op">=</span><span class="dv">2</span>, b<span class="op">=</span><span class="dv">10</span><span class="op">**</span><span class="dv">6</span>),</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>        ),</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    ],</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    ignore_index<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>beta_example <span class="op">=</span> beta_example.loc[beta_example[<span class="st">"density"</span>] <span class="op">&gt;</span> <span class="dv">0</span>].copy()</span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>beta_depth_plot <span class="op">=</span> (</span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    gg.ggplot(beta_example, gg.aes(x<span class="op">=</span><span class="st">"p"</span>, y<span class="op">=</span><span class="st">"density"</span>, color<span class="op">=</span><span class="st">"N"</span>))</span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_line(size<span class="op">=</span><span class="fl">1.2</span>)</span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.scale_x_log10(labels<span class="op">=</span>scientific_format(digits<span class="op">=</span><span class="dv">1</span>))</span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.scale_y_log10(labels<span class="op">=</span>scientific_format(digits<span class="op">=</span><span class="dv">1</span>))</span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.scale_color_manual(values<span class="op">=</span>[<span class="st">"#1f77b4"</span>, <span class="st">"#d62728"</span>])</span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.labs(</span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>        x<span class="op">=</span><span class="st">"Success probability p"</span>,</span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>        y<span class="op">=</span><span class="st">"Beta density (log scale)"</span>,</span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>        color<span class="op">=</span><span class="st">"Sequencing depth"</span>,</span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>        title<span class="op">=</span><span class="st">"Increasing sequencing depth shifts Beta(a, </span><span class="ch">\\</span><span class="st">eta N) toward smaller p"</span>,</span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.theme_bw()</span>
-<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.theme(</span>
-<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>        figure_size<span class="op">=</span>(<span class="dv">7</span>, <span class="fl">4.8</span>),</span>
-<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>        panel_grid_minor<span class="op">=</span>gg.element_blank(),</span>
-<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>        panel_grid_major<span class="op">=</span>gg.element_line(color<span class="op">=</span><span class="st">"#e5e5e5"</span>, size<span class="op">=</span><span class="fl">0.3</span>),</span>
-<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>        plot_title<span class="op">=</span>gg.element_text(weight<span class="op">=</span><span class="st">"bold"</span>),</span>
-<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>        legend_position<span class="op">=</span>(<span class="fl">0.72</span>, <span class="fl">0.83</span>),</span>
-<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>beta_depth_plot.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotnine <span class="im">as</span> gg</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> beta <span class="im">as</span> beta_dist</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mizani.formatters <span class="im">import</span> scientific_format</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>beta_example <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"p"</span>: np.logspace(<span class="op">-</span><span class="dv">8</span>, <span class="op">-</span><span class="dv">1</span>, <span class="dv">800</span>),</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>beta_example <span class="op">=</span> pd.concat(</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    [</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>        beta_example.assign(</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>            N<span class="op">=</span><span class="st">"N = 10^3"</span>,</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>            density<span class="op">=</span>beta_dist.pdf(beta_example[<span class="st">"p"</span>], a<span class="op">=</span><span class="dv">2</span>, b<span class="op">=</span><span class="dv">10</span><span class="op">**</span><span class="dv">3</span>),</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>        beta_example.assign(</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>            N<span class="op">=</span><span class="st">"N = 10^6"</span>,</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>            density<span class="op">=</span>beta_dist.pdf(beta_example[<span class="st">"p"</span>], a<span class="op">=</span><span class="dv">2</span>, b<span class="op">=</span><span class="dv">10</span><span class="op">**</span><span class="dv">6</span>),</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    ],</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>    ignore_index<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>beta_example <span class="op">=</span> beta_example.loc[beta_example[<span class="st">"density"</span>] <span class="op">&gt;</span> <span class="dv">0</span>].copy()</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>beta_depth_plot <span class="op">=</span> (</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>    gg.ggplot(beta_example, gg.aes(x<span class="op">=</span><span class="st">"p"</span>, y<span class="op">=</span><span class="st">"density"</span>, color<span class="op">=</span><span class="st">"N"</span>))</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_line(size<span class="op">=</span><span class="fl">1.2</span>)</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.scale_x_log10(labels<span class="op">=</span>scientific_format(digits<span class="op">=</span><span class="dv">1</span>))</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.scale_y_log10(labels<span class="op">=</span>scientific_format(digits<span class="op">=</span><span class="dv">1</span>))</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.scale_color_manual(values<span class="op">=</span>[<span class="st">"#1f77b4"</span>, <span class="st">"#d62728"</span>])</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.labs(</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>        x<span class="op">=</span><span class="st">"Success probability p"</span>,</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>        y<span class="op">=</span><span class="st">"Beta density (log scale)"</span>,</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>        color<span class="op">=</span><span class="st">"Sequencing depth"</span>,</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>        title<span class="op">=</span><span class="st">"Increasing sequencing depth shifts Beta(a, </span><span class="ch">\\</span><span class="st">eta N) toward smaller p"</span>,</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.theme_bw()</span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.theme(</span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>        figure_size<span class="op">=</span>(<span class="dv">7</span>, <span class="fl">4.8</span>),</span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>        panel_grid_minor<span class="op">=</span>gg.element_blank(),</span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>        panel_grid_major<span class="op">=</span>gg.element_line(color<span class="op">=</span><span class="st">"#e5e5e5"</span>, size<span class="op">=</span><span class="fl">0.3</span>),</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>        plot_title<span class="op">=</span>gg.element_text(weight<span class="op">=</span><span class="st">"bold"</span>),</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>        legend_position<span class="op">=</span>(<span class="fl">0.72</span>, <span class="fl">0.83</span>),</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>beta_depth_plot.save(<span class="st">"img/kindel_beta_depth_plot.png"</span>, verbose<span class="op">=</span><span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="DEL_modelling_Part_1_files/figure-html/cell-3-output-1.png" width="672" height="461" class="figure-img"></p>
-</figure>
 </div>
-</div>
+<div style="text-align: center;">
+<p><img src="img/kindel_beta_depth_plot.png" alt="Comparison of the example priors Beta(2, 10^3) and Beta(2, 10^6) on the success-probability scale." style="max-width: 100%; height: auto;"></p>
 </div>
 <p><span class="fig-caption"><strong>Figure:</strong> Comparison of the example priors <span class="math inline">\(\text{Beta}(2, 1 \cdot 10^3)\)</span> and <span class="math inline">\(\text{Beta}(2, 1 \cdot 10^6)\)</span> on the success-probability scale.</span></p>
 <p><span class="highlight-key-point">The point of the plot is not merely that <span class="math inline">\(p\)</span> gets smaller, but that it gets smaller at exactly the rate needed for <span class="math inline">\(\lambda^{(N)} = Np^{(N)}\)</span> to stay finite. The log-scaled y-axis is used only to make both densities visible in a single overlay.</span></p>
@@ -1217,26 +1224,13 @@ d\lambda.
 <p>For a concrete example, we use data from the <a href="https://arxiv.org/abs/2410.08938">KinDEL paper</a>. You can learn more about the resource <a href="https://icml.cc/virtual/2025/poster/45034">here</a> and access the data <a href="https://github.com/insitro/kindel">here</a>.</p>
 <p>KinDEL is one of the first large public DEL datasets designed to support machine-learning research in drug discovery. The resource contains approximately <strong>81 million small molecules</strong> screened against <strong>two kinase targets (MAPK14 and DDR1)</strong>, with accompanying benchmark tasks aimed at predictive hit identification and DEL denoising. Beyond raw count data, KinDEL also includes <strong>replicate experiments</strong> and biophysical validation data (on-DNA and off-DNA assays), making it useful for studying how well models recover true binding signals from noisy DEL measurements.</p>
 <p>We load only a subset of the data to keep the example simple and fast to run. In particular, we use the data for the DDR1 target from the first split.</p>
-<div id="069b9d75" class="cell" data-execution_count="3">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">"ignore"</span>, module<span class="op">=</span><span class="st">"plotnine"</span>)</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotnine <span class="im">as</span> gg</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
-<div id="74f413a3" class="cell" data-execution_count="4">
+<div id="acb642f2" class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> pd.read_parquet(<span class="st">"data/df_train_ddr1_split1_random.parquet"</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>data.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="4">
+<div class="cell-output cell-output-display" data-execution_count="33">
 <div>
 
 
@@ -1365,7 +1359,7 @@ d\lambda.
 <section id="basic-exploratory-data-analysis-eda" class="level3">
 <h3 class="anchored" data-anchor-id="basic-exploratory-data-analysis-eda">Basic Exploratory Data Analysis (EDA)</h3>
 <p>We begin with a simple view of sequencing counts by condition.</p>
-<div id="cf577e19" class="cell" data-execution_count="5">
+<div id="4cba22bb" class="cell" data-execution_count="6">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>data_seq_counts <span class="op">=</span> data.melt(id_vars<span class="op">=</span>[<span class="st">'molecule_hash'</span>], value_vars<span class="op">=</span>[<span class="st">'seq_target_1'</span>, <span class="st">'seq_target_2'</span>, <span class="st">'seq_target_3'</span>, <span class="st">'seq_matrix_1'</span>, <span class="st">'seq_matrix_2'</span>, <span class="st">'seq_matrix_3'</span>, <span class="st">'seq_load'</span>], value_name<span class="op">=</span><span class="st">'seq_count'</span>, var_name<span class="op">=</span><span class="st">'condition'</span>)</span>
@@ -1394,7 +1388,7 @@ Figure&nbsp;3: Distribution of counts by condition for the KinDEL DDR1 <code>spl
 <div id="fig-matrix-binders" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-matrix-binders-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="img/NTC_Binders.png" class="img-fluid figure-img" style="width:75.0%">
+<img src="img/NTC_Binders.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-matrix-binders-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;4: Matrix binders. Molecules with high sequencing counts in matrix (control) conditions. These molecules can confound analysis by mimicking protein hits.
@@ -1408,7 +1402,7 @@ Figure&nbsp;4: Matrix binders. Molecules with high sequencing counts in matrix (
 <div id="fig-low-count-mass" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-low-count-mass-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="img/High_Density_Near_Low_Counts.png" class="img-fluid figure-img" style="width:75.0%">
+<img src="img/High_Density_Near_Low_Counts.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-low-count-mass-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;5: Most molecules have very low counts, indicating sparse DEL data.
@@ -1447,11 +1441,11 @@ F(x) = \Pr(X \leq x)
 </div>
 </div>
 </div>
-<div id="cell-fig-ecdf-counts" class="cell" data-execution_count="6">
+<div id="db5d0182" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot ECDF faceted by condition, and add vertical line at the 85% quantile for each</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: false</span></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>seq_conditions <span class="op">=</span> [</span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">'seq_target_1'</span>, <span class="st">'seq_target_2'</span>, <span class="st">'seq_target_3'</span>,</span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">'seq_matrix_1'</span>, <span class="st">'seq_matrix_2'</span>, <span class="st">'seq_matrix_3'</span></span>
@@ -1517,21 +1511,18 @@ F(x) = \Pr(X \leq x)
 <span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.theme(strip_text<span class="op">=</span>gg.element_text(size<span class="op">=</span><span class="dv">11</span>))</span>
 <span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb6-67"><a href="#cb6-67" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-68"><a href="#cb6-68" aria-hidden="true" tabindex="-1"></a>ecdf_plot.save(<span class="st">"img/kindel_ecdf_by_condition.png"</span>)</span>
-<span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a>ecdf_plot.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-68"><a href="#cb6-68" aria-hidden="true" tabindex="-1"></a>ecdf_plot.save(<span class="st">"img/kindel_ecdf_by_condition.png"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-display">
+</div>
 <div id="fig-ecdf-counts" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-ecdf-counts-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="DEL_modelling_Part_1_files/figure-html/fig-ecdf-counts-output-1.png" width="672" height="480" class="figure-img">
+<img src="img/kindel_ecdf_by_condition.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ecdf-counts-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;6: Cumulative distribution function (CDF) of the sequencing counts for all conditions with the 85th percentile marked.
 </figcaption>
 </figure>
-</div>
-</div>
 </div>
 <p>The ECDF indicates that most molecules have very low sequencing counts, and the patterns differ between the matrix and target selections. This difference reflects the distinct biological and technical contexts of each selection method.</p>
 <p>For the matrix selection, the distribution mirrors the composition of the input library, suggesting that only a small subset of molecules bind to the matrix. This is a desirable outcome because it indicates limited non-specific binding.</p>
@@ -1543,7 +1534,7 @@ Figure&nbsp;6: Cumulative distribution function (CDF) of the sequencing counts f
 <div id="fig-discrete-bands" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-discrete-bands-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="img/Discrete_horizontal_bands.png" class="img-fluid figure-img" style="width:75.0%">
+<img src="img/Discrete_horizontal_bands.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-discrete-bands-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;7: Discrete horizontal bands. The plot shows how discrete, integer sequencing counts lead to repeated identical values among molecules, appearing as horizontal bands in the ECDF.
@@ -1551,7 +1542,7 @@ Figure&nbsp;7: Discrete horizontal bands. The plot shows how discrete, integer s
 </figure>
 </div>
 <p>We next plot the frequency of each sequencing count value (<span class="math inline">\(\leq 20\)</span>) for all conditions. This directly shows why the bands appear: thousands of molecules share the same low integer count.</p>
-<div id="cell-fig-count-frequency" class="cell" data-execution_count="7">
+<div id="d0bd651e" class="cell" data-execution_count="8">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Using the already-melted data_ecdf from earlier</span></span>
@@ -1579,21 +1570,18 @@ Figure&nbsp;7: Discrete horizontal bands. The plot shows how discrete, integer s
 <span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.theme(axis_text_x<span class="op">=</span>gg.element_text(size<span class="op">=</span><span class="dv">8</span>, rotation<span class="op">=</span><span class="dv">90</span>), figure_size<span class="op">=</span>(<span class="dv">15</span>, <span class="dv">4</span>))</span>
 <span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>frequency_of_counts_plot.save(<span class="st">"img/kindel_frequency_of_counts.png"</span>)</span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>frequency_of_counts_plot.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>frequency_of_counts_plot.save(<span class="st">"img/kindel_frequency_of_counts.png"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-display">
+</div>
 <div id="fig-count-frequency" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-count-frequency-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="DEL_modelling_Part_1_files/figure-html/fig-count-frequency-output-1.png" width="1440" height="384" class="figure-img">
+<img src="img/kindel_frequency_of_counts.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-count-frequency-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;8: Frequency of each sequencing count value (<span class="math inline">\(\leq 20\)</span>) for all conditions.
 </figcaption>
 </figure>
-</div>
-</div>
 </div>
 <p><a href="#fig-count-frequency" class="quarto-xref">Figure&nbsp;8</a> confirms that low integer counts dominate across conditions: counts such as 0, 1, 2, and 3 occur for very large numbers of molecules, while higher counts are much rarer. This pile-up at a few small integer values is what produces the visible step-like ECDF behaviour and discrete horizontal bands seen in the earlier plots.</p>
 </section>
@@ -1603,7 +1591,7 @@ Figure&nbsp;8: Frequency of each sequencing count value (<span class="math inlin
 <div id="fig-replicate-design" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-replicate-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="img/Replicates_Correlations.png" class="img-fluid figure-img" style="width:75.0%">
+<img src="img/Replicates_Correlations.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-replicate-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;9: Each experimental selection (both <em>matrix</em> and <em>target</em>) was performed in three independent replicates.
@@ -1611,7 +1599,7 @@ Figure&nbsp;9: Each experimental selection (both <em>matrix</em> and <em>target<
 </figure>
 </div>
 <p>To assess reproducibility, we compare replicate-level sequencing proportions for both matrix and target selections. For each replicate, molecule counts are normalised by the replicate total and then compared pairwise. These comparisons are summarised in three complementary ways: scatter plots (<a href="#fig-replicate-scatter" class="quarto-xref">Figure&nbsp;10</a>) show pattern shape and deviation from the <span class="math inline">\(y=x\)</span> line, a Spearman correlation heatmap (<a href="#fig-replicate-heatmap" class="quarto-xref">Figure&nbsp;11</a>) provides a compact quantitative summary of pairwise agreement, and a replicate-support plot (<a href="#fig-replicate-support" class="quarto-xref">Figure&nbsp;12</a>) shows how often molecules are observed at all across replicates.</p>
-<div id="cell-fig-replicate-scatter" class="cell" data-execution_count="8">
+<div id="60e71099" class="cell" data-execution_count="9">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>data_seq_counts_matrix <span class="op">=</span> data[[<span class="st">'seq_matrix_1'</span>, <span class="st">'seq_matrix_2'</span>, <span class="st">'seq_matrix_3'</span>]]</span>
@@ -1675,20 +1663,19 @@ Figure&nbsp;9: Each experimental selection (both <em>matrix</em> and <em>target<
 <span id="cb8-59"><a href="#cb8-59" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-60"><a href="#cb8-60" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-61"><a href="#cb8-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-62"><a href="#cb8-62" aria-hidden="true" tabindex="-1"></a>(p_1 <span class="op">|</span> p_2 <span class="op">|</span> p_3) <span class="op">/</span> (p_4 <span class="op">|</span> p_5 <span class="op">|</span> p_6) <span class="op">+</span> gg.theme(figure_size<span class="op">=</span>(<span class="dv">15</span>, <span class="dv">8</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-62"><a href="#cb8-62" aria-hidden="true" tabindex="-1"></a>replicate_corr_plot <span class="op">=</span> (p_1 <span class="op">|</span> p_2 <span class="op">|</span> p_3) <span class="op">/</span> (p_4 <span class="op">|</span> p_5 <span class="op">|</span> p_6) <span class="op">+</span> gg.theme(figure_size<span class="op">=</span>(<span class="dv">15</span>, <span class="dv">8</span>))</span>
+<span id="cb8-63"><a href="#cb8-63" aria-hidden="true" tabindex="-1"></a>replicate_corr_plot.save(<span class="st">"img/Replicates_Correlations.png"</span>, verbose<span class="op">=</span><span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="8">
+</div>
 <div id="fig-replicate-scatter" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-replicate-scatter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="DEL_modelling_Part_1_files/figure-html/fig-replicate-scatter-output-1.png" width="1440" height="768" class="figure-img">
+<img src="img/Replicates_Correlations.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-replicate-scatter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;10: Correlations between replicates for the matrix and target selection conditions.
 </figcaption>
 </figure>
-</div>
-</div>
 </div>
 <p>In <a href="#fig-replicate-scatter" class="quarto-xref">Figure&nbsp;10</a>, stronger clustering along the red <span class="math inline">\(y=x\)</span> line indicates better agreement between replicate pairs. Agreement is generally clearer for matrix replicates and for higher-abundance molecules. The broad spread at very low proportions is expected in sparse DEL data, where sampling noise dominates; this reduces apparent concordance for low-abundance molecules without necessarily indicating experimental failure.</p>
 <div class="callout callout-style-default callout-note no-icon callout-titled">
@@ -1795,7 +1782,7 @@ Why do matrix and target replicates show different correlation patterns?
 </div>
 </div>
 <p>To complement <a href="#fig-replicate-scatter" class="quarto-xref">Figure&nbsp;10</a>, we summarise replicate agreement with a Spearman correlation matrix. Spearman correlation is rank-based, so it asks whether molecules ranked high in one replicate also tend to rank high in another, without assuming a strictly linear relationship.</p>
-<div id="cell-fig-replicate-heatmap" class="cell" data-execution_count="9">
+<div id="f8ccf5cd" class="cell" data-execution_count="10">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># collect replicate counts</span></span>
@@ -1835,23 +1822,21 @@ Why do matrix and target replicates show different correlation patterns?
 <span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Spearman Correlation Matrix Across Replicates (Proportions)"</span>)</span>
 <span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
-<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">"img/kindel_replicate_heatmap.png"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-display">
+</div>
 <div id="fig-replicate-heatmap" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-replicate-heatmap-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="DEL_modelling_Part_1_files/figure-html/fig-replicate-heatmap-output-1.png" class="img-fluid figure-img">
+<img src="img/kindel_replicate_heatmap.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-replicate-heatmap-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;11: Spearman correlation matrix across matrix and target replicates using within-replicate proportions.
 </figcaption>
 </figure>
 </div>
-</div>
-</div>
 <p>One more view is useful here: for each molecule, we count in how many of the three replicate experiments the sequencing count is greater than zero. This gives a simple measure of <strong>replicate support</strong>. A molecule detected in all three replicates has much stronger support than a molecule detected in only one replicate, while a molecule with zero counts in all replicates is a clear example of dropout in that condition. Framing the data this way makes the prevalence of dropout immediately visible and complements the pairwise correlation plots above, which show agreement only among the molecules that are observed.</p>
-<div id="cell-fig-replicate-support" class="cell" data-execution_count="10">
+<div id="8532bf98" class="cell" data-execution_count="11">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>replicate_support <span class="op">=</span> pd.concat(</span>
@@ -1924,21 +1909,18 @@ Figure&nbsp;11: Spearman correlation matrix across matrix and target replicates 
 <span id="cb10-68"><a href="#cb10-68" aria-hidden="true" tabindex="-1"></a>    )</span>
 <span id="cb10-69"><a href="#cb10-69" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb10-70"><a href="#cb10-70" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-71"><a href="#cb10-71" aria-hidden="true" tabindex="-1"></a>replicate_support_plot.save(<span class="st">"img/kindel_replicate_support.png"</span>)</span>
-<span id="cb10-72"><a href="#cb10-72" aria-hidden="true" tabindex="-1"></a>replicate_support_plot.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb10-71"><a href="#cb10-71" aria-hidden="true" tabindex="-1"></a>replicate_support_plot.save(<span class="st">"img/kindel_replicate_support.png"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-display">
+</div>
 <div id="fig-replicate-support" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-replicate-support-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="DEL_modelling_Part_1_files/figure-html/fig-replicate-support-output-1.png" width="960" height="384" class="figure-img">
+<img src="img/kindel_replicate_support.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-replicate-support-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;12: Fraction of molecules observed in 0, 1, 2, or 3 replicates for matrix and target selections.
 </figcaption>
 </figure>
-</div>
-</div>
 </div>
 <p>Together, <a href="#fig-replicate-scatter" class="quarto-xref">Figure&nbsp;10</a>, <a href="#fig-replicate-heatmap" class="quarto-xref">Figure&nbsp;11</a>, and <a href="#fig-replicate-support" class="quarto-xref">Figure&nbsp;12</a> support a consistent interpretation:</p>
 <p>within-condition replicate correlations are positive and informative (typically stronger for matrix than target), while low-abundance regions remain noisy due to sampling variation. Cross-condition correlations (matrix vs target) are expected to be lower because they reflect different biological/technical mechanisms.</p>
@@ -1955,7 +1937,7 @@ Figure&nbsp;12: Fraction of molecules observed in 0, 1, 2, or 3 replicates for m
 <div id="fig-pre-post-overview" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-pre-post-overview-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="img/pre_post_selection_counts.png" class="img-fluid figure-img" style="width:75.0%">
+<img src="img/pre_post_selection_counts.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pre-post-overview-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;13: Comparing pre- and post-selection counts allows us to account for differences in the original library composition.
@@ -1990,7 +1972,7 @@ Why use log1p(x) here?
 </div>
 </div>
 </div>
-<div id="cell-fig-pre-post-scatter" class="cell" data-execution_count="11">
+<div id="e8922f5c" class="cell" data-execution_count="12">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>rel <span class="op">=</span> data.copy()</span>
@@ -2010,7 +1992,7 @@ Why use log1p(x) here?
 <span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>    ignore_index<span class="op">=</span><span class="va">True</span>,</span>
 <span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>(</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>pre_post_scatter_plot <span class="op">=</span> (</span>
 <span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>    gg.ggplot(rel_long, gg.aes(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>))</span>
 <span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_point(alpha<span class="op">=</span><span class="fl">0.1</span>, size<span class="op">=</span><span class="fl">0.25</span>)</span>
 <span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_abline(slope<span class="op">=</span><span class="dv">1</span>, intercept<span class="op">=</span><span class="dv">0</span>, color<span class="op">=</span><span class="st">"red"</span>)</span>
@@ -2021,20 +2003,19 @@ Why use log1p(x) here?
 <span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>        title<span class="op">=</span><span class="st">"Pairwise relationships: seq_load, matrix, and target"</span></span>
 <span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>    )</span>
 <span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.theme_bw()</span>
-<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>pre_post_scatter_plot.save(<span class="st">"img/kindel_pre_post_scatter.png"</span>, verbose<span class="op">=</span><span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="11">
+</div>
 <div id="fig-pre-post-scatter" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-pre-post-scatter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="DEL_modelling_Part_1_files/figure-html/fig-pre-post-scatter-output-1.png" width="672" height="480" class="figure-img">
+<img src="img/kindel_pre_post_scatter.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pre-post-scatter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;14: Pairwise relationships between <code>seq_load</code>, matrix mean, and target mean counts on the log scale.
 </figcaption>
 </figure>
-</div>
-</div>
 </div>
 <p>The scatter plots of log-transformed pre-selection counts (<code>seq_load</code>) versus post-selection mean counts (matrix and target) show three consistent patterns:</p>
 <ul>
@@ -2063,7 +2044,7 @@ What is the modelling implication of the above plots?
 </div>
 <p><a href="#fig-pre-post-scatter" class="quarto-xref">Figure&nbsp;14</a> shows the relationship between pre- and post-selection counts for the matrix and target selection conditions. We can also provide a concise quantitative summary of how strongly these variables move together.</p>
 <p>Again, Spearman correlation is a good choice since it is rank-based, asking whether molecules with higher <code>seq_load</code> also tend to have higher matrix or target counts, without assuming a linear relationship. The Spearman correlation matrix therefore complements <a href="#fig-pre-post-scatter" class="quarto-xref">Figure&nbsp;14</a> by turning the visual trends into directly comparable pairwise association measures.</p>
-<div id="cell-fig-pre-post-corr" class="cell" data-execution_count="12">
+<div id="fe14c2e3" class="cell" data-execution_count="13">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># compute the Spearman correlation matrix</span></span>
@@ -2087,20 +2068,18 @@ What is the modelling implication of the above plots?
 <span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Spearman Correlation Matrix (log-transformed)</span><span class="ch">\n</span><span class="st">Pre-selection, Matrix, Target"</span>)</span>
 <span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
-<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">"img/kindel_pre_post_corr.png"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-display">
+</div>
 <div id="fig-pre-post-corr" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-pre-post-corr-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="DEL_modelling_Part_1_files/figure-html/fig-pre-post-corr-output-1.png" class="img-fluid figure-img">
+<img src="img/kindel_pre_post_corr.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pre-post-corr-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;15: Spearman correlation matrix between log-transformed pre-selection abundance (<code>seq_load</code>), matrix counts, and target counts.
 </figcaption>
 </figure>
-</div>
-</div>
 </div>
 <p>The correlation matrix shows high correlation between <code>seq_load</code> and matrix counts, and lower correlation between <code>seq_load</code> and target counts. This is consistent with the visual patterns in <a href="#fig-pre-post-scatter" class="quarto-xref">Figure&nbsp;14</a>: matrix counts mostly track library composition and have a tighter scatter, whereas target counts reflect enrichment rather than just library composition and therefore have a looser scatter.</p>
 <p>Another useful quantity to examine is the correlation between matrix and target counts. High correlation here suggests that target counts may be dominated by background effects.</p>
@@ -2111,14 +2090,14 @@ Figure&nbsp;15: Spearman correlation matrix between log-transformed pre-selectio
 <div id="fig-matrix-target-overview" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-matrix-target-overview-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="img/matrix_vs_target_counts.png" class="img-fluid figure-img" style="width:75.0%">
+<img src="img/matrix_vs_target_counts.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-matrix-target-overview-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;16: Relationship between matrix and target counts.
 </figcaption>
 </figure>
 </div>
-<div id="cell-fig-matrix-target-scatter" class="cell" data-execution_count="13">
+<div id="9ad120ee" class="cell" data-execution_count="14">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>rel_long <span class="op">=</span> pd.concat(</span>
@@ -2127,26 +2106,25 @@ Figure&nbsp;16: Relationship between matrix and target counts.
 <span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    ],</span>
 <span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    ignore_index<span class="op">=</span><span class="va">True</span>,</span>
 <span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>(</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>matrix_target_scatter_plot <span class="op">=</span> (</span>
 <span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    gg.ggplot(rel_long, gg.aes(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>))</span>
 <span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_point(alpha<span class="op">=</span><span class="fl">0.1</span>, size<span class="op">=</span><span class="fl">0.25</span>)</span>
 <span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_abline(slope<span class="op">=</span><span class="dv">1</span>, intercept<span class="op">=</span><span class="dv">0</span>, color<span class="op">=</span><span class="st">"red"</span>)</span>
 <span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.labs(x<span class="op">=</span><span class="st">"log1p (matrix_mean)"</span>, y<span class="op">=</span><span class="st">"log1p (target_mean)"</span>, title<span class="op">=</span><span class="st">"Pairwise relationships: matrix, target"</span>)</span>
 <span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.theme_bw()</span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>matrix_target_scatter_plot.save(<span class="st">"img/kindel_matrix_target_scatter.png"</span>, verbose<span class="op">=</span><span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="13">
+</div>
 <div id="fig-matrix-target-scatter" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-matrix-target-scatter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="DEL_modelling_Part_1_files/figure-html/fig-matrix-target-scatter-output-1.png" width="672" height="480" class="figure-img">
+<img src="img/kindel_matrix_target_scatter.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-matrix-target-scatter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;17: Relationship between mean matrix and target replicate counts on the log scale.
 </figcaption>
 </figure>
-</div>
-</div>
 </div>
 <p>This plot compares the mean matrix and target counts (across three replicates) for each molecule, with the red line indicating equality (i.e., <span class="math inline">\(y = x\)</span>). The vertical lines are due to integer-valued counts in the matrix and target selections.</p>
 <p>While there is a general positive relationship (0.67 based on the Spearman correlation in <a href="#fig-pre-post-corr" class="quarto-xref">Figure&nbsp;15</a>), reflecting that target counts include matrix-derived background, many points appear above the diagonal. In other words, many molecules have higher target counts than matrix counts. This indicates specific enrichment in the target condition beyond background effects.</p>
@@ -2154,7 +2132,7 @@ Figure&nbsp;17: Relationship between mean matrix and target replicate counts on 
 <section id="crude-enrichment-relative-to-matrix-background" class="level4">
 <h4 class="anchored" data-anchor-id="crude-enrichment-relative-to-matrix-background">Crude enrichment relative to matrix background</h4>
 <p>Because a molecule can be abundant in the input library and still show non-specific matrix binding, it is useful to combine the previous two ideas into a single diagnostic. A simple way to do that is to plot a crude target-over-matrix enrichment score against pre-selection abundance. This is not a substitute for a probabilistic model, but it provides an intuitive preview of the modelling target.</p>
-<div id="cell-fig-enrichment-vs-load" class="cell" data-execution_count="14">
+<div id="ab9a224a" class="cell" data-execution_count="15">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>rel[<span class="st">"log2_target_over_matrix"</span>] <span class="op">=</span> np.log2((rel[<span class="st">"target_mean"</span>] <span class="op">+</span> <span class="dv">1</span>) <span class="op">/</span> (rel[<span class="st">"matrix_mean"</span>] <span class="op">+</span> <span class="dv">1</span>))</span>
@@ -2185,21 +2163,18 @@ Figure&nbsp;17: Relationship between mean matrix and target replicate counts on 
 <span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>    )</span>
 <span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>enrichment_plot.save(<span class="st">"img/kindel_target_over_matrix_enrichment_vs_load.png"</span>)</span>
-<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>enrichment_plot.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>enrichment_plot.save(<span class="st">"img/kindel_target_over_matrix_enrichment_vs_load.png"</span>, verbose<span class="op">=</span><span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-display">
+</div>
 <div id="fig-enrichment-vs-load" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-enrichment-vs-load-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="DEL_modelling_Part_1_files/figure-html/fig-enrichment-vs-load-output-1.png" width="672" height="480" class="figure-img">
+<img src="img/kindel_target_over_matrix_enrichment_vs_load.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-enrichment-vs-load-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;18: Crude target-over-matrix enrichment plotted against pre-selection abundance. The dashed line marks equal target and matrix signal.
 </figcaption>
 </figure>
-</div>
-</div>
 </div>
 <p>This plot brings the previous EDA results together in a single view. The x-axis shows how abundant a molecule was before selection, while the y-axis shows whether its average target count is higher or lower than its average matrix count.</p>
 <p>The dashed horizontal line at zero is the key reference point:</p>
@@ -2226,7 +2201,7 @@ Figure&nbsp;18: Crude target-over-matrix enrichment plotted against pre-selectio
 </ul>
 <p><strong>True underdispersion is uncommon</strong>; when variance appears below the mean, it is often due to small-sample noise (e.g., with only a few replicates) rather than a genuinely underdispersed process.</p>
 <p>As seen in <a href="#fig-seq-counts" class="quarto-xref">Figure&nbsp;3</a>, the sequencing count distributions are right-skewed and heavy-tailed. That suggests large variability, but it does not by itself establish overdispersion in the strict statistical sense. To assess that directly, we compare the sample mean and variance across replicates for the matrix and target conditions.</p>
-<div id="cell-fig-mean-variance" class="cell" data-execution_count="15">
+<div id="ffe4ade1" class="cell" data-execution_count="16">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute mean and variance for both matrix and target replicates</span></span>
@@ -2257,23 +2232,18 @@ Figure&nbsp;18: Crude target-over-matrix enrichment plotted against pre-selectio
 <span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.theme_bw()</span>
 <span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>mean_var_plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>mean_var_plot.save(<span class="st">"img/kindel_mean_variance.png"</span>, verbose<span class="op">=</span><span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-stderr">
-<pre><code>/Users/kxcg607/Library/CloudStorage/OneDrive-AZCollaboration/MyPersonalGit/avidaa.github.io/blogs/DEL_Model/.venv/lib/python3.12/site-packages/pandas/core/arraylike.py:402: RuntimeWarning: divide by zero encountered in log10</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="15">
 <div id="fig-mean-variance" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-mean-variance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="DEL_modelling_Part_1_files/figure-html/fig-mean-variance-output-2.png" width="672" height="480" class="figure-img">
+<img src="img/kindel_mean_variance.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mean-variance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;19: Mean-variance relationship of the sequencing counts for the matrix and target selection conditions.
 </figcaption>
 </figure>
-</div>
-</div>
 </div>
 <p>The red line marks the Poisson benchmark, where the variance equals the mean:</p>
 <p><span class="math display">\[
@@ -2362,7 +2332,7 @@ In <a href="#relationship-between-mean-and-variance-of-the-sequencing-counts">Re
 <div id="fig-causal-sketch" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-causal-sketch-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="img/Causal_Sketch.png" class="img-fluid figure-img" style="width:75.0%">
+<img src="img/Causal_Sketch.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-causal-sketch-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;20: Causal sketch of DEL sequencing counts.
