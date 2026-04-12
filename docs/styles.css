@@ -5,8 +5,8 @@
 
 /* Professional color palette */
 :root {
-  --primary-color: #1e3a8a;
-  --primary-dark: #1e40af;
+  --primary-color: #2563eb;
+  --primary-dark: #1d4ed8;
   --secondary-color: #475569;
   --text-primary: #0f172a;
   --text-secondary: #475569;
@@ -404,5 +404,29 @@ p {
 .box-ref-highlight::before {
   content: "-> ";
   font-weight: 800;
+}
+
+/* Fix math overflow in collapsible callouts - prevents equations from jumping out */
+.callout-collapse .callout-body-container,
+.callout-collapse .callout-body {
+  overflow-x: auto;
+}
+
+/* Figure captions */
+.fig-caption {
+  display: block;
+  text-align: center;
+  font-family: 'Merriweather', Georgia, serif;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-top: 0.5em;
+  margin-bottom: 1.5em;
+  line-height: 1.5;
+}
+
+.fig-caption strong {
+  font-style: normal;
+  color: var(--text-primary);
 }
 
