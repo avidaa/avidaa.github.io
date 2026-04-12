@@ -1082,8 +1082,7 @@ The columns are:
 We begin with a simple view of sequencing counts by condition.
 
 ```{python}
-#| label: fig-seq-counts
-#| fig-cap: Distribution of counts by condition for the KinDEL DDR1 `split1_random` training subset.
+#| output: false
 data_seq_counts = data.melt(id_vars=['molecule_hash'], value_vars=['seq_target_1', 'seq_target_2', 'seq_target_3', 'seq_matrix_1', 'seq_matrix_2', 'seq_matrix_3', 'seq_load'], value_name='seq_count', var_name='condition')
 
 p = (
@@ -1092,8 +1091,9 @@ p = (
     + gg.labs(x='Condition', y='Sequencing Count', title='Distribution of Sequencing Counts by Condition')
 )
 p.save("img/kindel_eda_seq_counts.png")
-p.show()
 ```
+
+![Distribution of counts by condition for the KinDEL DDR1 `split1_random` training subset.](img/kindel_eda_seq_counts.png){#fig-seq-counts}
 
 #### Matrix binders {#matrix-binders}
 

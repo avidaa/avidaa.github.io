@@ -839,7 +839,7 @@ p^{(N)} \sim \text{Beta}(a, b^{(N)})
 \]</span></p>
 <p>The superscript <span class="math inline">\((N)\)</span> does <strong>not</strong> index a barcode. It indicates that we are considering a whole sequence of random variables, one for each sequencing depth <span class="math inline">\(N\)</span>.</p>
 <p>So when <span class="math inline">\(N\)</span> changes, the prior changes as well. In particular, the second Beta parameter grows with <span class="math inline">\(N\)</span>, which pushes typical values of <span class="math inline">\(p^{(N)}\)</span> toward zero. This is the scaling we want in a rare-event setting, where each individual barcode should occupy only a tiny fraction of the total reads even as the total read depth becomes large.</p>
-<div id="1df7d336" class="cell" data-execution_count="2">
+<div id="97d0e8df" class="cell" data-execution_count="1">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -957,7 +957,7 @@ N\,\mathbb{E}[p^{(N)}]
 <p>So the scaling is not arbitrary. It makes the prior on <span class="math inline">\(p^{(N)}\)</span> shift toward smaller probabilities as sequencing depth increases, while the induced prior on <span class="math inline">\(\lambda^{(N)} = Np^{(N)}\)</span> stays on a stable, interpretable count scale.</p>
 <p><span class="highlight-key-point">This is why the scaling <span class="math inline">\(b^{(N)} = \eta N\)</span> matters: it prevents the implied count scale from blowing up with <span class="math inline">\(N\)</span> and sets up the next derivation, where the prior on <span class="math inline">\(p^{(N)}\)</span> becomes a Gamma prior on <span class="math inline">\(\lambda^{(N)}\)</span>.</span></p>
 <p>The plot below is meant only to visualise this scaling. For the concrete example above with <span class="math inline">\(a = 2\)</span> and <span class="math inline">\(\eta = 1\)</span>, it compares the priors induced by two sequencing depths, <span class="math inline">\(N = 10^3\)</span> and <span class="math inline">\(N = 10^6\)</span>. As depth increases, the Beta density shifts sharply toward smaller values of <span class="math inline">\(p\)</span>, so that the corresponding Poisson-scale quantity <span class="math inline">\(\lambda^{(N)} = Np^{(N)}\)</span> remains on a stable count scale rather than diverging with <span class="math inline">\(N\)</span>.</p>
-<div id="f1006285" class="cell" data-execution_count="3">
+<div id="4b5b251d" class="cell" data-execution_count="2">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -1217,7 +1217,7 @@ d\lambda.
 <p>For a concrete example, we use data from the <a href="https://arxiv.org/abs/2410.08938">KinDEL paper</a>. You can learn more about the resource <a href="https://icml.cc/virtual/2025/poster/45034">here</a> and access the data <a href="https://github.com/insitro/kindel">here</a>.</p>
 <p>KinDEL is one of the first large public DEL datasets designed to support machine-learning research in drug discovery. The resource contains approximately <strong>81 million small molecules</strong> screened against <strong>two kinase targets (MAPK14 and DDR1)</strong>, with accompanying benchmark tasks aimed at predictive hit identification and DEL denoising. Beyond raw count data, KinDEL also includes <strong>replicate experiments</strong> and biophysical validation data (on-DNA and off-DNA assays), making it useful for studying how well models recover true binding signals from noisy DEL measurements.</p>
 <p>We load only a subset of the data to keep the example simple and fast to run. In particular, we use the data for the DDR1 target from the first split.</p>
-<div id="aeb4e194" class="cell" data-execution_count="4">
+<div id="069b9d75" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
@@ -1230,7 +1230,7 @@ d\lambda.
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotnine <span class="im">as</span> gg</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<div id="892d7816" class="cell" data-execution_count="5">
+<div id="74f413a3" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> pd.read_parquet(<span class="st">"data/df_train_ddr1_split1_random.parquet"</span>)</span>
@@ -1365,7 +1365,7 @@ d\lambda.
 <section id="basic-exploratory-data-analysis-eda" class="level3">
 <h3 class="anchored" data-anchor-id="basic-exploratory-data-analysis-eda">Basic Exploratory Data Analysis (EDA)</h3>
 <p>We begin with a simple view of sequencing counts by condition.</p>
-<div id="cell-fig-seq-counts" class="cell" data-execution_count="6">
+<div id="cf577e19" class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>data_seq_counts <span class="op">=</span> data.melt(id_vars<span class="op">=</span>[<span class="st">'molecule_hash'</span>], value_vars<span class="op">=</span>[<span class="st">'seq_target_1'</span>, <span class="st">'seq_target_2'</span>, <span class="st">'seq_target_3'</span>, <span class="st">'seq_matrix_1'</span>, <span class="st">'seq_matrix_2'</span>, <span class="st">'seq_matrix_3'</span>, <span class="st">'seq_load'</span>], value_name<span class="op">=</span><span class="st">'seq_count'</span>, var_name<span class="op">=</span><span class="st">'condition'</span>)</span>
@@ -1375,21 +1375,18 @@ d\lambda.
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.geom_jitter(width<span class="op">=</span><span class="fl">0.05</span>, height<span class="op">=</span><span class="dv">0</span>, size<span class="op">=</span><span class="fl">0.1</span>)</span>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> gg.labs(x<span class="op">=</span><span class="st">'Condition'</span>, y<span class="op">=</span><span class="st">'Sequencing Count'</span>, title<span class="op">=</span><span class="st">'Distribution of Sequencing Counts by Condition'</span>)</span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>p.save(<span class="st">"img/kindel_eda_seq_counts.png"</span>)</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>p.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>p.save(<span class="st">"img/kindel_eda_seq_counts.png"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-display">
+</div>
 <div id="fig-seq-counts" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-seq-counts-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="DEL_modelling_Part_1_files/figure-html/fig-seq-counts-output-1.png" width="672" height="480" class="figure-img">
+<img src="img/kindel_eda_seq_counts.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-seq-counts-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;3: Distribution of counts by condition for the KinDEL DDR1 <code>split1_random</code> training subset.
 </figcaption>
 </figure>
-</div>
-</div>
 </div>
 <section id="matrix-binders" class="level4">
 <h4 class="anchored" data-anchor-id="matrix-binders">Matrix binders</h4>
@@ -1450,7 +1447,7 @@ F(x) = \Pr(X \leq x)
 </div>
 </div>
 </div>
-<div id="cell-fig-ecdf-counts" class="cell" data-execution_count="7">
+<div id="cell-fig-ecdf-counts" class="cell" data-execution_count="6">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot ECDF faceted by condition, and add vertical line at the 85% quantile for each</span></span>
@@ -1554,7 +1551,7 @@ Figure&nbsp;7: Discrete horizontal bands. The plot shows how discrete, integer s
 </figure>
 </div>
 <p>We next plot the frequency of each sequencing count value (<span class="math inline">\(\leq 20\)</span>) for all conditions. This directly shows why the bands appear: thousands of molecules share the same low integer count.</p>
-<div id="cell-fig-count-frequency" class="cell" data-execution_count="8">
+<div id="cell-fig-count-frequency" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Using the already-melted data_ecdf from earlier</span></span>
@@ -1614,7 +1611,7 @@ Figure&nbsp;9: Each experimental selection (both <em>matrix</em> and <em>target<
 </figure>
 </div>
 <p>To assess reproducibility, we compare replicate-level sequencing proportions for both matrix and target selections. For each replicate, molecule counts are normalised by the replicate total and then compared pairwise. These comparisons are summarised in three complementary ways: scatter plots (<a href="#fig-replicate-scatter" class="quarto-xref">Figure&nbsp;10</a>) show pattern shape and deviation from the <span class="math inline">\(y=x\)</span> line, a Spearman correlation heatmap (<a href="#fig-replicate-heatmap" class="quarto-xref">Figure&nbsp;11</a>) provides a compact quantitative summary of pairwise agreement, and a replicate-support plot (<a href="#fig-replicate-support" class="quarto-xref">Figure&nbsp;12</a>) shows how often molecules are observed at all across replicates.</p>
-<div id="cell-fig-replicate-scatter" class="cell" data-execution_count="9">
+<div id="cell-fig-replicate-scatter" class="cell" data-execution_count="8">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>data_seq_counts_matrix <span class="op">=</span> data[[<span class="st">'seq_matrix_1'</span>, <span class="st">'seq_matrix_2'</span>, <span class="st">'seq_matrix_3'</span>]]</span>
@@ -1798,7 +1795,7 @@ Why do matrix and target replicates show different correlation patterns?
 </div>
 </div>
 <p>To complement <a href="#fig-replicate-scatter" class="quarto-xref">Figure&nbsp;10</a>, we summarise replicate agreement with a Spearman correlation matrix. Spearman correlation is rank-based, so it asks whether molecules ranked high in one replicate also tend to rank high in another, without assuming a strictly linear relationship.</p>
-<div id="cell-fig-replicate-heatmap" class="cell" data-execution_count="10">
+<div id="cell-fig-replicate-heatmap" class="cell" data-execution_count="9">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># collect replicate counts</span></span>
@@ -1854,7 +1851,7 @@ Figure&nbsp;11: Spearman correlation matrix across matrix and target replicates 
 </div>
 </div>
 <p>One more view is useful here: for each molecule, we count in how many of the three replicate experiments the sequencing count is greater than zero. This gives a simple measure of <strong>replicate support</strong>. A molecule detected in all three replicates has much stronger support than a molecule detected in only one replicate, while a molecule with zero counts in all replicates is a clear example of dropout in that condition. Framing the data this way makes the prevalence of dropout immediately visible and complements the pairwise correlation plots above, which show agreement only among the molecules that are observed.</p>
-<div id="cell-fig-replicate-support" class="cell" data-execution_count="11">
+<div id="cell-fig-replicate-support" class="cell" data-execution_count="10">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>replicate_support <span class="op">=</span> pd.concat(</span>
@@ -1993,7 +1990,7 @@ Why use log1p(x) here?
 </div>
 </div>
 </div>
-<div id="cell-fig-pre-post-scatter" class="cell" data-execution_count="12">
+<div id="cell-fig-pre-post-scatter" class="cell" data-execution_count="11">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>rel <span class="op">=</span> data.copy()</span>
@@ -2066,7 +2063,7 @@ What is the modelling implication of the above plots?
 </div>
 <p><a href="#fig-pre-post-scatter" class="quarto-xref">Figure&nbsp;14</a> shows the relationship between pre- and post-selection counts for the matrix and target selection conditions. We can also provide a concise quantitative summary of how strongly these variables move together.</p>
 <p>Again, Spearman correlation is a good choice since it is rank-based, asking whether molecules with higher <code>seq_load</code> also tend to have higher matrix or target counts, without assuming a linear relationship. The Spearman correlation matrix therefore complements <a href="#fig-pre-post-scatter" class="quarto-xref">Figure&nbsp;14</a> by turning the visual trends into directly comparable pairwise association measures.</p>
-<div id="cell-fig-pre-post-corr" class="cell" data-execution_count="13">
+<div id="cell-fig-pre-post-corr" class="cell" data-execution_count="12">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># compute the Spearman correlation matrix</span></span>
@@ -2121,7 +2118,7 @@ Figure&nbsp;16: Relationship between matrix and target counts.
 </figcaption>
 </figure>
 </div>
-<div id="cell-fig-matrix-target-scatter" class="cell" data-execution_count="14">
+<div id="cell-fig-matrix-target-scatter" class="cell" data-execution_count="13">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>rel_long <span class="op">=</span> pd.concat(</span>
@@ -2157,7 +2154,7 @@ Figure&nbsp;17: Relationship between mean matrix and target replicate counts on 
 <section id="crude-enrichment-relative-to-matrix-background" class="level4">
 <h4 class="anchored" data-anchor-id="crude-enrichment-relative-to-matrix-background">Crude enrichment relative to matrix background</h4>
 <p>Because a molecule can be abundant in the input library and still show non-specific matrix binding, it is useful to combine the previous two ideas into a single diagnostic. A simple way to do that is to plot a crude target-over-matrix enrichment score against pre-selection abundance. This is not a substitute for a probabilistic model, but it provides an intuitive preview of the modelling target.</p>
-<div id="cell-fig-enrichment-vs-load" class="cell" data-execution_count="15">
+<div id="cell-fig-enrichment-vs-load" class="cell" data-execution_count="14">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>rel[<span class="st">"log2_target_over_matrix"</span>] <span class="op">=</span> np.log2((rel[<span class="st">"target_mean"</span>] <span class="op">+</span> <span class="dv">1</span>) <span class="op">/</span> (rel[<span class="st">"matrix_mean"</span>] <span class="op">+</span> <span class="dv">1</span>))</span>
@@ -2229,7 +2226,7 @@ Figure&nbsp;18: Crude target-over-matrix enrichment plotted against pre-selectio
 </ul>
 <p><strong>True underdispersion is uncommon</strong>; when variance appears below the mean, it is often due to small-sample noise (e.g., with only a few replicates) rather than a genuinely underdispersed process.</p>
 <p>As seen in <a href="#fig-seq-counts" class="quarto-xref">Figure&nbsp;3</a>, the sequencing count distributions are right-skewed and heavy-tailed. That suggests large variability, but it does not by itself establish overdispersion in the strict statistical sense. To assess that directly, we compare the sample mean and variance across replicates for the matrix and target conditions.</p>
-<div id="cell-fig-mean-variance" class="cell" data-execution_count="16">
+<div id="cell-fig-mean-variance" class="cell" data-execution_count="15">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute mean and variance for both matrix and target replicates</span></span>
