@@ -15,3 +15,13 @@ A concise walkthrough of the mathematical foundations behind Variational Autoenc
 [Read more](blogs/VAE_derivation/VAE_derivation.qmd)
 
 ------------------------------------------------------------------------
+
+## Modelling DNA-Encoded Libraries (DELs) - Part 1
+
+*Published on: April 2026*
+
+A three-part series developing a probabilistic framework for DNA-encoded library (DEL) data. The goal is to explain noisy sequencing counts in terms of latent compound-level and synthon-level effects so that true enrichment can be separated from technical and compositional artefacts. Part 1 focuses on likelihood choice, data-generation assumptions, and the modelling implications of background effects, library composition, and replicate variation.
+
+[Read more](blogs/DEL_Model/DEL_modelling_Part_1.qmd)
+
+------------------------------------------------------------------------
