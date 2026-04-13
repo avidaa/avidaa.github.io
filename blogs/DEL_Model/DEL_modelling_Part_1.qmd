@@ -1111,13 +1111,13 @@ p.save("img/kindel_eda_seq_counts.png")
 
 A key observation from the plot is that some compounds have very high sequencing counts in the matrix (control) conditions. The distribution of matrix counts appears bimodal. This suggests that some molecules may bind strongly to the matrix itself, rather than only the intended protein target. Such molecules could give high signals in both the target and matrix conditions, making it challenging to tell if they're true protein binders or simply show nonspecific, matrix-binding effects.
 
-![Matrix binders. Molecules with high sequencing counts in matrix (control) conditions. These molecules can confound analysis by mimicking protein hits.](img/NTC_Binders.png){#fig-matrix-binders }
+![Matrix binders. Molecules with high sequencing counts in matrix (control) conditions. These molecules can confound analysis by mimicking protein hits.](img/NTC_Binders.png){#fig-matrix-binders width="75%"}
 
 #### Strong low-count mass across all conditions {#strong-low-count-mass-across-all-conditions}
 
 A high-density region near low counts suggests that most molecules have very low sequencing counts. This is typical of DEL data, where most barcodes are rare or absent in a given selection. This indicates a **sparse count structure** consistent with large library size and small per-barcode probabilities.
 
-![Most molecules have very low counts, indicating sparse DEL data.](img/High_Density_Near_Low_Counts.png){#fig-low-count-mass }
+![Most molecules have very low counts, indicating sparse DEL data.](img/High_Density_Near_Low_Counts.png){#fig-low-count-mass width="75%"}
 
 A better way to visualise this is to plot the cumulative distribution function (CDF) of the sequencing counts.
 
@@ -1227,7 +1227,7 @@ In contrast, the target selection distribution shows higher counts at the 85th p
 
 The appearance of discrete horizontal bands in the plot reflects repeated, identical sequencing count values across many molecules. This happens because next-generation sequencing produces integer counts, and low-abundance molecules are often observed at the same small values. As a result, low integer counts are repeated across many molecules, producing visible steps in the ECDF (@fig-ecdf-counts) and horizontal banding in scatter-style plots (@fig-discrete-bands). This effect is especially noticeable when sequencing depth is modest relative to library complexity or when many molecules have similarly low abundance.
 
-![Discrete horizontal bands. The plot shows how discrete, integer sequencing counts lead to repeated identical values among molecules, appearing as horizontal bands in the ECDF.](img/Discrete_horizontal_bands.png){#fig-discrete-bands }
+![Discrete horizontal bands. The plot shows how discrete, integer sequencing counts lead to repeated identical values among molecules, appearing as horizontal bands in the ECDF.](img/Discrete_horizontal_bands.png){#fig-discrete-bands width="75%"}
 
 We next plot the frequency of each sequencing count value ($\leq 20$) for all conditions. This directly shows why the bands appear: thousands of molecules share the same low integer count.
 
@@ -1592,7 +1592,7 @@ When fitting count models, this replicate-to-replicate variation should be model
 
 Pre-selection counts are given by the `seq_load` column. They represent the abundance of each molecule in the library before any matrix or target selection takes place. That is, they capture how many copies of each barcode were present before exposure to either condition. [This pre-selection abundance information helps distinguish true post-selection enrichment from molecules that were simply more abundant in the input library.]{.highlight-key-point}
 
-![Comparing pre- and post-selection counts allows us to account for differences in the original library composition.](img/pre_post_selection_counts.png){#fig-pre-post-overview }
+![Comparing pre- and post-selection counts allows us to account for differences in the original library composition.](img/pre_post_selection_counts.png){#fig-pre-post-overview width="75%"}
 
 Molecules might have higher pre-selection counts due to:
 
@@ -1707,7 +1707,7 @@ Another useful quantity to examine is the correlation between matrix and target 
 
 Exploring the relationship between matrix and target counts helps us understand whether the target counts are dominated by background effects or are truly enriched by the target protein.
 
-![Relationship between matrix and target counts.](img/matrix_vs_target_counts.png){#fig-matrix-target-overview }
+![Relationship between matrix and target counts.](img/matrix_vs_target_counts.png){#fig-matrix-target-overview width="75%"}
 
 ```{python}
 #| output: false
@@ -1928,7 +1928,7 @@ Drawing on everything identified in the EDA, the four latent causes of DEL seque
 
 @fig-causal-sketch summarises this structure in three layers. On the left are the **latent causes**: library composition and input abundance, matrix-background propensity, target-binding propensity, and condition-specific replicate effects (sampling, PCR, and run variation). These feed into the middle layer of **condition-specific latent count intensities** for pre-selection, matrix, and target. The right layer contains the **observed sequencing counts**: `seq_load` for pre-selection, together with replicated matrix (`seq_matrix_1`, `seq_matrix_2`, `seq_matrix_3`) and target (`seq_target_1`, `seq_target_2`, `seq_target_3`) read counts, which are noisy draws from those latent intensities.
 
-![Causal sketch of DEL sequencing counts.](img/Causal_Sketch.png){#fig-causal-sketch }
+![Causal sketch of DEL sequencing counts.](img/Causal_Sketch.png){#fig-causal-sketch width="75%"}
 
 [The causal sketch also makes it clear why a simple enrichment ratio, for example, dividing target counts by matrix counts, is not a satisfying answer to the DEL hit identification problem. Such a ratio partially cancels the matrix background, but it ignores library composition entirely, so a molecule that is abundant in the input library will still look enriched even if it does not bind the target.]{.highlight-key-point}
 
