@@ -1270,7 +1270,7 @@ frequency_of_counts_plot.save("img/kindel_frequency_of_counts.png")
 
 Each experimental selection (both *matrix* and *target*) was performed in three independent replicates:
 
-![Each experimental selection (both *matrix* and *target*) was performed in three independent replicates.](img/Replicates_Correlations.png){#fig-replicate-design }
+![Each experimental selection (both *matrix* and *target*) was performed in three independent replicates.](img/matrix_target_replicates.png){#fig-replicate-design width="75%"}
 
 To assess reproducibility, we compare replicate-level sequencing proportions for both matrix and target selections. For each replicate, molecule counts are normalised by the replicate total and then compared pairwise. These comparisons are summarised in three complementary ways: scatter plots (@fig-replicate-scatter) show pattern shape and deviation from the $y=x$ line, a Spearman correlation heatmap (@fig-replicate-heatmap) provides a compact quantitative summary of pairwise agreement, and a replicate-support plot (@fig-replicate-support) shows how often molecules are observed at all across replicates.
 
