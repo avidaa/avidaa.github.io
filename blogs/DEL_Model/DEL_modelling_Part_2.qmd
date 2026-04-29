@@ -130,7 +130,7 @@ The rate parameters $\lambda_m$, $\lambda_t$, and $\lambda_l$ are not independen
 - target-binding propensity, $s$,
 
 
-![DAG showing observed counts, rates, and latent factors.](img/dag-with-latent-factors.png){#fig-dag-latent-factors width="50%"}
+![DAG showing observed counts, rates, and latent factors.](img/dag_with_latent_factors.png){#fig-dag-latent-factors width="50%"}
 
 The arrows in the DAG encode which latent factors influence which rates:
 
@@ -138,9 +138,27 @@ The arrows in the DAG encode which latent factors influence which rates:
 - **Matrix background, $b$** enters $\lambda_m$ and $\lambda_t$ but not $\lambda_l$. It captures non-specific retention (e.g., sticking to beads, resin, or other surfaces) that occurs whenever the library is exposed to the experimental matrix, regardless of whether the target is present.
 - **Target-binding propensity, $s$** enters only $\lambda_t$. It represents the additional enrichment a compound experiences specifically because it binds the target, and is the quantity we ultimately want to infer.
 
+So far the DAG captures the main sources of variation in observed counts for one comopound only. However, DEL experiments involve large numbers of compounds. To model this, we introduce a plate that replicates the structure for each compound $i$:
 
+![DAG showing observed counts, rates, and latent factors for multiple compounds.](img/dag_with_latent_factors_with_plate.png){#fig-dag-with-latent-factors-with-plate width="60%"}
+
+Here, the plate indicates that each compound $i$ has its own set of observed counts ($C_{m,i}$, $C_{t,i}$, $C_{l,i}$), rates ($\lambda_{m,i}$, $\lambda_{t,i}$, $\lambda_{l,i}$), and latent factors ($a_i$, $b_i$, $s_i$). The causal structure within the plate is the same for every compound, but the parameters can vary across compounds.
 
 TODO:
 
-1. Add the plate for all compounds
-2. Add the replicate level variation parameters
+1. Add the replicate level variation parameters
+2. Check the DAG for:
+    - Chain (mediation)
+    - Fork (confounding)
+    - Collider structures
+3. Check for combined patterns:
+    - Fork + chain (confounded mediation)
+    - Collider with downstream conditioning
+    - Backdoor paths
+    - Frontdoor paths
+    - Selection bias (collider via sampling)
+
+    Identify:
+    - confounders → control for
+    - colliders → never control
+    - mediators → depends on question
