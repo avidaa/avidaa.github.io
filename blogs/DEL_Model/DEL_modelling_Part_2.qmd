@@ -144,14 +144,19 @@ So far the DAG captures the main sources of variation in observed counts for one
 
 Here, the plate indicates that each compound $i$ has its own set of observed counts ($C_{m,i}$, $C_{t,i}$, $C_{l,i}$), rates ($\lambda_{m,i}$, $\lambda_{t,i}$, $\lambda_{l,i}$), and latent factors ($a_i$, $b_i$, $s_i$). The causal structure within the plate is the same for every compound, but the parameters can vary across compounds.
 
+Another source of variation is technical noise at the replicate level: differences in sequencing depth, library preparation efficiency, and other batch effects mean that repeated measurements of the same compound are not identical. We extend the DAG with a second plate, indexed by replicate, that contains replicate-specific parameters $\gamma_{m,r}$ and $\gamma_{t,r}$ acting on the matrix and target rates, respectively. The compound plate and the replicate plate overlap on the observed counts, so each $C_{m,i,r}$ and $C_{t,i,r}$ is influenced by both its compound-level latent factors ($a_i$, $b_i$, $s_i$) and its replicate-level effects ($\gamma_{m,r}$, $\gamma_{t,r}$).
+
+![DAG showing observed counts, rates, latent factors, and replicate effects.](img/dag_with_latent_factors_and_replicates.png){#fig-dag-with-latent-factors-and-replicates width="75%"}
+
+
+
 TODO:
 
-1. Add the replicate level variation parameters
-2. Check the DAG for:
+1. Check the DAG for:
     - Chain (mediation)
     - Fork (confounding)
     - Collider structures
-3. Check for combined patterns:
+2. Check for combined patterns:
     - Fork + chain (confounded mediation)
     - Collider with downstream conditioning
     - Backdoor paths

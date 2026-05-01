@@ -299,7 +299,7 @@ Figure&nbsp;3: DAG showing observed counts and their underlying rates.
 <div id="fig-dag-latent-factors" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-dag-latent-factors-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="img/dag-with-latent-factors.png" class="img-fluid figure-img" style="width:50.0%">
+<img src="img/dag_with_latent_factors.png" class="img-fluid figure-img" style="width:50.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-dag-latent-factors-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;4: DAG showing observed counts, rates, and latent factors.
@@ -312,10 +312,52 @@ Figure&nbsp;4: DAG showing observed counts, rates, and latent factors.
 <li><strong>Matrix background, <span class="math inline">\(b\)</span></strong> enters <span class="math inline">\(\lambda_m\)</span> and <span class="math inline">\(\lambda_t\)</span> but not <span class="math inline">\(\lambda_l\)</span>. It captures non-specific retention (e.g., sticking to beads, resin, or other surfaces) that occurs whenever the library is exposed to the experimental matrix, regardless of whether the target is present.</li>
 <li><strong>Target-binding propensity, <span class="math inline">\(s\)</span></strong> enters only <span class="math inline">\(\lambda_t\)</span>. It represents the additional enrichment a compound experiences specifically because it binds the target, and is the quantity we ultimately want to infer.</li>
 </ul>
+<p>So far the DAG captures the main sources of variation in observed counts for one comopound only. However, DEL experiments involve large numbers of compounds. To model this, we introduce a plate that replicates the structure for each compound <span class="math inline">\(i\)</span>:</p>
+<div id="fig-dag-with-latent-factors-with-plate" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-dag-with-latent-factors-with-plate-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="img/dag_with_latent_factors_with_plate.png" class="img-fluid figure-img" style="width:60.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-dag-with-latent-factors-with-plate-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: DAG showing observed counts, rates, and latent factors for multiple compounds.
+</figcaption>
+</figure>
+</div>
+<p>Here, the plate indicates that each compound <span class="math inline">\(i\)</span> has its own set of observed counts (<span class="math inline">\(C_{m,i}\)</span>, <span class="math inline">\(C_{t,i}\)</span>, <span class="math inline">\(C_{l,i}\)</span>), rates (<span class="math inline">\(\lambda_{m,i}\)</span>, <span class="math inline">\(\lambda_{t,i}\)</span>, <span class="math inline">\(\lambda_{l,i}\)</span>), and latent factors (<span class="math inline">\(a_i\)</span>, <span class="math inline">\(b_i\)</span>, <span class="math inline">\(s_i\)</span>). The causal structure within the plate is the same for every compound, but the parameters can vary across compounds.</p>
+<p>Another source of variation is technical noise at the replicate level: differences in sequencing depth, library preparation efficiency, and other batch effects mean that repeated measurements of the same compound are not identical. We extend the DAG with a second plate, indexed by replicate, that contains replicate-specific parameters <span class="math inline">\(\gamma_{m,r}\)</span> and <span class="math inline">\(\gamma_{t,r}\)</span> acting on the matrix and target rates, respectively. The compound plate and the replicate plate overlap on the observed counts, so each <span class="math inline">\(C_{m,i,r}\)</span> and <span class="math inline">\(C_{t,i,r}\)</span> is influenced by both its compound-level latent factors (<span class="math inline">\(a_i\)</span>, <span class="math inline">\(b_i\)</span>, <span class="math inline">\(s_i\)</span>) and its replicate-level effects (<span class="math inline">\(\gamma_{m,r}\)</span>, <span class="math inline">\(\gamma_{t,r}\)</span>).</p>
+<div id="fig-dag-with-latent-factors-and-replicates" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-dag-with-latent-factors-and-replicates-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="img/dag_with_latent_factors_and_replicates.png" class="img-fluid figure-img" style="width:75.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-dag-with-latent-factors-and-replicates-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6: DAG showing observed counts, rates, latent factors, and replicate effects.
+</figcaption>
+</figure>
+</div>
 <p>TODO:</p>
 <ol type="1">
-<li>Add the plate for all compounds</li>
 <li>Add the replicate level variation parameters</li>
+<li>Check the DAG for:
+<ul>
+<li>Chain (mediation)</li>
+<li>Fork (confounding)</li>
+<li>Collider structures</li>
+</ul></li>
+<li>Check for combined patterns:
+<ul>
+<li>Fork + chain (confounded mediation)</li>
+<li>Collider with downstream conditioning</li>
+<li>Backdoor paths</li>
+<li>Frontdoor paths</li>
+<li>Selection bias (collider via sampling)</li>
+</ul>
+Identify:
+<ul>
+<li>confounders → control for</li>
+<li>colliders → never control</li>
+<li>mediators → depends on question</li>
+</ul></li>
 </ol>
 
 
