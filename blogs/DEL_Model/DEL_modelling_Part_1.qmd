@@ -8,6 +8,7 @@ execute:
   freeze: true
 code-fold: true
 ---
+
 ```{python}
 import warnings
 warnings.filterwarnings("ignore", module="plotnine")
@@ -49,7 +50,7 @@ A DEL experiment involves several key stochastic steps that directly impact the 
 
 Thus, the observed DEL counts for each barcode are the outcome of a sequence of random processes, with amplification especially contributing to count heterogeneity.
 
-#### Two data-generation perspectives for DEL counts
+#### Two data-generation perspectives for DEL counts {#two-data-generation-perspectives-for-del-counts}
 
 It is useful to separate DEL count models by the **data-generation assumption** they make about sequencing depth.
 
@@ -355,8 +356,7 @@ Recall the conditions of the rare-event / large-depth regime:
 
 Under this scaling, and assuming that Poisson's parameter $\lambda_i$ is equal to $Np_i$, the PMF of the binomial distribution converges to the PMF of a Poisson distribution.
 
-Start by rewriting $p_i$ as:
-$$
+Start by rewriting $p_i$ as: $$
 p_i = \frac{\lambda_i}{N}.
 $$
 
@@ -366,17 +366,15 @@ $$
 \Pr(X_i=k)=\binom{N}{k}\left(\frac{\lambda_i}{N}\right)^k\left(1-\frac{\lambda_i}{N}\right)^{N-k}.
 $$
 
-Recall that: 
-$$\binom{N}{k} = \frac{N!}{k!(N-k)!}$$
+Recall that: $$\binom{N}{k} = \frac{N!}{k!(N-k)!}$$
 
-and 
+and
 
-$$N! = N(N-1)(N-2)(N-3)\cdots 3\times 2\times 1.$$ 
+$$N! = N(N-1)(N-2)(N-3)\cdots 3\times 2\times 1.$$
 
-It can be written as: 
-$$N! = N(N-1)\cdots(N-k+1)(N-k)!$$ 
+It can be written as: $$N! = N(N-1)\cdots(N-k+1)(N-k)!$$
 
-This notation is useful because it shows that in $\binom{N}{k} = \frac{N!}{k!(N-k)!}$, the $(N-k)!$ terms in the numerator and denominator cancel each other out. Hence, we can rewrite the binomial coefficient as: 
+This notation is useful because it shows that in $\binom{N}{k} = \frac{N!}{k!(N-k)!}$, the $(N-k)!$ terms in the numerator and denominator cancel each other out. Hence, we can rewrite the binomial coefficient as:
 
 $$
 \binom{N}{k} = \frac{N(N-1)\cdots(N-k+1)}{k!}.
@@ -401,13 +399,11 @@ $$
 \frac{N}{N}\cdot\frac{N-1}{N}\cdots\frac{N-k+1}{N}
 $$
 
-If we set $\frac{\lambda_i^k}{k!}$ aside, then the product of the remaining terms can be written as a product of $k$ terms (because $N^k$ is in the denominator), each of which is of the form $\frac{N-j}{N}$ for $j=0,1,2,\dots,k-1$ ($k-1$ because the first term is $\frac{N}{N}$), namely:
-$$
+If we set $\frac{\lambda_i^k}{k!}$ aside, then the product of the remaining terms can be written as a product of $k$ terms (because $N^k$ is in the denominator), each of which is of the form $\frac{N-j}{N}$ for $j=0,1,2,\dots,k-1$ ($k-1$ because the first term is $\frac{N}{N}$), namely: $$
 \frac{N}{N}\cdot\frac{N-1}{N}\cdots\frac{N-k+1}{N} = \prod_{j=0}^{k-1}\left(1-\frac{j}{N}\right)
 $$
 
-Bringing back the first term gives:
-$$
+Bringing back the first term gives: $$
 \frac{\lambda_i^k}{k!}\cdot \prod_{j=0}^{k-1}\left(1-\frac{j}{N}\right)
 $$
 
@@ -471,8 +467,7 @@ $$
 \boxed{\Pr(X_i=k) = e^{-\lambda_i}\frac{\lambda_i^k}{k!}}
 $$
 
-This is exactly the PMF of a Poisson distribution:
-$$
+This is exactly the PMF of a Poisson distribution: $$
 \boxed{\Pr(X_i=k)=e^{-\lambda_i}\frac{\lambda_i^k}{k!}}
 $$
 
@@ -535,7 +530,7 @@ References:
 
 -   [Quantitative Comparison of Enrichment from DNA-Encoded Chemical Library Selections](https://pubs.acs.org/doi/10.1021/acscombsci.8b00116) - Introduces a binomial distribution model to compute normalised enrichment z-scores from DEL selections.
 
-:::::: {.callout-note icon="false" collapse="true"}
+:::::::: {.callout-note icon="false" collapse="true"}
 ## When is Beta-Binomial appropriate?
 
 The Beta prior adds **extra variability in enrichment probability**, analogous to how the Negative Binomial adds extra variability to Poisson rates.
@@ -558,7 +553,7 @@ Beta-Binomial is particularly natural when modelling:
 -   **Dirichlet-Multinomial** models the *entire library composition*
 -   **Beta-Binomial** models *one barcode’s share of reads*
 
-::::: {.callout-tip icon="false" collapse="true"}
+::::::: {.callout-tip icon="false" collapse="true"}
 ## Why does the Beta-Binomial approach the Negative Binomial when counts are small relative to sequencing depth $N$?
 
 Start with the Beta-Binomial model:
@@ -674,14 +669,13 @@ beta_shape_plot = (
 beta_shape_plot.save("img/kindel_beta_shape_plot.png", verbose=False)
 ```
 
-<div style="text-align: center;">
-  <img src="img/kindel_beta_shape_plot.png" alt="Effect of increasing b in a Beta(a, b) prior while keeping a = 2 fixed." style="max-width: 100%; height: auto;">
-</div>
+::: {style="text-align: center;"}
+<img src="img/kindel_beta_shape_plot.png" alt="Effect of increasing b in a Beta(a, b) prior while keeping a = 2 fixed." style="max-width: 100%; height: auto;"/>
+:::
 
 [**Figure:** Effect of increasing $b$ in a Beta$(a,b)$ prior while keeping $a = 2$ fixed.]{.fig-caption}
 
-
-::: {.callout-note icon="false" collapse="true"}
+:::: {.callout-note icon="false" collapse="true"}
 ## Why should $p^{(N)}$ and $\text{Beta}(a,b^{(N)})$ depend on sequencing depth?
 
 Recall the concrete example in the previous [Why work with Poisson-scale intensity instead of success probability?]{.box-ref-highlight} box.
@@ -814,14 +808,14 @@ beta_depth_plot = (
 beta_depth_plot.save("img/kindel_beta_depth_plot.png", verbose=False)
 ```
 
-<div style="text-align: center;">
-  <img src="img/kindel_beta_depth_plot.png" alt="Comparison of the example priors Beta(2, 10^3) and Beta(2, 10^6) on the success-probability scale." style="max-width: 100%; height: auto;">
-</div>
+::: {style="text-align: center;"}
+<img src="img/kindel_beta_depth_plot.png" alt="Comparison of the example priors Beta(2, 10^3) and Beta(2, 10^6) on the success-probability scale." style="max-width: 100%; height: auto;"/>
+:::
 
 [**Figure:** Comparison of the example priors $\text{Beta}(2, 1 \cdot 10^3)$ and $\text{Beta}(2, 1 \cdot 10^6)$ on the success-probability scale.]{.fig-caption}
 
 [The point of the plot is not merely that $p$ gets smaller, but that it gets smaller at exactly the rate needed for $\lambda^{(N)} = Np^{(N)}$ to stay finite. The log-scaled y-axis is used only to make both densities visible in a single overlay.]{.highlight-key-point}
-:::
+::::
 
 #### 2. Change-of-variables formula for densities
 
@@ -1055,8 +1049,8 @@ So the full logic is:
 1.  Binomial becomes Poisson in the rare-event / large-depth regime.
 2.  Beta on $p^{(N)}$ becomes Gamma on $\lambda^{(N)} = Np^{(N)}$.
 3.  Poisson mixed with Gamma gives Negative Binomial.
-:::::
-::::::
+:::::::
+::::::::
 
 ## Example: KinDEL dataset
 
@@ -1065,8 +1059,6 @@ For a concrete example, we use data from the [KinDEL paper](https://arxiv.org/ab
 KinDEL is one of the first large public DEL datasets designed to support machine-learning research in drug discovery. The resource contains approximately **81 million small molecules** screened against **two kinase targets (MAPK14 and DDR1)**, with accompanying benchmark tasks aimed at predictive hit identification and DEL denoising. Beyond raw count data, KinDEL also includes **replicate experiments** and biophysical validation data (on-DNA and off-DNA assays), making it useful for studying how well models recover true binding signals from noisy DEL measurements.
 
 We load only a subset of the data to keep the example simple and fast to run. In particular, we use the data for the DDR1 target from the first split.
-
-
 
 ```{python}
 data = pd.read_parquet("data/df_train_ddr1_split1_random.parquet")
@@ -1215,7 +1207,7 @@ ecdf_plot = (
 ecdf_plot.save("img/kindel_ecdf_by_condition.png")
 ```
 
-![Cumulative distribution function (CDF) of the sequencing counts for all conditions with the 85th percentile marked.](img/kindel_ecdf_by_condition.png){#fig-ecdf-counts }  
+![Cumulative distribution function (CDF) of the sequencing counts for all conditions with the 85th percentile marked.](img/kindel_ecdf_by_condition.png){#fig-ecdf-counts}
 
 The ECDF indicates that most molecules have very low sequencing counts, and the patterns differ between the matrix and target selections. This difference reflects the distinct biological and technical contexts of each selection method.
 
@@ -1262,7 +1254,7 @@ frequency_of_counts_plot = (
 frequency_of_counts_plot.save("img/kindel_frequency_of_counts.png")
 ```
 
-![Frequency of each sequencing count value ($\leq 20$) for all conditions.](img/kindel_frequency_of_counts.png){#fig-count-frequency }  
+![Frequency of each sequencing count value ($\leq 20$) for all conditions.](img/kindel_frequency_of_counts.png){#fig-count-frequency}
 
 @fig-count-frequency confirms that low integer counts dominate across conditions: counts such as 0, 1, 2, and 3 occur for very large numbers of molecules, while higher counts are much rarer. This pile-up at a few small integer values is what produces the visible step-like ECDF behaviour and discrete horizontal bands seen in the earlier plots.
 
@@ -1342,7 +1334,7 @@ replicate_corr_plot = (p_1 | p_2 | p_3) / (p_4 | p_5 | p_6) + gg.theme(figure_si
 replicate_corr_plot.save("img/Replicates_Correlations.png", verbose=False)
 ```
 
-![Correlations between replicates for the matrix and target selection conditions.](img/Replicates_Correlations.png){#fig-replicate-scatter }  
+![Correlations between replicates for the matrix and target selection conditions.](img/Replicates_Correlations.png){#fig-replicate-scatter}
 
 In @fig-replicate-scatter, stronger clustering along the red $y=x$ line indicates better agreement between replicate pairs. Agreement is generally clearer for matrix replicates and for higher-abundance molecules. The broad spread at very low proportions is expected in sparse DEL data, where sampling noise dominates; this reduces apparent concordance for low-abundance molecules without necessarily indicating experimental failure.
 
@@ -1382,8 +1374,7 @@ Divide both numerator and denominator by $\sqrt{p_i}$: $$
 = \frac{1}{\sqrt{N \cdot p_i}}
 $$
 
-This means that the CV is:
-$$
+This means that the CV is: $$
 \boxed{CV(\hat{p}_i) = \frac{1}{\sqrt{\lambda_i}}}
 $$
 
@@ -1496,7 +1487,7 @@ plt.tight_layout()
 plt.savefig("img/kindel_replicate_heatmap.png")
 ```
 
-![Spearman correlation matrix across matrix and target replicates using within-replicate proportions.](img/kindel_replicate_heatmap.png){#fig-replicate-heatmap }  
+![Spearman correlation matrix across matrix and target replicates using within-replicate proportions.](img/kindel_replicate_heatmap.png){#fig-replicate-heatmap}
 
 One more view is useful here: for each molecule, we count in how many of the three replicate experiments the sequencing count is greater than zero. This gives a simple measure of **replicate support**. A molecule detected in all three replicates has much stronger support than a molecule detected in only one replicate, while a molecule with zero counts in all replicates is a clear example of dropout in that condition. Framing the data this way makes the prevalence of dropout immediately visible and complements the pairwise correlation plots above, which show agreement only among the molecules that are observed.
 
@@ -1575,7 +1566,7 @@ replicate_support_plot = (
 replicate_support_plot.save("img/kindel_replicate_support.png")
 ```
 
-![Fraction of molecules observed in 0, 1, 2, or 3 replicates for matrix and target selections.](img/kindel_replicate_support.png){#fig-replicate-support }  
+![Fraction of molecules observed in 0, 1, 2, or 3 replicates for matrix and target selections.](img/kindel_replicate_support.png){#fig-replicate-support}
 
 Together, @fig-replicate-scatter, @fig-replicate-heatmap, and @fig-replicate-support support a consistent interpretation:
 
@@ -1648,7 +1639,7 @@ pre_post_scatter_plot = (
 pre_post_scatter_plot.save("img/kindel_pre_post_scatter.png", verbose=False)
 ```
 
-![Pairwise relationships between `seq_load`, matrix mean, and target mean counts on the log scale.](img/kindel_pre_post_scatter.png){#fig-pre-post-scatter }  
+![Pairwise relationships between `seq_load`, matrix mean, and target mean counts on the log scale.](img/kindel_pre_post_scatter.png){#fig-pre-post-scatter}
 
 The scatter plots of log-transformed pre-selection counts (`seq_load`) versus post-selection mean counts (matrix and target) show three consistent patterns:
 
@@ -1697,7 +1688,7 @@ plt.tight_layout()
 plt.savefig("img/kindel_pre_post_corr.png")
 ```
 
-![Spearman correlation matrix between log-transformed pre-selection abundance (`seq_load`), matrix counts, and target counts.](img/kindel_pre_post_corr.png){#fig-pre-post-corr }  
+![Spearman correlation matrix between log-transformed pre-selection abundance (`seq_load`), matrix counts, and target counts.](img/kindel_pre_post_corr.png){#fig-pre-post-corr}
 
 The correlation matrix shows high correlation between `seq_load` and matrix counts, and lower correlation between `seq_load` and target counts. This is consistent with the visual patterns in @fig-pre-post-scatter: matrix counts mostly track library composition and have a tighter scatter, whereas target counts reflect enrichment rather than just library composition and therefore have a looser scatter.
 
@@ -1727,7 +1718,7 @@ matrix_target_scatter_plot = (
 matrix_target_scatter_plot.save("img/kindel_matrix_target_scatter.png", verbose=False)
 ```
 
-![Relationship between mean matrix and target replicate counts on the log scale.](img/kindel_matrix_target_scatter.png){#fig-matrix-target-scatter }  
+![Relationship between mean matrix and target replicate counts on the log scale.](img/kindel_matrix_target_scatter.png){#fig-matrix-target-scatter}
 
 This plot compares the mean matrix and target counts (across three replicates) for each molecule, with the red line indicating equality (i.e., $y = x$). The vertical lines are due to integer-valued counts in the matrix and target selections.
 
@@ -1770,8 +1761,7 @@ enrichment_plot = (
 enrichment_plot.save("img/kindel_target_over_matrix_enrichment_vs_load.png", verbose=False)
 ```
 
-![Crude target-over-matrix enrichment plotted against pre-selection abundance. The dashed line marks equal target and matrix signal.](img/kindel_target_over_matrix_enrichment_vs_load.png){#fig-enrichment-vs-load }  
-
+![Crude target-over-matrix enrichment plotted against pre-selection abundance. The dashed line marks equal target and matrix signal.](img/kindel_target_over_matrix_enrichment_vs_load.png){#fig-enrichment-vs-load}
 
 This plot brings the previous EDA results together in a single view. The x-axis shows how abundant a molecule was before selection, while the y-axis shows whether its average target count is higher or lower than its average matrix count.
 
@@ -1783,7 +1773,7 @@ The dashed horizontal line at zero is the key reference point:
 
 Most importantly, molecules with positive enrichment appear across a range of pre-selection abundances, not only among the most abundant compounds in the input library. The quantity we care about is not raw count size by itself, but **target-specific enrichment after accounting for both matrix background and input abundance**.
 
-#### Relationship between mean and variance of the sequencing counts
+#### Relationship between mean and variance of the sequencing counts {#relationship-between-mean-and-variance-of-the-sequencing-counts}
 
 The mean–variance relationship is a useful diagnostic for over/under-dispersion.
 
@@ -1835,7 +1825,7 @@ mean_var_plot = (
 mean_var_plot.save("img/kindel_mean_variance.png", verbose=False)
 ```
 
-![Mean-variance relationship of the sequencing counts for the matrix and target selection conditions.](img/kindel_mean_variance.png){#fig-mean-variance }  
+![Mean-variance relationship of the sequencing counts for the matrix and target selection conditions.](img/kindel_mean_variance.png){#fig-mean-variance}
 
 The red line marks the Poisson benchmark, where the variance equals the mean:
 
@@ -1899,7 +1889,7 @@ The EDA highlights three non-target or technical effects that should be modelled
 
 -   **Library composition effects:** [Relationship between pre and post-selection counts](#relationship-between-pre-and-post-selection-counts) shows that pre-selection abundance is correlated with post-selection counts. This implies that baseline library representation can propagate into both matrix and target readouts, independently of binding strength.
 
--   **Replicate-level variation:** The [Correlations between replicates](#correlations-between-replicates) analysis (including the Spearman summary in @fig-replicate-heatmap) shows that replicate agreement is substantial but not perfect, especially in low-abundance regions where sampling and technical noise are strongest. This indicates that replicate-to-replicate shifts should be modelled explicitly (e.g., with replicate random effects or condition-specific replicate offsets), rather than absorbed into enrichment parameters.
+-   **Replicate-level variation:** The [Correlations between replicates](#correlations-between-replicates) analysis (including the Spearman summary in @fig-replicate-heatmap) shows that replicate agreement is substantial but not perfect, especially in low-abundance regions where sampling and technical noise are strongest. This indicates that replicate-to-replicate shifts should be modelled explicitly, for example with replicate random effects or condition-specific replicate offsets.
 
 In practice, likelihood parameterisation should separate background structure (matrix effects and input composition), replicate-level technical variation, and true target-dependent enrichment. Doing so improves both the accuracy of enrichment estimates and the biological interpretability of model outputs.
 
@@ -1924,9 +1914,9 @@ Drawing on everything identified in the EDA, the four latent causes of DEL seque
 -   **Library composition** is a common upstream cause of all three count types: pre-selection, matrix, and target. A molecule that happens to be over-represented in the synthesised library will appear more often in every condition, regardless of whether it binds anything. This was established in [Relationship between pre and post-selection counts](#relationship-between-pre-and-post-selection-counts).
 -   **Matrix background** is a shared cause of both matrix and target counts. Non-specific interactions with the solid support inflate post-selection counts in both conditions simultaneously, which is why the [Relationship between matrix and target counts](#relationship-between-matrix-and-target-counts) shows a positive association even for non-binders.
 -   **Target binding** is the only cause that flows exclusively into the target counts, on top of what matrix background and library composition already contribute. This is the signal of interest.
--   **Replicate effects and technical noise** operate at the observation stage. Because we have replicate matrix and target measurements but not replicate pre-selection counts, this noise enters the model at the point where latent rates become observed read counts.
+-   **Replicate effects and technical noise** operate at the observation stage. Because we have replicate matrix and target measurements but not replicate pre-selection counts, this noise enters the model at the point where latent rates become observed post-selection read counts.
 
-@fig-causal-sketch summarises this structure in three layers. On the left are the **latent causes**: library composition and input abundance, matrix-background propensity, target-binding propensity, and condition-specific replicate effects (sampling, PCR, and run variation). These feed into the middle layer of **condition-specific latent count intensities** for pre-selection, matrix, and target. The right layer contains the **observed sequencing counts**: `seq_load` for pre-selection, together with replicated matrix (`seq_matrix_1`, `seq_matrix_2`, `seq_matrix_3`) and target (`seq_target_1`, `seq_target_2`, `seq_target_3`) read counts, which are noisy draws from those latent intensities.
+@fig-causal-sketch summarises this structure in two layers. On the left are the **latent causes**: library composition or input abundance, matrix-background propensity, target-binding propensity, and condition-specific replicate effects (sampling, PCR, and run variation). These feed into the right layer contains the **observed sequencing counts**: `seq_load` for pre-selection, together with replicated matrix (`seq_matrix_1`, `seq_matrix_2`, `seq_matrix_3`) and target (`seq_target_1`, `seq_target_2`, `seq_target_3`) read counts.
 
 ![Causal sketch of DEL sequencing counts.](img/Causal_Sketch.png){#fig-causal-sketch width="75%"}
 
