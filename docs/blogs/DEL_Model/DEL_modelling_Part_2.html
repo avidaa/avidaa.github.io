@@ -20,6 +20,40 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -260,12 +294,12 @@ Use the posterior of the chosen model (or a stacked combination of candidates) t
 </ol>
 <section id="state-the-causal-assumptions-dag-first" class="level3">
 <h3 class="anchored" data-anchor-id="state-the-causal-assumptions-dag-first">State the causal assumptions (DAG first)</h3>
-<p>The first step in the Bayesian workflow is to make the causal assumptions explicit as a directed acyclic graph (DAG). We build the DAG incrementally, starting from what is actually measured and then introducing the latent quantities needed to explain it.</p>
+<p>The first step in the Bayesian workflow is to make the causal assumptions explicit as a directed acyclic graph (DAG). In our DAG, <strong>an observation is represented as a square node</strong>, <strong>a latent variable (unobserved) as a circle</strong>, and <strong>causal relationships are represented as directed edges between nodes</strong>. We build the DAG incrementally, starting from what is actually measured and then introducing the latent quantities needed to explain it.</p>
 <p>For a single compound, the experiment yields three observed counts:</p>
 <ul>
-<li>matrix counts, <span class="math inline">\(C_m\)</span>,</li>
-<li>target counts, <span class="math inline">\(C_t\)</span>,</li>
-<li>library counts (pre-selection), <span class="math inline">\(C_l\)</span>.</li>
+<li>Matrix counts, <span style="color:#5e81ac"><span class="math inline">\(C_m\)</span></span>,</li>
+<li>Target counts, <span style="color:#d08770"><span class="math inline">\(C_t\)</span></span>,</li>
+<li>Library counts (pre-selection), <span style="color:#b48ead"><span class="math inline">\(C_l\)</span></span>.</li>
 </ul>
 <p>These are shown as the only nodes in the initial DAG:</p>
 <div id="fig-dag-ct-only" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -278,7 +312,13 @@ Figure&nbsp;2: DAG showing observed counts for one compound.
 </figcaption>
 </figure>
 </div>
-<p>Each observed count is assumed to arise from a stochastic process governed by an underlying rate: <span class="math inline">\(\lambda_m\)</span> for matrix counts, <span class="math inline">\(\lambda_t\)</span> for target counts, and <span class="math inline">\(\lambda_l\)</span> for library counts, as shown in the DAG below:</p>
+<p>Each observed count is assumed to arise from a stochastic process governed by an underlying rate:</p>
+<ul>
+<li><span style="color:#5e81ac"><span class="math inline">\(\lambda_m\)</span></span>, for matrix counts,</li>
+<li><span style="color:#d08770"><span class="math inline">\(\lambda_t\)</span></span>, for target counts,</li>
+<li><span style="color:#b48ead"><span class="math inline">\(\lambda_l\)</span></span>, for library counts,</li>
+</ul>
+<p>as shown in the DAG below:</p>
 <div id="fig-dag-ct-lambda" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-dag-ct-lambda-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -289,12 +329,30 @@ Figure&nbsp;3: DAG showing observed counts and their underlying rates.
 </figcaption>
 </figure>
 </div>
-<p>The exact form of this process (the likelihood) and how the rates relate to one another are left unspecified for now; they are introduced in the next steps as we extend the DAG.</p>
-<p>The rate parameters <span class="math inline">\(\lambda_m\)</span>, <span class="math inline">\(\lambda_t\)</span>, and <span class="math inline">\(\lambda_l\)</span> are not independent; they are influenced by several latent factors that we introduce as new nodes in the DAG. These include:</p>
+<p>The exact form of this process (the likelihood or exact parameterization) and how the rates relate to one another are left unspecified for now.</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Why are latent rates in the DAG but not in the causal sketch?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>The causal sketch is meant to stay at a high level: it shows the <strong>latent causes</strong> we care about and the <strong>observed counts</strong> we measure. In reality, however, the counts <span style="color:#5e81ac"><span class="math inline">\(C_m\)</span></span>, <span style="color:#d08770"><span class="math inline">\(C_t\)</span></span>, and <span style="color:#b48ead"><span class="math inline">\(C_l\)</span></span> are not direct outputs of those causes. They are noisy observations affected by sampling, PCR amplification, sequencing depth, and other technical variation.</p>
+<p>The latent rates <span style="color:#5e81ac"><span class="math inline">\(\lambda_m\)</span></span>, <span style="color:#d08770"><span class="math inline">\(\lambda_t\)</span></span>, and <span style="color:#b48ead"><span class="math inline">\(\lambda_l\)</span></span> are the bridge between these two levels: they represent the expected count intensity implied by the latent causes, before observation noise is added. Including them makes the statistical model more faithful, because it lets us separate the signal-generating process from the noise-generating process.</p>
+<p>They are not emphasized in the causal sketch because doing so would add another layer of detail and make the diagram harder to read, without changing its main causal message. <span class="highlight-key-point">The sketch is therefore a simplified summary of the main latent causes and observed outcomes, whereas the full probabilistic model should include the latent rates explicitly.</span></p>
+</div>
+</div>
+</div>
+<p>The rate parameters <span style="color:#5e81ac"><span class="math inline">\(\lambda_m\)</span></span>, <span style="color:#d08770"><span class="math inline">\(\lambda_t\)</span></span>, and <span style="color:#b48ead"><span class="math inline">\(\lambda_l\)</span></span> are not independent; they are influenced by several latent factors that we introduce as new nodes in the DAG. These include:</p>
 <ul>
-<li>compound abundance in the input library, <span class="math inline">\(a\)</span>,</li>
-<li>matrix background propensity, <span class="math inline">\(b\)</span>,</li>
-<li>target-binding propensity, <span class="math inline">\(s\)</span>,</li>
+<li>Compound abundance in the input library, <span style="color:#a3be8c"><span class="math inline">\(a\)</span></span>,</li>
+<li>Matrix background propensity, <span style="color:#88c0d0"><span class="math inline">\(b\)</span></span>,</li>
+<li>Target-binding propensity, <span style="color:#bf616a"><span class="math inline">\(s\)</span></span>,</li>
 </ul>
 <div id="fig-dag-latent-factors" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -308,9 +366,9 @@ Figure&nbsp;4: DAG showing observed counts, rates, and latent factors.
 </div>
 <p>The arrows in the DAG encode which latent factors influence which rates:</p>
 <ul>
-<li><strong>Compound abundance, <span class="math inline">\(a\)</span></strong> enters all three rates (<span class="math inline">\(\lambda_l\)</span>, <span class="math inline">\(\lambda_m\)</span>, <span class="math inline">\(\lambda_t\)</span>). More copies of a compound in the input library mean more molecules available to be sequenced in every downstream condition, so <span class="math inline">\(a\)</span> sets a baseline for all observed counts.</li>
-<li><strong>Matrix background, <span class="math inline">\(b\)</span></strong> enters <span class="math inline">\(\lambda_m\)</span> and <span class="math inline">\(\lambda_t\)</span> but not <span class="math inline">\(\lambda_l\)</span>. It captures non-specific retention (e.g., sticking to beads, resin, or other surfaces) that occurs whenever the library is exposed to the experimental matrix, regardless of whether the target is present.</li>
-<li><strong>Target-binding propensity, <span class="math inline">\(s\)</span></strong> enters only <span class="math inline">\(\lambda_t\)</span>. It represents the additional enrichment a compound experiences specifically because it binds the target, and is the quantity we ultimately want to infer.</li>
+<li><strong>Compound abundance, <span style="color:#a3be8c"><span class="math inline">\(a\)</span></span></strong> enters all three rates (<span style="color:#b48ead"><span class="math inline">\(\lambda_l\)</span></span>, <span style="color:#5e81ac"><span class="math inline">\(\lambda_m\)</span></span>, <span style="color:#d08770"><span class="math inline">\(\lambda_t\)</span></span>). More copies of a compound in the input library mean more molecules available to be sequenced in every downstream condition, so <span style="color:#a3be8c"><span class="math inline">\(a\)</span></span> sets a baseline for all observed counts.</li>
+<li><strong>Matrix background, <span style="color:#88c0d0"><span class="math inline">\(b\)</span></span></strong> enters <span style="color:#5e81ac"><span class="math inline">\(\lambda_m\)</span></span> and <span style="color:#d08770"><span class="math inline">\(\lambda_t\)</span></span> but not <span style="color:#b48ead"><span class="math inline">\(\lambda_l\)</span></span>. It captures non-specific retention (e.g., sticking to beads, resin, or other surfaces) that occurs whenever the library is exposed to the experimental matrix, regardless of whether the target is present. The library counts <span style="color:#b48ead"><span class="math inline">\(C_l\)</span></span> are measured before the matrix is introduced, so they are not influenced by <span style="color:#88c0d0"><span class="math inline">\(b\)</span></span>.</li>
+<li><strong>Target-binding propensity, <span style="color:#bf616a"><span class="math inline">\(s\)</span></span></strong> enters only <span style="color:#d08770"><span class="math inline">\(\lambda_t\)</span></span>. It represents the additional enrichment a compound experiences specifically because it binds the target, and <strong>is the quantity we ultimately want to infer</strong>.</li>
 </ul>
 <p>So far the DAG captures the main sources of variation in observed counts for one comopound only. However, DEL experiments involve large numbers of compounds. To model this, we introduce a plate that replicates the structure for each compound <span class="math inline">\(i\)</span>:</p>
 <div id="fig-dag-with-latent-factors-with-plate" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -323,8 +381,8 @@ Figure&nbsp;5: DAG showing observed counts, rates, and latent factors for multip
 </figcaption>
 </figure>
 </div>
-<p>Here, the plate indicates that each compound <span class="math inline">\(i\)</span> has its own set of observed counts (<span class="math inline">\(C_{m,i}\)</span>, <span class="math inline">\(C_{t,i}\)</span>, <span class="math inline">\(C_{l,i}\)</span>), rates (<span class="math inline">\(\lambda_{m,i}\)</span>, <span class="math inline">\(\lambda_{t,i}\)</span>, <span class="math inline">\(\lambda_{l,i}\)</span>), and latent factors (<span class="math inline">\(a_i\)</span>, <span class="math inline">\(b_i\)</span>, <span class="math inline">\(s_i\)</span>). The causal structure within the plate is the same for every compound, but the parameters can vary across compounds.</p>
-<p>Another source of variation is technical noise at the replicate level: differences in sequencing depth, library preparation efficiency, and other batch effects mean that repeated measurements of the same compound are not identical. We extend the DAG with a second plate, indexed by replicate, that contains replicate-specific parameters <span class="math inline">\(\gamma_{m,r}\)</span> and <span class="math inline">\(\gamma_{t,r}\)</span> acting on the matrix and target rates, respectively. The compound plate and the replicate plate overlap on the observed counts, so each <span class="math inline">\(C_{m,i,r}\)</span> and <span class="math inline">\(C_{t,i,r}\)</span> is influenced by both its compound-level latent factors (<span class="math inline">\(a_i\)</span>, <span class="math inline">\(b_i\)</span>, <span class="math inline">\(s_i\)</span>) and its replicate-level effects (<span class="math inline">\(\gamma_{m,r}\)</span>, <span class="math inline">\(\gamma_{t,r}\)</span>).</p>
+<p>Here, the plate indicates that each compound <span class="math inline">\(i\)</span> has its own set of observed counts (<span style="color:#5e81ac"><span class="math inline">\(C_{m,i}\)</span></span>, <span style="color:#d08770"><span class="math inline">\(C_{t,i}\)</span></span>, <span style="color:#b48ead"><span class="math inline">\(C_{l,i}\)</span></span>), rates (<span style="color:#5e81ac"><span class="math inline">\(\lambda_{m,i}\)</span></span>, <span style="color:#d08770"><span class="math inline">\(\lambda_{t,i}\)</span></span>, <span style="color:#b48ead"><span class="math inline">\(\lambda_{l,i}\)</span></span>), and latent factors (<span style="color:#a3be8c"><span class="math inline">\(a_i\)</span></span>, <span style="color:#88c0d0"><span class="math inline">\(b_i\)</span></span>, <span style="color:#bf616a"><span class="math inline">\(s_i\)</span></span>). The causal structure within the plate is the same for every compound, but the parameters can vary across compounds.</p>
+<p>Another source of variation is technical noise at the replicate level: differences in sequencing depth, library preparation efficiency, and other batch effects mean that repeated measurements of the same compound are not identical. We extend the DAG with a second plate, indexed by replicate. This plate contains replicate-specific parameters <span style="color:#5e81ac"><span class="math inline">\(\gamma_{m,r}\)</span></span> and <span style="color:#d08770"><span class="math inline">\(\gamma_{t,r}\)</span></span> acting on the matrix and target rates, respectively. The compound plate and the replicate plate overlap on the observed counts, so each <span style="color:#5e81ac"><span class="math inline">\(C_{m,i,r}\)</span></span> and <span style="color:#d08770"><span class="math inline">\(C_{t,i,r}\)</span></span> is influenced by both its compound-level latent factors (<span style="color:#a3be8c"><span class="math inline">\(a_i\)</span></span>, <span style="color:#88c0d0"><span class="math inline">\(b_i\)</span></span>, <span style="color:#bf616a"><span class="math inline">\(s_i\)</span></span>) and its replicate-level effects (<span style="color:#5e81ac"><span class="math inline">\(\gamma_{m,r}\)</span></span>, <span style="color:#d08770"><span class="math inline">\(\gamma_{t,r}\)</span></span>).</p>
 <div id="fig-dag-with-latent-factors-and-replicates" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-dag-with-latent-factors-and-replicates-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -335,16 +393,375 @@ Figure&nbsp;6: DAG showing observed counts, rates, latent factors, and replicate
 </figcaption>
 </figure>
 </div>
-<p>TODO:</p>
+<p>A DAG does not guarantee valid inference. It only specifies the assumed causal structure and conditional independencies. Inference can still fail if we condition on variables that distort the causal pathways implied by the graph. Therefore, the next step in the workflow is to analyze the DAG to determine which variables should and should not be conditioned on when making inferences about the target-binding propensity <span style="color:#bf616a"><span class="math inline">\(s\)</span></span>.</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+What does valid inference mean in the context of a DAG?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><strong>Valid inference</strong> means that the statistical model allows us to recover the latent target-binding propensity <span style="color:#bf616a"><span class="math inline">\(s\)</span></span> from the observed counts in a way that is consistent with the causal assumptions encoded in the DAG. In practice, this means accounting properly for other causes of the target counts, such as:</p>
+<ul>
+<li>Input abundance <span style="color:#a3be8c"><span class="math inline">\(a\)</span></span>,</li>
+<li>Matrix background <span style="color:#88c0d0"><span class="math inline">\(b\)</span></span>,</li>
+<li>Replicate-level variation <span style="color:#5e81ac"><span class="math inline">\(\gamma_m\)</span></span> and <span style="color:#d08770"><span class="math inline">\(\gamma_t\)</span></span>,</li>
+</ul>
+<p>and avoiding conditioning choices that introduce bias, such as conditioning on <strong>colliders</strong> or <strong>leaving backdoor paths</strong> open.</p>
+<p><strong>Invalid inference</strong> occurs when the model attributes variation to <span style="color:#bf616a"><span class="math inline">\(s_i\)</span></span> that is actually due to other pathways, or, when <span style="color:#bf616a"><span class="math inline">\(s_i\)</span></span> is not identifiable from the observed data under the assumed model.</p>
+<p><span class="highlight-key-point">A DAG helps you reason about bias from conditioning, but valid inference also depends on model identification and likelihood specification. So even with the right DAG, inference can still be invalid if the statistical model is misspecified or the latent parameters are not identifiable.</span></p>
+</div>
+</div>
+</div>
+<section id="which-variables-should-and-should-not-be-conditioned-on" class="level4">
+<h4 class="anchored" data-anchor-id="which-variables-should-and-should-not-be-conditioned-on">Which variables should and should not be conditioned on?</h4>
+<p>Our goal is to infer the target-binding propensity <span style="color:#bf616a"><span class="math inline">\(s\)</span></span>. To do this, we need to understand how information about <span style="color:#bf616a"><span class="math inline">\(s\)</span></span> flows through the DAG. This is where the concepts of <strong>path</strong>, <strong>open and closed paths</strong>, <strong>four elemental confounds</strong> (as described by McElreath - second edition of statistical rethinking, Figure 6.6) come in.</p>
+<section id="what-is-a-path-in-a-dag" class="level5">
+<h5 class="anchored" data-anchor-id="what-is-a-path-in-a-dag">What is a path in a DAG?</h5>
+<p>A path is a sequence of edges connecting two nodes, <strong>regardless of the direction of the arrows</strong>. Every consecutive pair of nodes in the sequence must be joined by an edge in the DAG. For example, in our DAG, one path connecting <span style="color:#bf616a"><span class="math inline">\(s\)</span></span> to <span style="color:#d08770"><span class="math inline">\(C_{t}\)</span></span> is:</p>
+<ul>
+<li><span style="color:#bf616a"><span class="math inline">\(s\)</span></span> → <span style="color:#d08770"><span class="math inline">\(\lambda_t\)</span></span> → <span style="color:#d08770"><span class="math inline">\(C_{t}\)</span></span></li>
+</ul>
+<div id="fig-path-s-to-Ct" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-path-s-to-Ct-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="img/path_s_to_Ct.png" class="img-fluid figure-img" style="width:75.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-path-s-to-Ct-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7: Path from <span class="math inline">\(s\)</span> to <span class="math inline">\(C_t\)</span>.
+</figcaption>
+</figure>
+</div>
+<p>There are also paths from <span style="color:#bf616a"><span class="math inline">\(s\)</span></span> to other nodes in the graph, for example:</p>
+<ul>
+<li><span style="color:#bf616a"><span class="math inline">\(s\)</span></span> → <span style="color:#d08770"><span class="math inline">\(\lambda_t\)</span></span> ← <span style="color:#a3be8c"><span class="math inline">\(a\)</span></span> → <span style="color:#b48ead"><span class="math inline">\(\lambda_l\)</span></span> → <span style="color:#b48ead"><span class="math inline">\(C_{l}\)</span></span></li>
+</ul>
+<div id="fig-path-s-to-Cl" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-path-s-to-Cl-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="img/path_s_to_Cl.png" class="img-fluid figure-img" style="width:75.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-path-s-to-Cl-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;8: Path from <span class="math inline">\(s\)</span> to <span class="math inline">\(C_l\)</span>.
+</figcaption>
+</figure>
+</div>
+<ul>
+<li><span style="color:#bf616a"><span class="math inline">\(s\)</span></span> → <span style="color:#d08770"><span class="math inline">\(\lambda_t\)</span></span> ← <span style="color:#88c0d0"><span class="math inline">\(b\)</span></span> → <span style="color:#5e81ac"><span class="math inline">\(\lambda_m\)</span></span> → <span style="color:#5e81ac"><span class="math inline">\(C_{m}\)</span></span></li>
+</ul>
+<div id="fig-path-s-to-Cm" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-path-s-to-Cm-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="img/path_s_to_Cm.png" class="img-fluid figure-img" style="width:75.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-path-s-to-Cm-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9: Path from <span class="math inline">\(s\)</span> to <span class="math inline">\(C_m\)</span>.
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="what-does-open-or-closed-path-mean-in-a-dag" class="level5">
+<h5 class="anchored" data-anchor-id="what-does-open-or-closed-path-mean-in-a-dag">What does open or closed path mean in a DAG?</h5>
+<p>A path is <strong>open</strong> when information can pass along it, meaning the two variables may become statistically associated.</p>
+<p>A path is <strong>closed</strong> when something blocks that route, so the variables are independent along that path.</p>
+<p>Whether a path is open or closed depends on two things:</p>
 <ol type="1">
-<li>Add the replicate level variation parameters</li>
-<li>Check the DAG for:
+<li>The arrow pattern along the path, and<br>
+</li>
+<li>Which variables we condition on.</li>
+</ol>
+<p>Opening and closing paths matter because conditioning can change the associations implied by a DAG. Closing an unwanted path, such as a confounding path, can reduce bias. But conditioning can also do harm: it may block part of the causal effect we want to estimate, or open a previously closed path and create a spurious association.</p>
+<p>McElreath shows that these changes in path status are governed by a small set of recurring path structures. In practice, DAG reasoning means identifying which structure appears along a path and then asking whether conditioning on a node blocks bias or introduces it.</p>
+<p><span class="highlight-key-point">This is why simply removing correlated predictors is not a causal solution. As McElreath puts it, “Pairwise correlations are not the problem.” What matters is why variables are correlated and what conditioning on them does. A high correlation may arise because two variables share a common cause, because one mediates the effect of the other, or because both are downstream of some selection process. These situations require different modelling choices.</span></p>
+</section>
+<section id="what-are-the-recurring-path-structures-and-how-they-can-open-or-close-a-path" class="level5">
+<h5 class="anchored" data-anchor-id="what-are-the-recurring-path-structures-and-how-they-can-open-or-close-a-path">What are the recurring path structures and how they can open or close a path?</h5>
+<p>There are mainly four elemental path structures that determine how conditioning affects the flow of information in a DAG.</p>
+<p>The first is the <strong>fork</strong>, or <strong>confounding</strong>, structure:</p>
+<div id="fig-fork-structure" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-fork-structure-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="img/fork_structure.png" class="img-fluid figure-img" style="width:50.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-fork-structure-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;10: Fork structure.
+</figcaption>
+</figure>
+</div>
+<p>In a fork structure, the middle node is a common cause of the two endpoints:</p>
+<p><span class="math display">\[
+X \leftarrow Z \rightarrow Y
+\]</span></p>
+<p>Because both <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> are caused by <span class="math inline">\(Z\)</span>, they may be statistically associated even if there is no direct causal effect between them. Conditioning on the common cause <span class="math inline">\(Z\)</span> blocks this path and removes the association induced by <span class="math inline">\(Z\)</span>. This can be written as:</p>
+<p><span class="math display">\[
+X \perp\!\!\!\perp Y \mid Z
+\]</span></p>
+<p>which reads as “<span class="math inline">\(X\)</span> is independent of <span class="math inline">\(Y\)</span> given <span class="math inline">\(Z\)</span>”.</p>
+<p><span class="highlight-key-point">Conditioning on <span class="math inline">\(Z\)</span> blocks the backdoor path through the confounder, <span class="math inline">\(Z\)</span>, and helps recover an unbiased estimate of the causal effect.</span></p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+What is a backdoor path?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>A backdoor path is a non-causal path between <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> that sneaks in through a common cause and can make <span class="math inline">\(X\)</span> look associated with <span class="math inline">\(Y\)</span> even when the association is partly or entirely confounded.</p>
+<p>A front-door causal path is: <span class="math display">\[
+X \rightarrow Y
+\]</span></p>
+<p>This is the direct causal effect we want to estimate: the effect of <span class="math inline">\(X\)</span> on <span class="math inline">\(Y\)</span>.</p>
+<p>Backdoor path start by <strong>going backwards out of</strong> <span class="math inline">\(X\)</span> into one of its causes (in this case, <span class="math inline">\(Z\)</span>), then forward to <span class="math inline">\(Y\)</span>:</p>
+<p><span class="math display">\[
+X \leftarrow Z \rightarrow Y
+\]</span></p>
+<p>Recall that a <strong>path</strong> is a sequence of edges connecting two nodes, <strong>regardless of the direction of the arrows</strong>. So the path from <span class="math inline">\(X\)</span> to <span class="math inline">\(Y\)</span> can go backwards from <span class="math inline">\(X\)</span> to <span class="math inline">\(Z\)</span>, and then forward from <span class="math inline">\(Z\)</span> to <span class="math inline">\(Y\)</span>. This is a backdoor path because it goes “backwards” out of <span class="math inline">\(X\)</span> before going forward to <span class="math inline">\(Y\)</span>.</p>
+<p>A backdoor path carries confounding. To estimate the causal effect of <span class="math inline">\(X\)</span> on <span class="math inline">\(Y\)</span>, we usually want to block backdoor paths by conditioning on appropriate common causes such as <span class="math inline">\(Z\)</span>.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Intuitive example of a fork structure and backdoor path
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Suppose we want to estimate whether carrying an umbrella has an effect on being wet. However, there is a confounder: weather conditions. Rainy weather affects both whether someone carries an umbrella and whether they gets wet.</p>
+<p>On rainy days, people are more likely to carry an umbrella and more likely to get wet. This can create a statistical association between umbrellas and getting wet, even if carrying an umbrella does not directly cause someone to get wet.</p>
+<p><span class="math display">\[
+X = \text{Carrying an umbrella}
+\]</span> <span class="math display">\[
+Y = \text{Getting wet}
+\]</span> <span class="math display">\[
+Z = \text{Weather conditions (rainy or not)}
+\]</span></p>
+<p>Weather is a common cause of both carrying an umbrella and getting wet. This creates the backdoor path:</p>
+<p><span class="math display">\[
+X \leftarrow Z \rightarrow Y
+\]</span></p>
+<p>or <span class="math display">\[\text{Carrying an umbrella} \leftarrow \text{Weather conditions} \rightarrow \text{Getting wet}\]</span></p>
+<p>So the association between umbrella use and getting wet is partly coming through the backdoor path via weather.</p>
+<p>The path is called a backdoor path because instead of going forward from umbrella to getting wet: <span class="math display">\[\text{Carrying an umbrella} \rightarrow \text{Getting wet}\]</span></p>
+<p>It goes backwards from umbrella to one of its causes (weather):</p>
+<p><span class="math display">\[\text{Carrying an umbrella} \leftarrow \text{Weather conditions}\]</span></p>
+<p>and then forward from weather to getting wet: <span class="math display">\[\text{Weather conditions} \rightarrow \text{Getting wet}\]</span></p>
+<p>If we condition on weather, we compare people under the same weather conditions. This makes the causal question clearer. Weather creates a backdoor path because it affects both whether someone carries an umbrella and whether they get wet:</p>
+<p><span class="math display">\[
+\text{Carrying an umbrella} \leftarrow \text{Weather} \rightarrow \text{Getting wet}
+\]</span></p>
+<p>Conditioning on weather blocks this backdoor path. It separates the association caused by shared weather conditions from the possible direct effect of carrying an umbrella on getting wet. Once we compare people under the same weather conditions, we would expect umbrella use to be associated with a lower chance of getting wet, if umbrellas are effective.</p>
+<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Code for the umbrella example
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Let’s simulate some data to illustrate the umbrella example. We will create a simple dataset where weather conditions affect both umbrella use and getting wet.</p>
+<div id="a032f577" class="cell" data-execution_count="1">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Set random seed for reproducibility</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">42</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Simulate weather conditions (0 = not rainy, 1 = rainy)</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>weather <span class="op">=</span> np.random.binomial(<span class="dv">1</span>, <span class="fl">0.3</span>, size<span class="op">=</span><span class="dv">1000</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Simulate umbrella use based on weather (more likely to carry an umbrella if it's rainy)</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>umbrella <span class="op">=</span> np.random.binomial(<span class="dv">1</span>, <span class="fl">0.8</span> <span class="op">*</span> weather <span class="op">+</span> <span class="fl">0.1</span>, size<span class="op">=</span><span class="dv">1000</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Simulate getting wet based on weather and umbrella use</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co"># People are more likely to get wet if it's rainy, but carrying an umbrella reduces the chance</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>getting_wet <span class="op">=</span> np.random.binomial(<span class="dv">1</span>, <span class="fl">0.7</span> <span class="op">*</span> weather <span class="op">*</span> (<span class="dv">1</span> <span class="op">-</span> umbrella) <span class="op">+</span> <span class="fl">0.1</span> <span class="op">*</span> weather <span class="op">*</span> umbrella <span class="op">+</span> <span class="fl">0.05</span> <span class="op">*</span> (<span class="dv">1</span> <span class="op">-</span> weather), size<span class="op">=</span><span class="dv">1000</span>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a DataFrame</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Weather'</span>: weather,</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Umbrella'</span>: umbrella,</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">'GettingWet'</span>: getting_wet</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the first few rows of the dataset</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(data.head())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>   Weather  Umbrella  GettingWet
+0        0         0           0
+1        1         1           0
+2        1         1           1
+3        0         0           0
+4        0         0           0</code></pre>
+</div>
+</div>
+<p>This code simulates a dataset of 1000 observations with three variables: Weather, Umbrella, and GettingWet.</p>
+<section id="weather" class="level5">
+<h5 class="anchored" data-anchor-id="weather">Weather</h5>
+<p>Weather is simulated as a binary variable where 1 indicates rainy weather and 0 indicates not rainy. The probability of it being rainy is set to 0.3, meaning that 30% of the time it will be rainy.</p>
+</section>
+<section id="umbrella" class="level5">
+<h5 class="anchored" data-anchor-id="umbrella">Umbrella</h5>
+<p>The probability of carrying an umbrella is influenced by the weather and is defined as: <span class="math display">\[0.8 * weather + 0.1\]</span></p>
+<p>This means that:</p>
+<ul>
+<li>If it’s rainy (weather = 1), the probability of carrying an umbrella is 0.8 * 1 + 0.1 = 0.9 (90%).</li>
+<li>If it’s not rainy (weather = 0), the probability of carrying an umbrella is 0.8 * 0 + 0.1 = 0.1 (10%).</li>
+</ul>
+</section>
+<section id="getting-wet" class="level5">
+<h5 class="anchored" data-anchor-id="getting-wet">Getting Wet</h5>
+<p>The probability of getting wet is defined as: <span class="math display">\[0.7 * weather * (1 - umbrella) + 0.1 * weather * umbrella + 0.05 * (1 - weather)\]</span></p>
+<p>This means that:</p>
+<ul>
+<li>If it’s rainy and the person is not carrying an umbrella (weather = 1, umbrella = 0), the probability of getting wet is 0.7 * 1 * (1 - 0) + 0.1 * 1 * 0 + 0.05 * (1 - 1) = 0.7 (70%).</li>
+<li>If it’s rainy and the person is carrying an umbrella (weather = 1, umbrella = 1), the probability of getting wet is 0.7 * 1 * (1 - 1) + 0.1 * 1 * 1 + 0.05 * (1 - 1) = 0.1 (10%).</li>
+<li>If it’s not rainy (weather = 0), the probability of getting wet is always low at 0.05 (5%), regardless of umbrella use.</li>
+</ul>
+</section>
+<section id="analyze-the-data-to-see-the-associations" class="level5">
+<h5 class="anchored" data-anchor-id="analyze-the-data-to-see-the-associations">Analyze the data to see the associations</h5>
+<div id="f04e14f6" class="cell" data-execution_count="2">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> arviz <span class="im">as</span> az</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pyro</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pyro.distributions <span class="im">as</span> dist</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pyro.infer <span class="im">import</span> MCMC, NUTS</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>pyro.set_rng_seed(<span class="dv">42</span>)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> wet_model(umbrella, wet, weather<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    alpha <span class="op">=</span> pyro.sample(<span class="st">'alpha'</span>, dist.Normal(<span class="fl">0.0</span>, <span class="fl">2.0</span>))</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    beta_umbrella <span class="op">=</span> pyro.sample(<span class="st">'beta_umbrella'</span>, dist.Normal(<span class="fl">0.0</span>, <span class="fl">2.0</span>))</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    logits <span class="op">=</span> alpha <span class="op">+</span> beta_umbrella <span class="op">*</span> umbrella</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> weather <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>        beta_weather <span class="op">=</span> pyro.sample(<span class="st">'beta_weather'</span>, dist.Normal(<span class="fl">0.0</span>, <span class="fl">2.0</span>))</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>        logits <span class="op">=</span> logits <span class="op">+</span> beta_weather <span class="op">*</span> weather</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> pyro.plate(<span class="st">'obs'</span>, <span class="bu">len</span>(umbrella)):</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>        pyro.sample(<span class="st">'wet'</span>, dist.Bernoulli(logits<span class="op">=</span>logits), obs<span class="op">=</span>wet)</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fit_logistic_model(umbrella, wet, weather<span class="op">=</span><span class="va">None</span>, num_samples<span class="op">=</span><span class="dv">1000</span>, warmup_steps<span class="op">=</span><span class="dv">500</span>):</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    pyro.clear_param_store()</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>    umbrella <span class="op">=</span> torch.as_tensor(umbrella, dtype<span class="op">=</span>torch.float32)</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>    wet <span class="op">=</span> torch.as_tensor(wet, dtype<span class="op">=</span>torch.float32)</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>    weather <span class="op">=</span> <span class="va">None</span> <span class="cf">if</span> weather <span class="kw">is</span> <span class="va">None</span> <span class="cf">else</span> torch.as_tensor(weather, dtype<span class="op">=</span>torch.float32)</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>    nuts_kernel <span class="op">=</span> NUTS(wet_model)</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>    mcmc <span class="op">=</span> MCMC(</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>        nuts_kernel,</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>        num_samples<span class="op">=</span>num_samples,</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>        warmup_steps<span class="op">=</span>warmup_steps,</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>        disable_progbar<span class="op">=</span><span class="va">True</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>    mcmc.run(umbrella, wet, weather)</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mcmc.get_samples()</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>posterior_unadjusted <span class="op">=</span> fit_logistic_model(</span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>    umbrella<span class="op">=</span>data[<span class="st">'Umbrella'</span>].values,</span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>    wet<span class="op">=</span>data[<span class="st">'GettingWet'</span>].values,</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>    weather<span class="op">=</span><span class="va">None</span></span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>posterior_adjusted <span class="op">=</span> fit_logistic_model(</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>    umbrella<span class="op">=</span>data[<span class="st">'Umbrella'</span>].values,</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>    wet<span class="op">=</span>data[<span class="st">'GettingWet'</span>].values,</span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>    weather<span class="op">=</span>data[<span class="st">'Weather'</span>].values</span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a>beta_unadjusted <span class="op">=</span> posterior_unadjusted[<span class="st">'beta_umbrella'</span>].detach().numpy()</span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>beta_adjusted <span class="op">=</span> posterior_adjusted[<span class="st">'beta_umbrella'</span>].detach().numpy()</span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>beta_weather <span class="op">=</span> posterior_adjusted[<span class="st">'beta_weather'</span>].detach().numpy()</span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a>idata_betas <span class="op">=</span> az.from_dict(</span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a>        <span class="st">'posterior'</span>: {</span>
+<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a>            <span class="st">'beta_umbrella_unadjusted'</span>: beta_unadjusted[np.newaxis, :],</span>
+<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a>            <span class="st">'beta_umbrella_adjusted'</span>: beta_adjusted[np.newaxis, :],</span>
+<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a>            <span class="st">'beta_weather_adjusted'</span>: beta_weather[np.newaxis, :],</span>
+<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">3</span>))</span>
+<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a>az.plot_forest(</span>
+<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a>    idata_betas,</span>
+<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a>    var_names<span class="op">=</span>[</span>
+<span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a>        <span class="st">'beta_umbrella_unadjusted'</span>,</span>
+<span id="cb3-71"><a href="#cb3-71" aria-hidden="true" tabindex="-1"></a>        <span class="st">'beta_umbrella_adjusted'</span>,</span>
+<span id="cb3-72"><a href="#cb3-72" aria-hidden="true" tabindex="-1"></a>        <span class="st">'beta_weather_adjusted'</span>,</span>
+<span id="cb3-73"><a href="#cb3-73" aria-hidden="true" tabindex="-1"></a>    ],</span>
+<span id="cb3-74"><a href="#cb3-74" aria-hidden="true" tabindex="-1"></a>    combined<span class="op">=</span><span class="va">True</span></span>
+<span id="cb3-75"><a href="#cb3-75" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a>plt.axvline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">'black'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, linewidth<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Posterior forest plot for the beta coefficients'</span>)</span>
+<span id="cb3-78"><a href="#cb3-78" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb3-79"><a href="#cb3-79" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<pre><code>&lt;Figure size 960x288 with 0 Axes&gt;</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="DEL_modelling_Part_2_files/figure-html/cell-3-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This code fits two Bayesian logistic regression models in Pyro using NUTS, an MCMC sampler. The first estimates the association between umbrella use and getting wet without conditioning on weather. The second includes weather in the model, so the posterior for <code>beta_umbrella</code> is the adjusted estimate after conditioning on the confounder. Pyro still uses Torch internally, but the notebook code no longer stores separate tensor variables.</p>
+</section>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="how-do-path-structures-guide-conditioning-decisions-for-s" class="level5">
+<h5 class="anchored" data-anchor-id="how-do-path-structures-guide-conditioning-decisions-for-s">How do path structures guide conditioning decisions for <span style="color:#bf616a"><span class="math inline">\(s\)</span></span>?</h5>
+<p>Here, one important role of the DAG is to help us decide which variables it makes sense to condition on, and which ones we should avoid conditioning on, when estimating the target-binding propensity <span style="color:#bf616a"><span class="math inline">\(s\)</span></span>. To do this, we follow the recipe suggested by McElreath in Chapter 6 of the second edition of <em>Statistical Rethinking</em>:</p>
+<ol type="1">
+<li><p>List all of the paths connecting <span style="color:#bf616a"><span class="math inline">\(s\)</span></span> and <span style="color:#d08770"><span class="math inline">\(C_{t}\)</span></span>.</p></li>
+<li><p>Classify each path by whether it is open or closed. A path is open unless it contains a collider.</p></li>
+<li><p>Classify each path by whether it is a backdoor path. A backdoor path has an arrow entering <span style="color:#bf616a"><span class="math inline">\(s\)</span></span>.</p></li>
+<li><p>If there are any open backdoor paths, decide which variable(s) to condition on to close it (if possible).</p></li>
+</ol>
+<hr>
+<p>TODO: -1. Add a fork image</p>
+<ol start="0" type="1">
+<li><p>How can we check for identifiability of all the unobserved parameters?</p></li>
+<li><p>I think we need to make it clear why we should identify “Which variables should and should not be conditioned on?””</p></li>
+<li><p>What does conditioning on a variable mean in the context of a DAG and probabilistic modeling? We should explain that conditioning on a variable means including it as a covariate in the model.</p></li>
+<li><p>Check the DAG for:</p>
 <ul>
 <li>Chain (mediation)</li>
 <li>Fork (confounding)</li>
 <li>Collider structures</li>
 </ul></li>
-<li>Check for combined patterns:
+<li><p>Check for combined patterns:</p>
 <ul>
 <li>Fork + chain (confounded mediation)</li>
 <li>Collider with downstream conditioning</li>
@@ -352,7 +769,7 @@ Figure&nbsp;6: DAG showing observed counts, rates, latent factors, and replicate
 <li>Frontdoor paths</li>
 <li>Selection bias (collider via sampling)</li>
 </ul>
-Identify:
+<p>Identify:</p>
 <ul>
 <li>confounders → control for</li>
 <li>colliders → never control</li>
@@ -361,6 +778,8 @@ Identify:
 </ol>
 
 
+</section>
+</section>
 </section>
 </section>
 
