@@ -6,12 +6,12 @@ format:
     theme: default
     mermaid: {}
 
-jupyter: del_model
+jupyter: del_model_env
 
 execute:
   echo: true
-  cache: false
-  freeze: true
+  cache: true
+  freeze: auto
 
 code-fold: true
 ---
@@ -316,10 +316,14 @@ $$
 
 Conditioning on weather blocks this backdoor path. It separates the association caused by shared weather conditions from the possible direct effect of carrying an umbrella on getting wet. Once we compare people under the same weather conditions, we would expect umbrella use to be associated with a lower chance of getting wet, if umbrellas are effective.
 
-::::: {.callout-important icon="false" collapse="true"}
+::::: {.callout-note icon="false" collapse="true"}
 # Code for the umbrella example
 
 Let's simulate some data to illustrate the umbrella example. We will create a simple dataset where weather conditions affect both umbrella use and getting wet.
+
+![Umbrella example DAG.](img/umbrella_dag.png){#fig-umbrella-dag width="50%"}
+
+
 ```{python}
 import numpy as np
 import pandas as pd
@@ -340,7 +344,8 @@ data = pd.DataFrame({
     'GettingWet': getting_wet
 })
 # Show the first few rows of the dataset
-print(data.head())
+from IPython.display import display
+display(data.head())
 ```
 
 This code simulates a dataset of 1000 observations with three variables: Weather, Umbrella, and GettingWet. 
@@ -352,31 +357,219 @@ Weather is simulated as a binary variable where 1 indicates rainy weather and 0 
 ##### Umbrella 
 
 The probability of carrying an umbrella is influenced by the weather and is defined as:
-$$0.8 * weather + 0.1$$
+$$ 0.8 * weather + 0.1 $$
 
 This means that:
 
-- If it's rainy (weather = 1), the probability of carrying an umbrella is 0.8 * 1 + 0.1 = 0.9 (90%). 
-- If it's not rainy (weather = 0), the probability of carrying an umbrella is 0.8 * 0 + 0.1 = 0.1 (10%).
+- If it's rainy (weather = 1), the probability of carrying an umbrella is 90%: 
+$$ 0.8 * 1 + 0.1 = 0.9 $$
+
+- If it's not rainy (weather = 0), the probability of carrying an umbrella is 10%: 
+$$ 0.8 * 0 + 0.1 = 0.1 $$
 
 ##### Getting Wet
 
 The probability of getting wet is defined as:
-$$0.7 * weather * (1 - umbrella) + 0.1 * weather * umbrella + 0.05 * (1 - weather)$$
+$$ 0.7 * weather * (1 - umbrella) + 0.1 * weather * umbrella + 0.05 * (1 - weather) $$
 
 This means that: 
 
-- If it's rainy and the person is not carrying an umbrella (weather = 1, umbrella = 0), the probability of getting wet is 0.7 * 1 * (1 - 0) + 0.1 * 1 * 0 + 0.05 * (1 - 1) = 0.7 (70%). 
-- If it's rainy and the person is carrying an umbrella (weather = 1, umbrella = 1), the probability of getting wet is 0.7 * 1 * (1 - 1) + 0.1 * 1 * 1 + 0.05 * (1 - 1) = 0.1 (10%). 
-- If it's not rainy (weather = 0), the probability of getting wet is always low at 0.05 (5%), regardless of umbrella use.
+- If it's rainy and the person is not carrying an umbrella (weather = 1, umbrella = 0), the probability of getting wet is 70%:
+$$ 0.7 * 1 * (1 - 0) + 0.1 * 1 * 0 + 0.05 * (1 - 1) = 0.7 $$
+
+- If it's rainy and the person is carrying an umbrella (weather = 1, umbrella = 1), the probability of getting wet is 10%:
+$$ 0.7 * 1 * (1 - 1) + 0.1 * 1 * 1 + 0.05 * (1 - 1) = 0.1 $$
+
+- If it's not rainy (weather = 0), the probability of getting wet is always low at 5%, regardless of umbrella use.
+$$ 0.7 * 0 * (1 - umbrella) + 0.1 * 0 * umbrella + 0.05 * (1 - 0) = 0.05 $$
+
+
+
+##### Summary of the simulated data
+
+Let's plot the simulated data to see the associations between the variables.
+
+Starting with the raw association between Umbrella and GettingWet:
+
+```{python}
+import pandas as pd
+from plotnine import (
+    ggplot, aes, geom_tile, geom_text, facet_wrap,
+    scale_fill_gradient, labs, theme_minimal, theme,
+    element_text, element_blank
+)
+
+ct = pd.crosstab(
+    data["Umbrella"],
+    data["GettingWet"],
+    normalize="all"
+).reset_index().melt(
+    id_vars="Umbrella",
+    var_name="GettingWet",
+    value_name="proportion"
+)
+
+counts = pd.crosstab(
+    data["Umbrella"],
+    data["GettingWet"]
+).reset_index().melt(
+    id_vars="Umbrella",
+    var_name="GettingWet",
+    value_name="count"
+)
+
+heatmap_df = ct.merge(counts, on=["Umbrella", "GettingWet"])
+
+heatmap_df["Umbrella"] = heatmap_df["Umbrella"].map({
+    0: "No umbrella",
+    1: "Umbrella"
+})
+
+heatmap_df["GettingWet"] = heatmap_df["GettingWet"].map({
+    0: "Not wet",
+    1: "Wet"
+})
+
+heatmap_df["label"] = heatmap_df.apply(
+    lambda r: f"n = {int(r['count'])}\n{100 * r['proportion']:.1f}%",
+    axis=1,
+)
+
+p1 = (
+    ggplot(heatmap_df, aes(x="GettingWet", y="Umbrella", fill="proportion"))
+    + geom_tile(color="white", size=1.2)
+    + geom_text(aes(label="label"), size=11, color="#0f172a")
+    + scale_fill_gradient(low="#eff6ff", high="#2563eb")
+    + labs(
+        title="Observed association between umbrella use and getting wet",
+        subtitle="Each tile shows the proportion of all 1000 observations.",
+        x=None,
+        y=None,
+        fill="Proportion",
+    )
+    + theme_minimal(base_size=12)
+    + theme(
+        figure_size=(6.5, 4.0),
+        panel_grid_major=element_blank(),
+        panel_grid_minor=element_blank(),
+        plot_title=element_text(weight="bold", size=13),
+        plot_subtitle=element_text(size=10),
+        axis_text=element_text(size=11),
+    )
+)
+
+p1
+```
+
+And, stratified association by Weather, that show what happens after blocking the backdoor path:
+
+```{python}
+strat_counts = (
+    data
+    .groupby(["Weather", "Umbrella", "GettingWet"])
+    .size()
+    .reset_index(name="count")
+)
+
+full_grid = pd.MultiIndex.from_product(
+    [[0, 1], [0, 1], [0, 1]],
+    names=["Weather", "Umbrella", "GettingWet"]
+).to_frame(index=False)
+
+strat_df = full_grid.merge(
+    strat_counts,
+    on=["Weather", "Umbrella", "GettingWet"],
+    how="left"
+).fillna({"count": 0})
+
+strat_df["within_weather_prop"] = (
+    strat_df["count"] / strat_df.groupby("Weather")["count"].transform("sum")
+)
+
+strat_df["Weather"] = strat_df["Weather"].map({
+    0: "Not rainy",
+    1: "Rainy"
+})
+
+strat_df["Umbrella"] = strat_df["Umbrella"].map({
+    0: "No umbrella",
+    1: "Umbrella"
+})
+
+strat_df["GettingWet"] = strat_df["GettingWet"].map({
+    0: "Not wet",
+    1: "Wet"
+})
+
+strat_df["label"] = strat_df.apply(
+    lambda r: f"n = {int(r['count'])}\n{100 * r['within_weather_prop']:.1f}%",
+    axis=1,
+)
+
+p2 = (
+    ggplot(strat_df, aes(x="GettingWet", y="Umbrella", fill="within_weather_prop"))
+    + geom_tile(color="white", size=1.2)
+    + geom_text(aes(label="label"), size=10, color="#0f172a")
+    + facet_wrap("~Weather")
+    + scale_fill_gradient(low="#eff6ff", high="#2563eb")
+    + labs(
+        title="Umbrella use and getting wet, stratified by weather",
+        subtitle="Stratifying by weather shows the association after blocking the backdoor path.\n",
+        x=None,
+        y=None,
+        fill="Within-weather\nproportion",
+    )
+    + theme_minimal(base_size=12)
+    + theme(
+        figure_size=(8.0, 4.0),
+        panel_grid_major=element_blank(),
+        panel_grid_minor=element_blank(),
+        plot_title=element_text(weight="bold", size=13),
+        plot_subtitle=element_text(size=10),
+        axis_text=element_text(size=11),
+        strip_text=element_text(weight="bold", size=11),
+    )
+)
+
+p2
+```
 
 ##### Analyze the data to see the associations
+
+We are interested in the association between carrying an umbrella and getting wet, and how this association changes when we condition on weather. 
+
+![Association between carrying an umbrella and getting wet.](img/umbrella_association.png){#fig-umbrella-association width="50%"}
+
+To quantify how the umbrella–wet association changes when we account for weather, we fit two logistic regression models: one **unadjusted** (umbrella only) and one **adjusted** (umbrella and weather).
+
+Both models treat each person's outcome as a Bernoulli draw with an individual probability $p_i$:
+
+$$\text{GettingWet}_i \sim \text{Bernoulli}(p_i)$$
+
+The two models differ in how $p_i$ is parameterised. The unadjusted model links $p_i$ only to umbrella use:
+
+$$\text{logit}(p_i) = \alpha + \beta_{\text{umbrella}} \cdot \text{Umbrella}_i$$
+
+The adjusted model additionally conditions on weather, blocking the backdoor path $\text{Umbrella} \leftarrow \text{Weather} \rightarrow \text{GettingWet}$:
+
+$$\text{logit}(p_i) = \alpha + \beta_{\text{umbrella}} \cdot \text{Umbrella}_i + \beta_{\text{weather}} \cdot \text{Weather}_i$$
+
+The priors are weakly informative Normal(0, 2) distributions on each coefficient, which keep the logit-scale effects within a plausible range ($\pm 4$) while placing no strong prior preference on direction:
+
+$$ \alpha \sim \text{Normal}(0, 2), \quad \beta_{\text{umbrella}} \sim \text{Normal}(0, 2), \quad \beta_{\text{weather}} \sim \text{Normal}(0, 2) $$
+
+Both models are fitted via NUTS (No-U-Turn Sampler) using Pyro. The key quantity of interest is $\beta_{\text{umbrella}}$: comparing its posterior between the two models shows how much of the raw umbrella–wet association disappears once weather is held fixed.
+
+
 ```{python}
-import arviz as az
+import warnings
 import torch
 import pyro
 import pyro.distributions as dist
 from pyro.infer import MCMC, NUTS
+
+warnings.filterwarnings("ignore", category=UserWarning)
+
 
 pyro.set_rng_seed(42)
 
@@ -427,34 +620,713 @@ beta_unadjusted = posterior_unadjusted['beta_umbrella'].detach().numpy()
 beta_adjusted = posterior_adjusted['beta_umbrella'].detach().numpy()
 beta_weather = posterior_adjusted['beta_weather'].detach().numpy()
 
-idata_betas = az.from_dict(
-    {
-        'posterior': {
-            'beta_umbrella_unadjusted': beta_unadjusted[np.newaxis, :],
-            'beta_umbrella_adjusted': beta_adjusted[np.newaxis, :],
-            'beta_weather_adjusted': beta_weather[np.newaxis, :],
-        }
-    }
+##########################################################
+#        Plotting the posterior distributions
+##########################################################
+
+from plotnine import (
+    ggplot, aes, geom_polygon, geom_line, geom_segment, geom_vline,
+    labs, theme, element_text, element_blank, element_line,
+    element_rect, scale_y_continuous, scale_x_continuous, coord_cartesian,
+)
+from scipy.stats import gaussian_kde
+
+# Posterior draws from your fitted Pyro models
+posterior_draws = {
+    "Weather effect": beta_weather,
+    "Umbrella effect\n(adjusted for weather)": beta_adjusted,
+    "Umbrella effect\n(unadjusted)": beta_unadjusted,
+}
+
+# Plot order: top to bottom
+plot_order = [
+    "Weather effect",
+    "Umbrella effect\n(adjusted for weather)",
+    "Umbrella effect\n(unadjusted)",
+]
+
+all_draws = np.concatenate([np.asarray(v) for v in posterior_draws.values()])
+x_min, x_max = np.quantile(all_draws, [0.005, 0.995])
+x_pad = 0.20 * (x_max - x_min)
+x_grid = np.linspace(x_min - x_pad, x_max + x_pad, 400)
+
+ridge_height = 0.72
+rows = []
+interval_rows = []
+summary_rows = []
+
+for i, name in enumerate(plot_order):
+    draws = np.asarray(posterior_draws[name])
+    y_base = len(plot_order) - 1 - i
+
+    kde = gaussian_kde(draws)
+    density = kde(x_grid)
+    density_scaled = density / density.max() * ridge_height
+
+    median = np.median(draws)
+    lower, upper = np.quantile(draws, [0.10, 0.90])  # 80% interval
+
+    for x, d in zip(x_grid, density_scaled):
+        rows.append({
+            "parameter": name,
+            "x": x,
+            "y_base": y_base,
+            "y": y_base + d,
+        })
+
+        if lower <= x <= upper:
+            interval_rows.append({
+                "parameter": name,
+                "x": x,
+                "y_base": y_base,
+                "y": y_base + d,
+            })
+
+    summary_rows.append({
+        "parameter": name,
+        "median": median,
+        "lower": lower,
+        "upper": upper,
+        "y_base": y_base,
+        "y_top": y_base + np.interp(median, x_grid, density_scaled),
+    })
+
+ridge_df = pd.DataFrame(rows)
+interval_df = pd.DataFrame(interval_rows)
+summary_df = pd.DataFrame(summary_rows)
+
+# Build filled polygons
+polygon_rows = []
+interval_polygon_rows = []
+
+for name in plot_order:
+    sub = ridge_df[ridge_df["parameter"] == name].sort_values("x")
+    y_base = sub["y_base"].iloc[0]
+
+    polygon_rows.extend(sub.to_dict("records"))
+    polygon_rows.extend([
+        {"parameter": name, "x": sub["x"].iloc[-1], "y_base": y_base, "y": y_base},
+        {"parameter": name, "x": sub["x"].iloc[0], "y_base": y_base, "y": y_base},
+    ])
+
+    sub_int = interval_df[interval_df["parameter"] == name].sort_values("x")
+
+    if len(sub_int) > 0:
+        interval_polygon_rows.extend(sub_int.to_dict("records"))
+        interval_polygon_rows.extend([
+            {"parameter": name, "x": sub_int["x"].iloc[-1], "y_base": y_base, "y": y_base},
+            {"parameter": name, "x": sub_int["x"].iloc[0], "y_base": y_base, "y": y_base},
+        ])
+
+polygon_df = pd.DataFrame(polygon_rows)
+interval_polygon_df = pd.DataFrame(interval_polygon_rows)
+
+p = (
+    ggplot()
+    + geom_vline(xintercept=0, color="#d9d9d9", size=1.2)
+
+    # Full posterior density
+    + geom_polygon(
+        polygon_df,
+        aes(x="x", y="y", group="parameter"),
+        fill="#c8dce8",
+        alpha=0.75,
+        color=None,
+    )
+
+    # Central 80% interval
+    + geom_polygon(
+        interval_polygon_df,
+        aes(x="x", y="y", group="parameter"),
+        fill="#8fb7cb",
+        alpha=0.70,
+        color=None,
+    )
+
+    # Density outline
+    + geom_line(
+        ridge_df,
+        aes(x="x", y="y", group="parameter"),
+        color="#002b63",
+        size=1.2,
+    )
+
+    # Baseline for each ridge
+    + geom_segment(
+        summary_df.assign(x_start=x_grid.min(), x_end=x_grid.max()),
+        aes(x="x_start", xend="x_end", y="y_base", yend="y_base"),
+        color="#002b63",
+        size=1.0,
+    )
+
+    # Posterior median line
+    + geom_segment(
+        summary_df,
+        aes(x="median", xend="median", y="y_base", yend="y_top"),
+        color="#4b8aa6",
+        size=2.3,
+    )
+
+    + scale_y_continuous(
+        breaks=summary_df["y_base"].tolist(),
+        labels=summary_df["parameter"].tolist(),
+        expand=(0.06, 0.20),
+    )
+    + scale_x_continuous(expand=(0.02, 0.02))
+    + coord_cartesian(ylim=(-0.55, len(plot_order) - 0.15))
+
+    + labs(
+        title="Posterior distributions",
+        subtitle="with medians and 80% intervals",
+        x="Posterior coefficient estimate",
+        y="Coefficients",
+    )
+
+    + theme(
+        figure_size=(9.5, 6.0),
+
+        panel_background=element_rect(fill="white", color="white"),
+        plot_background=element_rect(fill="white", color="white"),
+
+        panel_grid_major=element_blank(),
+        panel_grid_minor=element_blank(),
+
+        axis_line_x=element_line(color="black", size=0.8),
+        axis_line_y=element_line(color="black", size=0.8),
+        axis_ticks_major=element_line(color="black", size=0.8),
+        axis_ticks_minor=element_blank(),
+
+        axis_text_x=element_text(size=12, color="#333333", family="serif"),
+        axis_text_y=element_text(size=12, color="#333333", family="serif", weight="bold"),
+        axis_title_x=element_text(size=12, color="#333333", family="serif", margin={"t": 10}),
+
+        plot_title=element_text(size=24, family="serif", color="black"),
+        plot_subtitle=element_text(size=17, family="serif", color="black"),
+    )
 )
 
-plt.figure(figsize=(10, 3))
-az.plot_forest(
-    idata_betas,
-    var_names=[
-        'beta_umbrella_unadjusted',
-        'beta_umbrella_adjusted',
-        'beta_weather_adjusted',
-    ],
-    combined=True
-)
-plt.axvline(0, color='black', linestyle='--', linewidth=1)
-plt.title('Posterior forest plot for the beta coefficients')
-plt.tight_layout()
-plt.show()
+
+p.save("img/fork_weather_example_posteriors.png", dpi=300)
 
 ```
 
-This code fits two Bayesian logistic regression models in Pyro using NUTS, an MCMC sampler. The first estimates the association between umbrella use and getting wet without conditioning on weather. The second includes weather in the model, so the posterior for `beta_umbrella` is the adjusted estimate after conditioning on the confounder. Pyro still uses Torch internally, but the notebook code no longer stores separate tensor variables.
+![Posterior distributions for the umbrella example.](img/fork_weather_example_posteriors.png){#fig-fork-weather-example-posteriors width="75%"}
+
+
+The posteriors tell a clear story about confounding. In the **unadjusted model**, $\beta_{\text{umbrella}}$ is centred near zero — naively suggesting that carrying an umbrella makes no difference to getting wet. This is the confound at work: rainy weather drives both umbrella use and getting wet, so the two variables appear unrelated once that shared cause dominates the marginal association.
+
+In the **adjusted model**, conditioning on weather blocks the backdoor path $\text{Umbrella} \leftarrow \text{Weather} \rightarrow \text{GettingWet}$, and $\beta_{\text{umbrella}}$ shifts decisively to the left. A negative logit-scale coefficient means that, among people experiencing the same weather conditions, carrying an umbrella is associated with a lower probability of getting wet, exactly what the data-generating process encoded. The **weather effect** is itself strongly positive, confirming that rainy weather is the main driver of getting wet, independent of umbrella use.
+
+[This is the core lesson of confounding: an unadjusted association can be essentially zero even when the causal effect is real, because a common cause masks it. Conditioning on that cause separates the causal signal from the noise introduced by the shared pathway.]{.highlight-key-point}
+
+:::::
+
+::::: {.callout-tip icon="false" collapse="true"}
+
+# What if we only observe Umbrella and Getting Wet, but not Weather?
+
+Up to this point, we assumed that **Weather**, **Umbrella**, and **Getting Wet** were all observed. In that case, the confounding structure is visible and can be blocked by conditioning on Weather:
+
+$$
+\text{Umbrella} \leftarrow \text{Weather} \rightarrow \text{Getting Wet}.
+$$
+
+Now suppose **Weather is unobserved**. The causal structure has not changed; the same fork still exists, but the common cause is now latent:
+
+$$
+\text{Umbrella} \leftarrow \text{Weather}_{\text{latent}} \rightarrow \text{Getting Wet}.
+$$
+
+[The confounder does not disappear just because we failed to measure it. It still keeps the backdoor path open.]{.highlight-key-point}
+
+As a result, a model that regresses **Getting Wet** on **Umbrella** alone mixes two sources of association:
+
+1. The causal effect of carrying an umbrella, and
+2. The non-causal association induced by hidden Weather.
+
+Because Weather is unobserved, ordinary adjustment cannot block this path directly. We therefore need another strategy. The most transparent first step is sensitivity analysis, which asks:
+
+::: {style="text-align: center;"}
+How large would unmeasured-confounding bias need to be to materially change the conclusion?
+:::
+
+Other strategies are possible, but they require more data or more assumptions. We could measure Weather directly, use proxy variables such as rainfall or season, randomise umbrella use, or build a latent variable model that represents Weather explicitly. Each option addresses the same problem: the open backdoor path created by an unobserved common cause.
+
+The code below starts with a simple sensitivity analysis, then fits a latent variable model in which Weather is unobserved but still included in the generative structure.
+
+[Latent confounders are dangerous because they keep backdoor paths open. If the common cause is unmeasured, the model can attribute part of a spurious association to the causal effect we want to estimate.]{.highlight-key-point}
+
+
+:::::: {.callout-note icon="false" collapse="true"}
+# Sensitivity analysis and latent variable model
+
+##### Sensitivity analysis for hidden confounding
+
+We start with a simple sensitivity analysis. @fig-sensitivity-analysis-DAG makes the causal problem explicit: hidden Weather is a common cause of both Umbrella and Getting Wet, so even if we observe those two variables perfectly, the umbrella coefficient from a model that omits Weather can mix together a causal effect and confounding bias.
+
+To formalise this, we write the naive umbrella association as the sum of a causal component and an omitted-confounding term:
+
+$$
+\beta_{\text{naive}} = \beta_{\text{causal}} + \delta,
+$$
+
+where:
+
+- $\beta_{\text{naive}}$ is the umbrella coefficient from the unadjusted model,
+- $\beta_{\text{causal}}$ is the (unknown) causal umbrella effect we care about,
+- $\delta \ge 0$ is an assumed positive bias induced by hidden Weather.
+
+::: {.callout-tip icon="false" collapse="true"}
+
+## Why a positive bias?
+
+Hidden Weather is a common cause of both Umbrella and Getting Wet as @fig-sensitivity-analysis-DAG shows. This means that:
+
+- When Weather = 1, umbrella use becomes more likely, and
+- When Weather = 1, getting wet also becomes more likely.
+
+This shared cause induces an **extra positive association** between umbrella use and getting wet in the **unadjusted model**. In this sensitivity analysis, we represent that upward bias with $\delta$, so we assume $\delta \ge 0$. 
+
+[The point is not that umbrellas truly increase wetness. The point is that hidden Weather can pull the naive umbrella coefficient upward, making the effect look less negative, closer to zero, or even positive.]{.highlight-key-point}
+
+That is why we write:
+
+$$
+\beta_{\text{naive}} = \beta_{\text{causal}} + \delta
+$$
+
+and therefore:
+
+$$
+\beta_{\text{causal}}(\delta) = \beta_{\text{naive}} - \delta.
+$$
+
+:::
+
+![Hidden weather confounder DAG for sensitivity analysis](img/sensitivity_analysis_DAG.png){#fig-sensitivity-analysis-DAG width="75%"}
+
+Rearranging gives the bias-corrected umbrella effect under an assumed bias level $\delta$:
+
+$$
+\beta_{\text{causal}}(\delta) = \beta_{\text{naive}} - \delta.
+$$
+
+In Bayesian form, we apply this transformation to each posterior draw from the unadjusted model:
+
+$$
+\beta_{\text{causal}}(\delta_i) = \beta_{\text{naive}} - \delta_i, \quad i=1,\dots,N.
+$$
+
+For each value of $\delta$ on a grid, we compute summary statistics of the adjusted posterior draws $\{\beta_{\text{causal}}(\delta)_i\}_{i=1}^N$ and plot the median together with an 80\% interval. @fig-sensitivity-analysis-explainer shows the logic of this one-sided setup: as the assumed hidden-weather bias increases, the corrected umbrella effect is shifted downward by exactly that amount.
+
+![One-sided sensitivity analysis: higher assumed hidden bias shifts the corrected effect to more negative values.](img/sensitivity_analysis_explainer.png){#fig-sensitivity-analysis-explainer width="75%"}
+
+```{python}
+import numpy as np
+import pandas as pd
+import torch
+import pyro
+import pyro.distributions as dist
+from pyro.infer import MCMC, NUTS
+from plotnine import (
+    ggplot, aes, geom_line, geom_ribbon, geom_hline, geom_pointrange, geom_vline,
+    labs, theme_minimal, theme, element_blank, element_text, element_line,
+    element_rect, coord_flip,
+)
+
+pyro.set_rng_seed(42)
+
+
+beta_unadjusted_draws = posterior_unadjusted["beta_umbrella"].detach().numpy()
+
+# Assume hidden weather creates a positive bias in the naive umbrella effect.
+# For each assumed bias size, subtract it from the unadjusted posterior draws.
+bias_grid = np.linspace(0.0, 2.5, 101)
+sensitivity_rows = []
+
+for assumed_bias in bias_grid:
+    corrected_draws = beta_unadjusted_draws - assumed_bias
+    sensitivity_rows.append({
+        "assumed_bias": assumed_bias,
+        "mean": np.mean(corrected_draws),
+        "median": np.median(corrected_draws),
+        "lower": np.quantile(corrected_draws, 0.10),
+        "upper": np.quantile(corrected_draws, 0.90),
+    })
+
+sensitivity_df = pd.DataFrame(sensitivity_rows)
+
+crossing_df = sensitivity_df[
+    (sensitivity_df["mean"] < 0) & (sensitivity_df["upper"] < 0)
+]
+threshold_bias = None if crossing_df.empty else crossing_df["assumed_bias"].iloc[0]
+
+p_sensitivity = (
+    ggplot(sensitivity_df, aes(x="assumed_bias", y="median"))
+    + geom_ribbon(aes(ymin="lower", ymax="upper"), fill="#c8dce8", alpha=0.55)
+    + geom_line(color="#002b63", size=1.3)
+    + geom_hline(yintercept=0, color="#9ca3af", linetype="dashed", size=0.9)
+    + (
+        geom_vline(xintercept=threshold_bias, color="#c1121f", linetype="dashed", size=1.0)
+        if threshold_bias is not None
+        else None
+    )
+    + labs(
+        title="Sensitivity to hidden weather confounding",
+        subtitle=(
+            "Applies \u03b2_causal(\u03b4) = \u03b2_naive \u2212 \u03b4 to the unadjusted posterior"
+            " (hidden-weather causal structure shown in Figure 14).\n"
+            "Line: posterior median. Ribbon: central 80% interval. Red line: first \u03b4 where the posterior mean and 80% interval are below zero."
+        ),
+        x="Assumed omitted-confounder bias (\u03b4) on the umbrella log-odds",
+        y="Bias-corrected umbrella effect  [\u03b2_naive \u2212 \u03b4]",
+    )
+    + theme_minimal(base_size=12)
+    + theme(
+        figure_size=(8.5, 5.0),
+        panel_background=element_rect(fill="white", color="white"),
+        plot_background=element_rect(fill="white", color="white"),
+        panel_grid_major=element_line(color="#ebebeb", size=0.6),
+        panel_grid_minor=element_blank(),
+        axis_line_x=element_line(color="#333333", size=0.7),
+        axis_line_y=element_line(color="#333333", size=0.7),
+        plot_title=element_text(weight="bold", size=14),
+        plot_subtitle=element_text(size=9.5),
+        axis_text=element_text(size=11),
+        axis_title_x=element_text(size=11, margin={"t": 8}),
+        axis_title_y=element_text(size=11, margin={"r": 8}),
+    )
+)
+
+p_sensitivity
+```
+
+In this one-sided additive setup,
+
+$$
+\beta_{\text{causal}}(\delta) = \beta_{\text{naive}} - \delta, \quad \delta \ge 0,
+$$
+
+the line is linear by construction and moves downward as $\delta$ increases. The sensitivity plot above shows that at $\delta = 0$ the uncorrected effect, $\beta_{\text{naive}}$, is already close to zero and the 80% interval still overlaps zero. As larger positive bias is assumed, both the median and the full 80% interval move further below zero.
+
+The red vertical line marks the first assumed bias level at which the posterior mean is below zero and the entire central 80\% interval is also below zero.
+
+
+In the fitted plot here, the threshold occurs at $\delta = 0.275$. The corresponding odds multiplier is $e^{0.275} \approx 1.32$, so hidden Weather would need to increase the relevant odds by about 32\% along the omitted-confounding pathway before the posterior mean and the full central 80\% interval both fall below zero.
+
+Because $\beta_{\text{naive}}$ is already close to zero, this sensitivity analysis shows that the unadjusted association, in @fig-fork-weather-example-posteriors, is fragile. Any positive hidden-weather bias pushes the corrected effect, $\beta_{\text{causal}}(\delta)$, below zero, supporting the interpretation that umbrella use is protective (negative or protective umbrella effect means umbrella use is associated with less getting wet), once the open backdoor path through Weather is accounted for.
+
+:::{.callout-note icon="false" collapse="true"}
+
+## Why sensitivity analysis still matters when the unadjusted effect is zero?
+
+Even if the unadjusted umbrella effect were exactly zero, we should not automatically ignore sensitivity analysis.
+
+In this example, $\beta_{\text{naive}}$ is already close to zero. Under the one-sided assumption that hidden Weather biases the umbrella coefficient upward, any positive value of $\delta$ moves the corrected effect below zero:
+
+$$
+\beta_{\text{causal}}(\delta)=\beta_{\text{naive}}-\delta.
+$$
+
+![Sensitivity analysis for umbrella example](img/sensitivity_analysis_for_umbrella_example.png){#fig-sensitivity-analysis-for-umbrella-example width="75%"}
+
+So the sensitivity analysis is not testing whether a strong positive umbrella effect survives adjustment. It is showing that the unadjusted association is fragile around zero: even modest hidden-weather bias would make the corrected effect negative, consistent with umbrellas reducing the chance of getting wet.
+
+[However, this does not mean that sensitivity analysis is unnecessary whenever an observed coefficient is near zero and a common cause is plausible.]{.highlight-key-point} 
+
+The direction and size of the hidden bias may be uncertain, the posterior uncertainty may be wide, and the causal question may depend on how large the corrected effect could plausibly become. Sensitivity analysis is still useful because it makes those assumptions explicit.
+
+:::
+
+
+##### Latent variable model for hidden confounding
+
+The sensitivity analysis treated hidden Weather as an unknown source of bias. That is useful because it asks: how much hidden confounding would be needed to change our conclusion? But it does not try to model Weather directly.
+
+A stronger alternative is to write down a latent variable model. In this model, Weather is not just an abstract bias term. It is an explicit but unobserved variable that can affect both whether someone carries an umbrella and whether they get wet.
+
+The assumed causal structure is as shown in @fig-umbrella-association: Weather is a common cause of both Umbrella and Getting Wet, and there is also a direct effect of Umbrella on Getting Wet. However, only Umbrella and GettingWet are observed. Weather is hidden. This is similar to the DAG in @fig-sensitivity-analysis-DAG.
+
+Let,
+$$
+W_i \in \{0, 1\}
+$$
+
+denote the latent weather state for observation $i$, where $W_i = 0$ might mean dry weather and $W_i = 1$ might mean rainy weather. We observe:
+
+$$ U_i = Umbrella_i $$
+$$ G_i = GettingWet_i $$
+
+The model first assumes that each observation has some probability of being in rainy weather:
+$$
+W_i \sim \text{Bernoulli}(p_{\text{weather}}),
+$$
+Then, umbrella use depends on the hidden weather state:
+$$
+U_i|W_i \sim \text{Bernoulli}(\text{logit}^{-1  }(\alpha_u + \beta_{\text{weather} \to \text{umbrella}} \cdot W_i)),
+$$
+where, $\alpha_u$ is the baseline log-odds of carrying an umbrella when $W_i=0$, and $\beta_{\text{weather} \to \text{umbrella}}$ captures how much the log-odds of carrying an umbrella increase when $W_i=1$.
+
+Getting wet then depends on both umbrella use and the hidden weather state:
+$$
+G_i|U_i, W_i \sim \text{Bernoulli}(\text{logit}^{-1  }(\alpha_g + \beta_{\text{umbrella} \to \text{wet}} \cdot U_i + \beta_{\text{weather} \to \text{wet}} \cdot W_i)),
+$$
+where $\alpha_g$ is the baseline log-odds of getting wet when $U_i=0$ and $W_i=0$, $\beta_{\text{umbrella} \to \text{wet}}$ captures the direct umbrella effect, after accounting for latent Weather, and $\beta_{\text{weather} \to \text{wet}}$ captures the direct effect of Weather on getting wet, i.e., how much the log-odds of getting wet increase when $W_i=1$.
+
+The important computational detail is that we do not sample $W_i$ directly. Weather is discrete, and NUTS works best with continuous parameters. So instead we marginalise over the two possible weather states.
+	​
+For each observation, the likelihood is:
+$$
+P(U_i, G_i) = \Sigma_{w_i \in \{0, 1\}} P(W_i=w) P(U_i | W_i=w) P(G_i | U_i, W_i=w) = P(W_i=0) P(U_i | W_i=0) P(G_i | U_i, W_i=0) + P(W_i=1) P(U_i | W_i=1) P(G_i | U_i, W_i=1)
+$$
+
+So the model asks: 
+
+For each observed pair $(U_i, G_i)$, how likely is this observation if the hidden weather state was dry, and how likely is it if the hidden weather state was rainy? It then averages those two possibilities according to the estimated probability of each weather state.
+
+Because Weather is never observed, the model must infer it entirely from the joint pattern of Umbrella and GettingWet. That means the **result depends strongly on the assumed model form, the priors, and the assumption that a binary latent Weather variable is a reasonable representation of the hidden common cause**.
+
+[So the latent variable model gives us a more mechanistic version of the hidden-confounding story, but it is not assumption-free. The sensitivity analysis is weaker but more transparent; the latent variable model is more structural but more model-dependent.]{.highlight-key-point}
+ 
+```{python}
+def latent_weather_model(umbrella, wet):
+    """
+    Marginalized latent common-cause model:
+
+        Weather -> Umbrella
+        Weather -> GettingWet
+        Umbrella -> GettingWet
+
+    Only Umbrella and GettingWet are observed.
+    Weather is binary and latent, so we integrate it out of the likelihood.
+    """
+    logit_p_weather = pyro.sample("logit_p_weather", dist.Normal(0.0, 1.5))
+    p_weather = torch.sigmoid(logit_p_weather)
+
+    alpha_u = pyro.sample("alpha_u", dist.Normal(0.0, 2.0))
+    beta_weather_to_umbrella = pyro.sample("beta_weather_to_umbrella", dist.Normal(0.0, 2.0))
+
+    alpha_wet = pyro.sample("alpha_wet", dist.Normal(0.0, 2.0))
+    beta_umbrella_to_wet = pyro.sample("beta_umbrella_to_wet", dist.Normal(0.0, 2.0))
+    beta_weather_to_wet = pyro.sample("beta_weather_to_wet", dist.Normal(0.0, 2.0))
+
+    umbrella_log_prob_w0 = dist.Bernoulli(logits=alpha_u).log_prob(umbrella)
+    umbrella_log_prob_w1 = dist.Bernoulli(
+        logits=alpha_u + beta_weather_to_umbrella
+    ).log_prob(umbrella)
+
+    wet_log_prob_w0 = dist.Bernoulli(
+        logits=alpha_wet + beta_umbrella_to_wet * umbrella
+    ).log_prob(wet)
+    wet_log_prob_w1 = dist.Bernoulli(
+        logits=alpha_wet + beta_umbrella_to_wet * umbrella + beta_weather_to_wet
+    ).log_prob(wet)
+
+    # The two terms log_prob_w0 and log_prob_w1 are the log-probabilities of the observed data under the two possible hidden Weather states.
+    log_prob_w0 = torch.log1p(-p_weather) + umbrella_log_prob_w0 + wet_log_prob_w0
+    log_prob_w1 = torch.log(p_weather) + umbrella_log_prob_w1 + wet_log_prob_w1
+    
+    # The logsumexp operation adds these two possibilities together on the probability scale while keeping the computation numerically stable.
+    pyro.factor(
+        "marginalized_obs_log_prob",
+        torch.logsumexp(torch.stack([log_prob_w0, log_prob_w1]), dim=0).sum(),
+    )
+
+
+def fit_latent_weather_model(data, num_samples=1000, warmup_steps=500):
+    pyro.clear_param_store()
+
+    umbrella = torch.as_tensor(data["Umbrella"].values, dtype=torch.float32)
+    wet = torch.as_tensor(data["GettingWet"].values, dtype=torch.float32)
+
+    nuts_kernel = NUTS(latent_weather_model)
+    mcmc = MCMC(
+        nuts_kernel,
+        num_samples=num_samples,
+        warmup_steps=warmup_steps,
+        disable_progbar=True,
+    )
+    mcmc.run(umbrella, wet)
+    return mcmc.get_samples()
+
+
+posterior_latent = fit_latent_weather_model(data)
+
+from plotnine import (
+    ggplot, aes, geom_polygon, geom_line, geom_segment, geom_vline,
+    labs, theme, element_text, element_blank, element_line,
+    element_rect, scale_y_continuous, scale_x_continuous, coord_cartesian,
+)
+from scipy.stats import gaussian_kde
+
+summary_spec = [
+    ("beta_weather_to_umbrella", "Weather -> Umbrella"),
+    ("beta_umbrella_to_wet", "Umbrella -> Getting wet"),
+    ("beta_weather_to_wet", "Weather -> Getting wet"),
+]
+
+posterior_draws_latent = {
+    label: posterior_latent[param_name].detach().numpy()
+    for param_name, label in summary_spec
+}
+
+plot_order_latent = [label for _, label in summary_spec]
+all_draws_latent = np.concatenate([np.asarray(v) for v in posterior_draws_latent.values()])
+x_min_latent, x_max_latent = np.quantile(all_draws_latent, [0.005, 0.995])
+x_pad_latent = 0.20 * (x_max_latent - x_min_latent)
+x_grid_latent = np.linspace(x_min_latent - x_pad_latent, x_max_latent + x_pad_latent, 400)
+
+ridge_height_latent = 0.72
+rows_latent = []
+interval_rows_latent = []
+summary_rows_latent = []
+
+for i, name in enumerate(plot_order_latent):
+    draws = np.asarray(posterior_draws_latent[name])
+    y_base = len(plot_order_latent) - 1 - i
+
+    kde = gaussian_kde(draws)
+    density = kde(x_grid_latent)
+    density_scaled = density / density.max() * ridge_height_latent
+
+    median = np.median(draws)
+    lower, upper = np.quantile(draws, [0.025, 0.975])
+
+    for x, d in zip(x_grid_latent, density_scaled):
+        rows_latent.append({
+            "parameter": name,
+            "x": x,
+            "y_base": y_base,
+            "y": y_base + d,
+        })
+
+        if lower <= x <= upper:
+            interval_rows_latent.append({
+                "parameter": name,
+                "x": x,
+                "y_base": y_base,
+                "y": y_base + d,
+            })
+
+    summary_rows_latent.append({
+        "parameter": name,
+        "median": median,
+        "lower": lower,
+        "upper": upper,
+        "y_base": y_base,
+        "y_top": y_base + np.interp(median, x_grid_latent, density_scaled),
+    })
+
+ridge_df_latent = pd.DataFrame(rows_latent)
+interval_df_latent = pd.DataFrame(interval_rows_latent)
+summary_df_latent = pd.DataFrame(summary_rows_latent)
+
+polygon_rows_latent = []
+interval_polygon_rows_latent = []
+
+for name in plot_order_latent:
+    sub = ridge_df_latent[ridge_df_latent["parameter"] == name].sort_values("x")
+    y_base = sub["y_base"].iloc[0]
+
+    polygon_rows_latent.extend(sub.to_dict("records"))
+    polygon_rows_latent.extend([
+        {"parameter": name, "x": sub["x"].iloc[-1], "y_base": y_base, "y": y_base},
+        {"parameter": name, "x": sub["x"].iloc[0], "y_base": y_base, "y": y_base},
+    ])
+
+    sub_int = interval_df_latent[interval_df_latent["parameter"] == name].sort_values("x")
+    if len(sub_int) > 0:
+        interval_polygon_rows_latent.extend(sub_int.to_dict("records"))
+        interval_polygon_rows_latent.extend([
+            {"parameter": name, "x": sub_int["x"].iloc[-1], "y_base": y_base, "y": y_base},
+            {"parameter": name, "x": sub_int["x"].iloc[0], "y_base": y_base, "y": y_base},
+        ])
+
+polygon_df_latent = pd.DataFrame(polygon_rows_latent)
+interval_polygon_df_latent = pd.DataFrame(interval_polygon_rows_latent)
+
+p_latent = (
+    ggplot()
+    + geom_vline(xintercept=0, color="#d9d9d9", size=1.2)
+    + geom_polygon(
+        polygon_df_latent,
+        aes(x="x", y="y", group="parameter"),
+        fill="#c8dce8",
+        alpha=0.75,
+        color=None,
+    )
+    + geom_polygon(
+        interval_polygon_df_latent,
+        aes(x="x", y="y", group="parameter"),
+        fill="#8fb7cb",
+        alpha=0.70,
+        color=None,
+    )
+    + geom_line(
+        ridge_df_latent,
+        aes(x="x", y="y", group="parameter"),
+        color="#002b63",
+        size=1.2,
+    )
+    + geom_segment(
+        summary_df_latent.assign(x_start=x_grid_latent.min(), x_end=x_grid_latent.max()),
+        aes(x="x_start", xend="x_end", y="y_base", yend="y_base"),
+        color="#002b63",
+        size=1.0,
+    )
+    + geom_segment(
+        summary_df_latent,
+        aes(x="median", xend="median", y="y_base", yend="y_top"),
+        color="#4b8aa6",
+        size=2.3,
+    )
+    + scale_y_continuous(
+        breaks=summary_df_latent["y_base"].tolist(),
+        labels=summary_df_latent["parameter"].tolist(),
+        expand=(0.06, 0.20),
+    )
+    + scale_x_continuous(expand=(0.02, 0.02))
+    + coord_cartesian(ylim=(-0.55, len(plot_order_latent) - 0.15))
+    + labs(
+        title="Latent variable model estimates",
+        subtitle="with medians and 95% intervals after marginalizing over hidden weather",
+        x="Posterior coefficient estimate",
+        y="Coefficients",
+    )
+    + theme(
+        figure_size=(9.5, 6.0),
+        panel_background=element_rect(fill="white", color="white"),
+        plot_background=element_rect(fill="white", color="white"),
+
+        panel_grid_major=element_blank(),
+        panel_grid_minor=element_blank(),
+
+        axis_line_x=element_line(color="black", size=0.8),
+        axis_line_y=element_line(color="black", size=0.8),
+        axis_ticks_major=element_line(color="black", size=0.8),
+        axis_ticks_minor=element_blank(),
+
+        axis_text_x=element_text(size=12, family="serif", color="#333333"),
+        axis_text_y=element_text(size=12, family="serif", color="#333333", weight="bold"),
+        axis_title_x=element_text(size=12, family="serif", color="#333333", margin={"t": 10}),
+
+        plot_title=element_text(size=24, family="serif", color="black"),
+        plot_subtitle=element_text(size=17, family="serif", color="black"),
+    )
+)
+
+p_latent
+```
+
+The latent-variable model gives a more structural representation of the hidden-confounding story: Weather is treated as an explicit but unobserved common cause of both Umbrella and GettingWet. However, the posterior estimates show wide uncertainty intervals for all three paths, and each interval overlaps zero. This means the model does not clearly identify the hidden Weather mechanism or the direct effect of Umbrella on GettingWet from the observed data alone.
+
+In particular, the Umbrella → GettingWet coefficient is centred close to zero, suggesting little evidence for a strong direct umbrella effect after accounting for latent Weather. But this should not be interpreted as proof of no causal effect. Rather, it shows that once we allow for an unobserved common cause, the available data are compatible with a range of explanations.
+
+Latent-variable models can make hidden confounding explicit, but they require stronger assumptions. If the hidden variable is not observed, **the model may be weakly identified**, and the posterior can remain highly uncertain. In this example, the latent Weather model is more faithful to the causal DAG, but **less transparent and more assumption-dependent than the sensitivity analysis**.
+
+::::::
+
+
 :::::
 
 ::::
@@ -474,6 +1346,12 @@ Here, one important role of the DAG is to help us decide which variables it make
 (4) If there are any open backdoor paths, decide which variable(s) to condition on to  close it (if possible). 
 
 
+## References:
+
+- [Rosenbaum & Rubin (1983)](https://academic.oup.com/jrsssb/article/45/2/212/7027731) — classic paper on sensitivity to an unobserved binary covariate with a binary outcome. 
+- [VanderWeele & Ding (2017), E-value](https://pubmed.ncbi.nlm.nih.gov/28693043/) — a very accessible modern approach: it quantifies how strongly an unmeasured confounder would need to be associated with both treatment and outcome to explain away an association.
+- [Cinelli & Hazlett (2020), “Making Sense of Sensitivity”](https://academic.oup.com/jrsssb/article/82/1/39/7056023?guestAccessKey=) — especially useful for regression-style intuition. Their “robustness value” asks how strong omitted confounding would need to be to overturn a conclusion.
+- [sensemakr](https://carloscinelli.com/sensemakr/) — practical R/Stata implementation of Cinelli & Hazlett’s approach; useful if you want a computational reference rather than only theory.
 ---
 
 

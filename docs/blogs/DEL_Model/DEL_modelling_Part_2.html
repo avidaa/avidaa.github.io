@@ -57,7 +57,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 
-<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="../../site_libs/quarto-nav/headroom.min.js"></script>
 <script src="../../site_libs/clipboard/clipboard.min.js"></script>
 <script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
@@ -100,6 +100,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
@@ -181,6 +184,7 @@ window.Quarto = {
   <ul class="collapse">
   <li><a href="#state-the-causal-assumptions-dag-first" id="toc-state-the-causal-assumptions-dag-first" class="nav-link" data-scroll-target="#state-the-causal-assumptions-dag-first">State the causal assumptions (DAG first)</a></li>
   </ul></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References:</a></li>
   </ul>
 </nav>
     </div>
@@ -530,7 +534,7 @@ X \leftarrow Z \rightarrow Y
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-9-contents" aria-controls="callout-9" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
@@ -539,7 +543,7 @@ Intuitive example of a fork structure and backdoor path
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div id="callout-9" class="callout-9-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>Suppose we want to estimate whether carrying an umbrella has an effect on being wet. However, there is a confounder: weather conditions. Rainy weather affects both whether someone carries an umbrella and whether they gets wet.</p>
 <p>On rainy days, people are more likely to carry an umbrella and more likely to get wet. This can create a statistical association between umbrellas and getting wet, even if carrying an umbrella does not directly cause someone to get wet.</p>
@@ -565,7 +569,7 @@ X \leftarrow Z \rightarrow Y
 \text{Carrying an umbrella} \leftarrow \text{Weather} \rightarrow \text{Getting wet}
 \]</span></p>
 <p>Conditioning on weather blocks this backdoor path. It separates the association caused by shared weather conditions from the possible direct effect of carrying an umbrella on getting wet. Once we compare people under the same weather conditions, we would expect umbrella use to be associated with a lower chance of getting wet, if umbrellas are effective.</p>
-<div class="callout callout-style-default callout-important no-icon callout-titled">
+<div class="callout callout-style-default callout-note no-icon callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
@@ -578,7 +582,17 @@ Code for the umbrella example
 <div id="callout-4" class="callout-4-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>Let’s simulate some data to illustrate the umbrella example. We will create a simple dataset where weather conditions affect both umbrella use and getting wet.</p>
-<div id="a032f577" class="cell" data-execution_count="1">
+<div id="fig-umbrella-dag" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-umbrella-dag-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="img/umbrella_dag.png" class="img-fluid figure-img" style="width:50.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-umbrella-dag-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;11: Umbrella example DAG.
+</figcaption>
+</figure>
+</div>
+<div id="5dfc952d" class="cell" data-execution_count="2">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -600,15 +614,57 @@ Code for the umbrella example
 <span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">'GettingWet'</span>: getting_wet</span>
 <span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>})</span>
 <span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the first few rows of the dataset</span></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(data.head())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> display</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>display(data.head())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-stdout">
-<pre><code>   Weather  Umbrella  GettingWet
-0        0         0           0
-1        1         1           0
-2        1         1           1
-3        0         0           0
-4        0         0           0</code></pre>
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Weather</th>
+<th data-quarto-table-cell-role="th">Umbrella</th>
+<th data-quarto-table-cell-role="th">GettingWet</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+
+</div>
 </div>
 </div>
 <p>This code simulates a dataset of 1000 observations with three variables: Weather, Umbrella, and GettingWet.</p>
@@ -618,121 +674,998 @@ Code for the umbrella example
 </section>
 <section id="umbrella" class="level5">
 <h5 class="anchored" data-anchor-id="umbrella">Umbrella</h5>
-<p>The probability of carrying an umbrella is influenced by the weather and is defined as: <span class="math display">\[0.8 * weather + 0.1\]</span></p>
+<p>The probability of carrying an umbrella is influenced by the weather and is defined as: <span class="math display">\[ 0.8 * weather + 0.1 \]</span></p>
 <p>This means that:</p>
 <ul>
-<li>If it’s rainy (weather = 1), the probability of carrying an umbrella is 0.8 * 1 + 0.1 = 0.9 (90%).</li>
-<li>If it’s not rainy (weather = 0), the probability of carrying an umbrella is 0.8 * 0 + 0.1 = 0.1 (10%).</li>
+<li><p>If it’s rainy (weather = 1), the probability of carrying an umbrella is 90%: <span class="math display">\[ 0.8 * 1 + 0.1 = 0.9 \]</span></p></li>
+<li><p>If it’s not rainy (weather = 0), the probability of carrying an umbrella is 10%: <span class="math display">\[ 0.8 * 0 + 0.1 = 0.1 \]</span></p></li>
 </ul>
 </section>
 <section id="getting-wet" class="level5">
 <h5 class="anchored" data-anchor-id="getting-wet">Getting Wet</h5>
-<p>The probability of getting wet is defined as: <span class="math display">\[0.7 * weather * (1 - umbrella) + 0.1 * weather * umbrella + 0.05 * (1 - weather)\]</span></p>
+<p>The probability of getting wet is defined as: <span class="math display">\[ 0.7 * weather * (1 - umbrella) + 0.1 * weather * umbrella + 0.05 * (1 - weather) \]</span></p>
 <p>This means that:</p>
 <ul>
-<li>If it’s rainy and the person is not carrying an umbrella (weather = 1, umbrella = 0), the probability of getting wet is 0.7 * 1 * (1 - 0) + 0.1 * 1 * 0 + 0.05 * (1 - 1) = 0.7 (70%).</li>
-<li>If it’s rainy and the person is carrying an umbrella (weather = 1, umbrella = 1), the probability of getting wet is 0.7 * 1 * (1 - 1) + 0.1 * 1 * 1 + 0.05 * (1 - 1) = 0.1 (10%).</li>
-<li>If it’s not rainy (weather = 0), the probability of getting wet is always low at 0.05 (5%), regardless of umbrella use.</li>
+<li><p>If it’s rainy and the person is not carrying an umbrella (weather = 1, umbrella = 0), the probability of getting wet is 70%: <span class="math display">\[ 0.7 * 1 * (1 - 0) + 0.1 * 1 * 0 + 0.05 * (1 - 1) = 0.7 \]</span></p></li>
+<li><p>If it’s rainy and the person is carrying an umbrella (weather = 1, umbrella = 1), the probability of getting wet is 10%: <span class="math display">\[ 0.7 * 1 * (1 - 1) + 0.1 * 1 * 1 + 0.05 * (1 - 1) = 0.1 \]</span></p></li>
+<li><p>If it’s not rainy (weather = 0), the probability of getting wet is always low at 5%, regardless of umbrella use. <span class="math display">\[ 0.7 * 0 * (1 - umbrella) + 0.1 * 0 * umbrella + 0.05 * (1 - 0) = 0.05 \]</span></p></li>
 </ul>
 </section>
-<section id="analyze-the-data-to-see-the-associations" class="level5">
-<h5 class="anchored" data-anchor-id="analyze-the-data-to-see-the-associations">Analyze the data to see the associations</h5>
-<div id="f04e14f6" class="cell" data-execution_count="2">
+<section id="summary-of-the-simulated-data" class="level5">
+<h5 class="anchored" data-anchor-id="summary-of-the-simulated-data">Summary of the simulated data</h5>
+<p>Let’s plot the simulated data to see the associations between the variables.</p>
+<p>Starting with the raw association between Umbrella and GettingWet:</p>
+<div id="d5fd9c2c" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> arviz <span class="im">as</span> az</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pyro</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pyro.distributions <span class="im">as</span> dist</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pyro.infer <span class="im">import</span> MCMC, NUTS</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>pyro.set_rng_seed(<span class="dv">42</span>)</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> wet_model(umbrella, wet, weather<span class="op">=</span><span class="va">None</span>):</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    alpha <span class="op">=</span> pyro.sample(<span class="st">'alpha'</span>, dist.Normal(<span class="fl">0.0</span>, <span class="fl">2.0</span>))</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    beta_umbrella <span class="op">=</span> pyro.sample(<span class="st">'beta_umbrella'</span>, dist.Normal(<span class="fl">0.0</span>, <span class="fl">2.0</span>))</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    logits <span class="op">=</span> alpha <span class="op">+</span> beta_umbrella <span class="op">*</span> umbrella</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> weather <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>        beta_weather <span class="op">=</span> pyro.sample(<span class="st">'beta_weather'</span>, dist.Normal(<span class="fl">0.0</span>, <span class="fl">2.0</span>))</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>        logits <span class="op">=</span> logits <span class="op">+</span> beta_weather <span class="op">*</span> weather</span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> pyro.plate(<span class="st">'obs'</span>, <span class="bu">len</span>(umbrella)):</span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>        pyro.sample(<span class="st">'wet'</span>, dist.Bernoulli(logits<span class="op">=</span>logits), obs<span class="op">=</span>wet)</span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fit_logistic_model(umbrella, wet, weather<span class="op">=</span><span class="va">None</span>, num_samples<span class="op">=</span><span class="dv">1000</span>, warmup_steps<span class="op">=</span><span class="dv">500</span>):</span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    pyro.clear_param_store()</span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>    umbrella <span class="op">=</span> torch.as_tensor(umbrella, dtype<span class="op">=</span>torch.float32)</span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>    wet <span class="op">=</span> torch.as_tensor(wet, dtype<span class="op">=</span>torch.float32)</span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>    weather <span class="op">=</span> <span class="va">None</span> <span class="cf">if</span> weather <span class="kw">is</span> <span class="va">None</span> <span class="cf">else</span> torch.as_tensor(weather, dtype<span class="op">=</span>torch.float32)</span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>    nuts_kernel <span class="op">=</span> NUTS(wet_model)</span>
-<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>    mcmc <span class="op">=</span> MCMC(</span>
-<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>        nuts_kernel,</span>
-<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>        num_samples<span class="op">=</span>num_samples,</span>
-<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>        warmup_steps<span class="op">=</span>warmup_steps,</span>
-<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>        disable_progbar<span class="op">=</span><span class="va">True</span></span>
-<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>    mcmc.run(umbrella, wet, weather)</span>
-<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mcmc.get_samples()</span>
-<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>posterior_unadjusted <span class="op">=</span> fit_logistic_model(</span>
-<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>    umbrella<span class="op">=</span>data[<span class="st">'Umbrella'</span>].values,</span>
-<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>    wet<span class="op">=</span>data[<span class="st">'GettingWet'</span>].values,</span>
-<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>    weather<span class="op">=</span><span class="va">None</span></span>
-<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>posterior_adjusted <span class="op">=</span> fit_logistic_model(</span>
-<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>    umbrella<span class="op">=</span>data[<span class="st">'Umbrella'</span>].values,</span>
-<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>    wet<span class="op">=</span>data[<span class="st">'GettingWet'</span>].values,</span>
-<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>    weather<span class="op">=</span>data[<span class="st">'Weather'</span>].values</span>
-<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a>beta_unadjusted <span class="op">=</span> posterior_unadjusted[<span class="st">'beta_umbrella'</span>].detach().numpy()</span>
-<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>beta_adjusted <span class="op">=</span> posterior_adjusted[<span class="st">'beta_umbrella'</span>].detach().numpy()</span>
-<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>beta_weather <span class="op">=</span> posterior_adjusted[<span class="st">'beta_weather'</span>].detach().numpy()</span>
-<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a>idata_betas <span class="op">=</span> az.from_dict(</span>
-<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a>    {</span>
-<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a>        <span class="st">'posterior'</span>: {</span>
-<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a>            <span class="st">'beta_umbrella_unadjusted'</span>: beta_unadjusted[np.newaxis, :],</span>
-<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a>            <span class="st">'beta_umbrella_adjusted'</span>: beta_adjusted[np.newaxis, :],</span>
-<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a>            <span class="st">'beta_weather_adjusted'</span>: beta_weather[np.newaxis, :],</span>
-<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">3</span>))</span>
-<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a>az.plot_forest(</span>
-<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a>    idata_betas,</span>
-<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a>    var_names<span class="op">=</span>[</span>
-<span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a>        <span class="st">'beta_umbrella_unadjusted'</span>,</span>
-<span id="cb3-71"><a href="#cb3-71" aria-hidden="true" tabindex="-1"></a>        <span class="st">'beta_umbrella_adjusted'</span>,</span>
-<span id="cb3-72"><a href="#cb3-72" aria-hidden="true" tabindex="-1"></a>        <span class="st">'beta_weather_adjusted'</span>,</span>
-<span id="cb3-73"><a href="#cb3-73" aria-hidden="true" tabindex="-1"></a>    ],</span>
-<span id="cb3-74"><a href="#cb3-74" aria-hidden="true" tabindex="-1"></a>    combined<span class="op">=</span><span class="va">True</span></span>
-<span id="cb3-75"><a href="#cb3-75" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a>plt.axvline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">'black'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, linewidth<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Posterior forest plot for the beta coefficients'</span>)</span>
-<span id="cb3-78"><a href="#cb3-78" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
-<span id="cb3-79"><a href="#cb3-79" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> plotnine <span class="im">import</span> (</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    ggplot, aes, geom_tile, geom_text, facet_wrap,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    scale_fill_gradient, labs, theme_minimal, theme,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    element_text, element_blank</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>ct <span class="op">=</span> pd.crosstab(</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    data[<span class="st">"Umbrella"</span>],</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    data[<span class="st">"GettingWet"</span>],</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    normalize<span class="op">=</span><span class="st">"all"</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>).reset_index().melt(</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    id_vars<span class="op">=</span><span class="st">"Umbrella"</span>,</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    var_name<span class="op">=</span><span class="st">"GettingWet"</span>,</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    value_name<span class="op">=</span><span class="st">"proportion"</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>counts <span class="op">=</span> pd.crosstab(</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    data[<span class="st">"Umbrella"</span>],</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    data[<span class="st">"GettingWet"</span>]</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>).reset_index().melt(</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    id_vars<span class="op">=</span><span class="st">"Umbrella"</span>,</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    var_name<span class="op">=</span><span class="st">"GettingWet"</span>,</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    value_name<span class="op">=</span><span class="st">"count"</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>heatmap_df <span class="op">=</span> ct.merge(counts, on<span class="op">=</span>[<span class="st">"Umbrella"</span>, <span class="st">"GettingWet"</span>])</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>heatmap_df[<span class="st">"Umbrella"</span>] <span class="op">=</span> heatmap_df[<span class="st">"Umbrella"</span>].<span class="bu">map</span>({</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    <span class="dv">0</span>: <span class="st">"No umbrella"</span>,</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>    <span class="dv">1</span>: <span class="st">"Umbrella"</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>heatmap_df[<span class="st">"GettingWet"</span>] <span class="op">=</span> heatmap_df[<span class="st">"GettingWet"</span>].<span class="bu">map</span>({</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>    <span class="dv">0</span>: <span class="st">"Not wet"</span>,</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>    <span class="dv">1</span>: <span class="st">"Wet"</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>heatmap_df[<span class="st">"label"</span>] <span class="op">=</span> heatmap_df.<span class="bu">apply</span>(</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>    <span class="kw">lambda</span> r: <span class="ss">f"n = </span><span class="sc">{</span><span class="bu">int</span>(r[<span class="st">'count'</span>])<span class="sc">}</span><span class="ch">\n</span><span class="sc">{</span><span class="dv">100</span> <span class="op">*</span> r[<span class="st">'proportion'</span>]<span class="sc">:.1f}</span><span class="ss">%"</span>,</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>    axis<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>p1 <span class="op">=</span> (</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>    ggplot(heatmap_df, aes(x<span class="op">=</span><span class="st">"GettingWet"</span>, y<span class="op">=</span><span class="st">"Umbrella"</span>, fill<span class="op">=</span><span class="st">"proportion"</span>))</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_tile(color<span class="op">=</span><span class="st">"white"</span>, size<span class="op">=</span><span class="fl">1.2</span>)</span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_text(aes(label<span class="op">=</span><span class="st">"label"</span>), size<span class="op">=</span><span class="dv">11</span>, color<span class="op">=</span><span class="st">"#0f172a"</span>)</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> scale_fill_gradient(low<span class="op">=</span><span class="st">"#eff6ff"</span>, high<span class="op">=</span><span class="st">"#2563eb"</span>)</span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> labs(</span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>        title<span class="op">=</span><span class="st">"Observed association between umbrella use and getting wet"</span>,</span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>        subtitle<span class="op">=</span><span class="st">"Each tile shows the proportion of all 1000 observations."</span>,</span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>        x<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>        y<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>        fill<span class="op">=</span><span class="st">"Proportion"</span>,</span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> theme_minimal(base_size<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> theme(</span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>        figure_size<span class="op">=</span>(<span class="fl">6.5</span>, <span class="fl">4.0</span>),</span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>        panel_grid_major<span class="op">=</span>element_blank(),</span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>        panel_grid_minor<span class="op">=</span>element_blank(),</span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>        plot_title<span class="op">=</span>element_text(weight<span class="op">=</span><span class="st">"bold"</span>, size<span class="op">=</span><span class="dv">13</span>),</span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a>        plot_subtitle<span class="op">=</span>element_text(size<span class="op">=</span><span class="dv">10</span>),</span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a>        axis_text<span class="op">=</span>element_text(size<span class="op">=</span><span class="dv">11</span>),</span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a>p1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-display">
-<pre><code>&lt;Figure size 960x288 with 0 Axes&gt;</code></pre>
-</div>
-<div class="cell-output cell-output-display">
+<div class="cell-output cell-output-display" data-execution_count="8">
 <div>
 <figure class="figure">
-<p><img src="DEL_modelling_Part_2_files/figure-html/cell-3-output-2.png" class="img-fluid figure-img"></p>
+<p><img src="DEL_modelling_Part_2_files/figure-html/cell-3-output-1.png" width="624" height="384" class="figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
-<p>This code fits two Bayesian logistic regression models in Pyro using NUTS, an MCMC sampler. The first estimates the association between umbrella use and getting wet without conditioning on weather. The second includes weather in the model, so the posterior for <code>beta_umbrella</code> is the adjusted estimate after conditioning on the confounder. Pyro still uses Torch internally, but the notebook code no longer stores separate tensor variables.</p>
+<p>And, stratified association by Weather, that show what happens after blocking the backdoor path:</p>
+<div id="53f4eedd" class="cell" data-execution_count="4">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>strat_counts <span class="op">=</span> (</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    data</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    .groupby([<span class="st">"Weather"</span>, <span class="st">"Umbrella"</span>, <span class="st">"GettingWet"</span>])</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    .size()</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    .reset_index(name<span class="op">=</span><span class="st">"count"</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>full_grid <span class="op">=</span> pd.MultiIndex.from_product(</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    [[<span class="dv">0</span>, <span class="dv">1</span>], [<span class="dv">0</span>, <span class="dv">1</span>], [<span class="dv">0</span>, <span class="dv">1</span>]],</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    names<span class="op">=</span>[<span class="st">"Weather"</span>, <span class="st">"Umbrella"</span>, <span class="st">"GettingWet"</span>]</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>).to_frame(index<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>strat_df <span class="op">=</span> full_grid.merge(</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    strat_counts,</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    on<span class="op">=</span>[<span class="st">"Weather"</span>, <span class="st">"Umbrella"</span>, <span class="st">"GettingWet"</span>],</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    how<span class="op">=</span><span class="st">"left"</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>).fillna({<span class="st">"count"</span>: <span class="dv">0</span>})</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>strat_df[<span class="st">"within_weather_prop"</span>] <span class="op">=</span> (</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    strat_df[<span class="st">"count"</span>] <span class="op">/</span> strat_df.groupby(<span class="st">"Weather"</span>)[<span class="st">"count"</span>].transform(<span class="st">"sum"</span>)</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>strat_df[<span class="st">"Weather"</span>] <span class="op">=</span> strat_df[<span class="st">"Weather"</span>].<span class="bu">map</span>({</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    <span class="dv">0</span>: <span class="st">"Not rainy"</span>,</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>    <span class="dv">1</span>: <span class="st">"Rainy"</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>strat_df[<span class="st">"Umbrella"</span>] <span class="op">=</span> strat_df[<span class="st">"Umbrella"</span>].<span class="bu">map</span>({</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>    <span class="dv">0</span>: <span class="st">"No umbrella"</span>,</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>    <span class="dv">1</span>: <span class="st">"Umbrella"</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>strat_df[<span class="st">"GettingWet"</span>] <span class="op">=</span> strat_df[<span class="st">"GettingWet"</span>].<span class="bu">map</span>({</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>    <span class="dv">0</span>: <span class="st">"Not wet"</span>,</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>    <span class="dv">1</span>: <span class="st">"Wet"</span></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>strat_df[<span class="st">"label"</span>] <span class="op">=</span> strat_df.<span class="bu">apply</span>(</span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>    <span class="kw">lambda</span> r: <span class="ss">f"n = </span><span class="sc">{</span><span class="bu">int</span>(r[<span class="st">'count'</span>])<span class="sc">}</span><span class="ch">\n</span><span class="sc">{</span><span class="dv">100</span> <span class="op">*</span> r[<span class="st">'within_weather_prop'</span>]<span class="sc">:.1f}</span><span class="ss">%"</span>,</span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>    axis<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>p2 <span class="op">=</span> (</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>    ggplot(strat_df, aes(x<span class="op">=</span><span class="st">"GettingWet"</span>, y<span class="op">=</span><span class="st">"Umbrella"</span>, fill<span class="op">=</span><span class="st">"within_weather_prop"</span>))</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_tile(color<span class="op">=</span><span class="st">"white"</span>, size<span class="op">=</span><span class="fl">1.2</span>)</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_text(aes(label<span class="op">=</span><span class="st">"label"</span>), size<span class="op">=</span><span class="dv">10</span>, color<span class="op">=</span><span class="st">"#0f172a"</span>)</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> facet_wrap(<span class="st">"~Weather"</span>)</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> scale_fill_gradient(low<span class="op">=</span><span class="st">"#eff6ff"</span>, high<span class="op">=</span><span class="st">"#2563eb"</span>)</span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> labs(</span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>        title<span class="op">=</span><span class="st">"Umbrella use and getting wet, stratified by weather"</span>,</span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a>        subtitle<span class="op">=</span><span class="st">"Stratifying by weather shows the association after blocking the backdoor path.</span><span class="ch">\n</span><span class="st">"</span>,</span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a>        x<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>        y<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>        fill<span class="op">=</span><span class="st">"Within-weather</span><span class="ch">\n</span><span class="st">proportion"</span>,</span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> theme_minimal(base_size<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> theme(</span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a>        figure_size<span class="op">=</span>(<span class="fl">8.0</span>, <span class="fl">4.0</span>),</span>
+<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a>        panel_grid_major<span class="op">=</span>element_blank(),</span>
+<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a>        panel_grid_minor<span class="op">=</span>element_blank(),</span>
+<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a>        plot_title<span class="op">=</span>element_text(weight<span class="op">=</span><span class="st">"bold"</span>, size<span class="op">=</span><span class="dv">13</span>),</span>
+<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a>        plot_subtitle<span class="op">=</span>element_text(size<span class="op">=</span><span class="dv">10</span>),</span>
+<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a>        axis_text<span class="op">=</span>element_text(size<span class="op">=</span><span class="dv">11</span>),</span>
+<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a>        strip_text<span class="op">=</span>element_text(weight<span class="op">=</span><span class="st">"bold"</span>, size<span class="op">=</span><span class="dv">11</span>),</span>
+<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a>p2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<div>
+<figure class="figure">
+<p><img src="DEL_modelling_Part_2_files/figure-html/cell-4-output-1.png" width="768" height="384" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
 </section>
+<section id="analyze-the-data-to-see-the-associations" class="level5">
+<h5 class="anchored" data-anchor-id="analyze-the-data-to-see-the-associations">Analyze the data to see the associations</h5>
+<p>We are interested in the association between carrying an umbrella and getting wet, and how this association changes when we condition on weather.</p>
+<div id="fig-umbrella-association" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-umbrella-association-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="img/umbrella_association.png" class="img-fluid figure-img" style="width:50.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-umbrella-association-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;12: Association between carrying an umbrella and getting wet.
+</figcaption>
+</figure>
+</div>
+<p>To quantify how the umbrella–wet association changes when we account for weather, we fit two logistic regression models: one <strong>unadjusted</strong> (umbrella only) and one <strong>adjusted</strong> (umbrella and weather).</p>
+<p>Both models treat each person’s outcome as a Bernoulli draw with an individual probability <span class="math inline">\(p_i\)</span>:</p>
+<p><span class="math display">\[\text{GettingWet}_i \sim \text{Bernoulli}(p_i)\]</span></p>
+<p>The two models differ in how <span class="math inline">\(p_i\)</span> is parameterised. The unadjusted model links <span class="math inline">\(p_i\)</span> only to umbrella use:</p>
+<p><span class="math display">\[\text{logit}(p_i) = \alpha + \beta_{\text{umbrella}} \cdot \text{Umbrella}_i\]</span></p>
+<p>The adjusted model additionally conditions on weather, blocking the backdoor path <span class="math inline">\(\text{Umbrella} \leftarrow \text{Weather} \rightarrow \text{GettingWet}\)</span>:</p>
+<p><span class="math display">\[\text{logit}(p_i) = \alpha + \beta_{\text{umbrella}} \cdot \text{Umbrella}_i + \beta_{\text{weather}} \cdot \text{Weather}_i\]</span></p>
+<p>The priors are weakly informative Normal(0, 2) distributions on each coefficient, which keep the logit-scale effects within a plausible range (<span class="math inline">\(\pm 4\)</span>) while placing no strong prior preference on direction:</p>
+<p><span class="math display">\[ \alpha \sim \text{Normal}(0, 2), \quad \beta_{\text{umbrella}} \sim \text{Normal}(0, 2), \quad \beta_{\text{weather}} \sim \text{Normal}(0, 2) \]</span></p>
+<p>Both models are fitted via NUTS (No-U-Turn Sampler) using Pyro. The key quantity of interest is <span class="math inline">\(\beta_{\text{umbrella}}\)</span>: comparing its posterior between the two models shows how much of the raw umbrella–wet association disappears once weather is held fixed.</p>
+<div id="66875aa2" class="cell" data-execution_count="5">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pyro</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pyro.distributions <span class="im">as</span> dist</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pyro.infer <span class="im">import</span> MCMC, NUTS</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">"ignore"</span>, category<span class="op">=</span><span class="pp">UserWarning</span>)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>pyro.set_rng_seed(<span class="dv">42</span>)</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> wet_model(umbrella, wet, weather<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    alpha <span class="op">=</span> pyro.sample(<span class="st">'alpha'</span>, dist.Normal(<span class="fl">0.0</span>, <span class="fl">2.0</span>))</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    beta_umbrella <span class="op">=</span> pyro.sample(<span class="st">'beta_umbrella'</span>, dist.Normal(<span class="fl">0.0</span>, <span class="fl">2.0</span>))</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    logits <span class="op">=</span> alpha <span class="op">+</span> beta_umbrella <span class="op">*</span> umbrella</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> weather <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>        beta_weather <span class="op">=</span> pyro.sample(<span class="st">'beta_weather'</span>, dist.Normal(<span class="fl">0.0</span>, <span class="fl">2.0</span>))</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>        logits <span class="op">=</span> logits <span class="op">+</span> beta_weather <span class="op">*</span> weather</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> pyro.plate(<span class="st">'obs'</span>, <span class="bu">len</span>(umbrella)):</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>        pyro.sample(<span class="st">'wet'</span>, dist.Bernoulli(logits<span class="op">=</span>logits), obs<span class="op">=</span>wet)</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fit_logistic_model(umbrella, wet, weather<span class="op">=</span><span class="va">None</span>, num_samples<span class="op">=</span><span class="dv">1000</span>, warmup_steps<span class="op">=</span><span class="dv">500</span>):</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    pyro.clear_param_store()</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    umbrella <span class="op">=</span> torch.as_tensor(umbrella, dtype<span class="op">=</span>torch.float32)</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    wet <span class="op">=</span> torch.as_tensor(wet, dtype<span class="op">=</span>torch.float32)</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>    weather <span class="op">=</span> <span class="va">None</span> <span class="cf">if</span> weather <span class="kw">is</span> <span class="va">None</span> <span class="cf">else</span> torch.as_tensor(weather, dtype<span class="op">=</span>torch.float32)</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>    nuts_kernel <span class="op">=</span> NUTS(wet_model)</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>    mcmc <span class="op">=</span> MCMC(</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>        nuts_kernel,</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>        num_samples<span class="op">=</span>num_samples,</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>        warmup_steps<span class="op">=</span>warmup_steps,</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>        disable_progbar<span class="op">=</span><span class="va">True</span></span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>    mcmc.run(umbrella, wet, weather)</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mcmc.get_samples()</span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>posterior_unadjusted <span class="op">=</span> fit_logistic_model(</span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>    umbrella<span class="op">=</span>data[<span class="st">'Umbrella'</span>].values,</span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>    wet<span class="op">=</span>data[<span class="st">'GettingWet'</span>].values,</span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>    weather<span class="op">=</span><span class="va">None</span></span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>posterior_adjusted <span class="op">=</span> fit_logistic_model(</span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>    umbrella<span class="op">=</span>data[<span class="st">'Umbrella'</span>].values,</span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>    wet<span class="op">=</span>data[<span class="st">'GettingWet'</span>].values,</span>
+<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a>    weather<span class="op">=</span>data[<span class="st">'Weather'</span>].values</span>
+<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>beta_unadjusted <span class="op">=</span> posterior_unadjusted[<span class="st">'beta_umbrella'</span>].detach().numpy()</span>
+<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a>beta_adjusted <span class="op">=</span> posterior_adjusted[<span class="st">'beta_umbrella'</span>].detach().numpy()</span>
+<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a>beta_weather <span class="op">=</span> posterior_adjusted[<span class="st">'beta_weather'</span>].detach().numpy()</span>
+<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a><span class="co">##########################################################</span></span>
+<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a><span class="co">#        Plotting the posterior distributions</span></span>
+<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a><span class="co">##########################################################</span></span>
+<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> plotnine <span class="im">import</span> (</span>
+<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a>    ggplot, aes, geom_polygon, geom_line, geom_segment, geom_vline,</span>
+<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a>    labs, theme, element_text, element_blank, element_line,</span>
+<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a>    element_rect, scale_y_continuous, scale_x_continuous, coord_cartesian,</span>
+<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-68"><a href="#cb4-68" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> gaussian_kde</span>
+<span id="cb4-69"><a href="#cb4-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-70"><a href="#cb4-70" aria-hidden="true" tabindex="-1"></a><span class="co"># Posterior draws from your fitted Pyro models</span></span>
+<span id="cb4-71"><a href="#cb4-71" aria-hidden="true" tabindex="-1"></a>posterior_draws <span class="op">=</span> {</span>
+<span id="cb4-72"><a href="#cb4-72" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Weather effect"</span>: beta_weather,</span>
+<span id="cb4-73"><a href="#cb4-73" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Umbrella effect</span><span class="ch">\n</span><span class="st">(adjusted for weather)"</span>: beta_adjusted,</span>
+<span id="cb4-74"><a href="#cb4-74" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Umbrella effect</span><span class="ch">\n</span><span class="st">(unadjusted)"</span>: beta_unadjusted,</span>
+<span id="cb4-75"><a href="#cb4-75" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb4-76"><a href="#cb4-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-77"><a href="#cb4-77" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot order: top to bottom</span></span>
+<span id="cb4-78"><a href="#cb4-78" aria-hidden="true" tabindex="-1"></a>plot_order <span class="op">=</span> [</span>
+<span id="cb4-79"><a href="#cb4-79" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Weather effect"</span>,</span>
+<span id="cb4-80"><a href="#cb4-80" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Umbrella effect</span><span class="ch">\n</span><span class="st">(adjusted for weather)"</span>,</span>
+<span id="cb4-81"><a href="#cb4-81" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Umbrella effect</span><span class="ch">\n</span><span class="st">(unadjusted)"</span>,</span>
+<span id="cb4-82"><a href="#cb4-82" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb4-83"><a href="#cb4-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-84"><a href="#cb4-84" aria-hidden="true" tabindex="-1"></a>all_draws <span class="op">=</span> np.concatenate([np.asarray(v) <span class="cf">for</span> v <span class="kw">in</span> posterior_draws.values()])</span>
+<span id="cb4-85"><a href="#cb4-85" aria-hidden="true" tabindex="-1"></a>x_min, x_max <span class="op">=</span> np.quantile(all_draws, [<span class="fl">0.005</span>, <span class="fl">0.995</span>])</span>
+<span id="cb4-86"><a href="#cb4-86" aria-hidden="true" tabindex="-1"></a>x_pad <span class="op">=</span> <span class="fl">0.20</span> <span class="op">*</span> (x_max <span class="op">-</span> x_min)</span>
+<span id="cb4-87"><a href="#cb4-87" aria-hidden="true" tabindex="-1"></a>x_grid <span class="op">=</span> np.linspace(x_min <span class="op">-</span> x_pad, x_max <span class="op">+</span> x_pad, <span class="dv">400</span>)</span>
+<span id="cb4-88"><a href="#cb4-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-89"><a href="#cb4-89" aria-hidden="true" tabindex="-1"></a>ridge_height <span class="op">=</span> <span class="fl">0.72</span></span>
+<span id="cb4-90"><a href="#cb4-90" aria-hidden="true" tabindex="-1"></a>rows <span class="op">=</span> []</span>
+<span id="cb4-91"><a href="#cb4-91" aria-hidden="true" tabindex="-1"></a>interval_rows <span class="op">=</span> []</span>
+<span id="cb4-92"><a href="#cb4-92" aria-hidden="true" tabindex="-1"></a>summary_rows <span class="op">=</span> []</span>
+<span id="cb4-93"><a href="#cb4-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-94"><a href="#cb4-94" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, name <span class="kw">in</span> <span class="bu">enumerate</span>(plot_order):</span>
+<span id="cb4-95"><a href="#cb4-95" aria-hidden="true" tabindex="-1"></a>    draws <span class="op">=</span> np.asarray(posterior_draws[name])</span>
+<span id="cb4-96"><a href="#cb4-96" aria-hidden="true" tabindex="-1"></a>    y_base <span class="op">=</span> <span class="bu">len</span>(plot_order) <span class="op">-</span> <span class="dv">1</span> <span class="op">-</span> i</span>
+<span id="cb4-97"><a href="#cb4-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-98"><a href="#cb4-98" aria-hidden="true" tabindex="-1"></a>    kde <span class="op">=</span> gaussian_kde(draws)</span>
+<span id="cb4-99"><a href="#cb4-99" aria-hidden="true" tabindex="-1"></a>    density <span class="op">=</span> kde(x_grid)</span>
+<span id="cb4-100"><a href="#cb4-100" aria-hidden="true" tabindex="-1"></a>    density_scaled <span class="op">=</span> density <span class="op">/</span> density.<span class="bu">max</span>() <span class="op">*</span> ridge_height</span>
+<span id="cb4-101"><a href="#cb4-101" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-102"><a href="#cb4-102" aria-hidden="true" tabindex="-1"></a>    median <span class="op">=</span> np.median(draws)</span>
+<span id="cb4-103"><a href="#cb4-103" aria-hidden="true" tabindex="-1"></a>    lower, upper <span class="op">=</span> np.quantile(draws, [<span class="fl">0.10</span>, <span class="fl">0.90</span>])  <span class="co"># 80% interval</span></span>
+<span id="cb4-104"><a href="#cb4-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-105"><a href="#cb4-105" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> x, d <span class="kw">in</span> <span class="bu">zip</span>(x_grid, density_scaled):</span>
+<span id="cb4-106"><a href="#cb4-106" aria-hidden="true" tabindex="-1"></a>        rows.append({</span>
+<span id="cb4-107"><a href="#cb4-107" aria-hidden="true" tabindex="-1"></a>            <span class="st">"parameter"</span>: name,</span>
+<span id="cb4-108"><a href="#cb4-108" aria-hidden="true" tabindex="-1"></a>            <span class="st">"x"</span>: x,</span>
+<span id="cb4-109"><a href="#cb4-109" aria-hidden="true" tabindex="-1"></a>            <span class="st">"y_base"</span>: y_base,</span>
+<span id="cb4-110"><a href="#cb4-110" aria-hidden="true" tabindex="-1"></a>            <span class="st">"y"</span>: y_base <span class="op">+</span> d,</span>
+<span id="cb4-111"><a href="#cb4-111" aria-hidden="true" tabindex="-1"></a>        })</span>
+<span id="cb4-112"><a href="#cb4-112" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-113"><a href="#cb4-113" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> lower <span class="op">&lt;=</span> x <span class="op">&lt;=</span> upper:</span>
+<span id="cb4-114"><a href="#cb4-114" aria-hidden="true" tabindex="-1"></a>            interval_rows.append({</span>
+<span id="cb4-115"><a href="#cb4-115" aria-hidden="true" tabindex="-1"></a>                <span class="st">"parameter"</span>: name,</span>
+<span id="cb4-116"><a href="#cb4-116" aria-hidden="true" tabindex="-1"></a>                <span class="st">"x"</span>: x,</span>
+<span id="cb4-117"><a href="#cb4-117" aria-hidden="true" tabindex="-1"></a>                <span class="st">"y_base"</span>: y_base,</span>
+<span id="cb4-118"><a href="#cb4-118" aria-hidden="true" tabindex="-1"></a>                <span class="st">"y"</span>: y_base <span class="op">+</span> d,</span>
+<span id="cb4-119"><a href="#cb4-119" aria-hidden="true" tabindex="-1"></a>            })</span>
+<span id="cb4-120"><a href="#cb4-120" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-121"><a href="#cb4-121" aria-hidden="true" tabindex="-1"></a>    summary_rows.append({</span>
+<span id="cb4-122"><a href="#cb4-122" aria-hidden="true" tabindex="-1"></a>        <span class="st">"parameter"</span>: name,</span>
+<span id="cb4-123"><a href="#cb4-123" aria-hidden="true" tabindex="-1"></a>        <span class="st">"median"</span>: median,</span>
+<span id="cb4-124"><a href="#cb4-124" aria-hidden="true" tabindex="-1"></a>        <span class="st">"lower"</span>: lower,</span>
+<span id="cb4-125"><a href="#cb4-125" aria-hidden="true" tabindex="-1"></a>        <span class="st">"upper"</span>: upper,</span>
+<span id="cb4-126"><a href="#cb4-126" aria-hidden="true" tabindex="-1"></a>        <span class="st">"y_base"</span>: y_base,</span>
+<span id="cb4-127"><a href="#cb4-127" aria-hidden="true" tabindex="-1"></a>        <span class="st">"y_top"</span>: y_base <span class="op">+</span> np.interp(median, x_grid, density_scaled),</span>
+<span id="cb4-128"><a href="#cb4-128" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb4-129"><a href="#cb4-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-130"><a href="#cb4-130" aria-hidden="true" tabindex="-1"></a>ridge_df <span class="op">=</span> pd.DataFrame(rows)</span>
+<span id="cb4-131"><a href="#cb4-131" aria-hidden="true" tabindex="-1"></a>interval_df <span class="op">=</span> pd.DataFrame(interval_rows)</span>
+<span id="cb4-132"><a href="#cb4-132" aria-hidden="true" tabindex="-1"></a>summary_df <span class="op">=</span> pd.DataFrame(summary_rows)</span>
+<span id="cb4-133"><a href="#cb4-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-134"><a href="#cb4-134" aria-hidden="true" tabindex="-1"></a><span class="co"># Build filled polygons</span></span>
+<span id="cb4-135"><a href="#cb4-135" aria-hidden="true" tabindex="-1"></a>polygon_rows <span class="op">=</span> []</span>
+<span id="cb4-136"><a href="#cb4-136" aria-hidden="true" tabindex="-1"></a>interval_polygon_rows <span class="op">=</span> []</span>
+<span id="cb4-137"><a href="#cb4-137" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-138"><a href="#cb4-138" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> name <span class="kw">in</span> plot_order:</span>
+<span id="cb4-139"><a href="#cb4-139" aria-hidden="true" tabindex="-1"></a>    sub <span class="op">=</span> ridge_df[ridge_df[<span class="st">"parameter"</span>] <span class="op">==</span> name].sort_values(<span class="st">"x"</span>)</span>
+<span id="cb4-140"><a href="#cb4-140" aria-hidden="true" tabindex="-1"></a>    y_base <span class="op">=</span> sub[<span class="st">"y_base"</span>].iloc[<span class="dv">0</span>]</span>
+<span id="cb4-141"><a href="#cb4-141" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-142"><a href="#cb4-142" aria-hidden="true" tabindex="-1"></a>    polygon_rows.extend(sub.to_dict(<span class="st">"records"</span>))</span>
+<span id="cb4-143"><a href="#cb4-143" aria-hidden="true" tabindex="-1"></a>    polygon_rows.extend([</span>
+<span id="cb4-144"><a href="#cb4-144" aria-hidden="true" tabindex="-1"></a>        {<span class="st">"parameter"</span>: name, <span class="st">"x"</span>: sub[<span class="st">"x"</span>].iloc[<span class="op">-</span><span class="dv">1</span>], <span class="st">"y_base"</span>: y_base, <span class="st">"y"</span>: y_base},</span>
+<span id="cb4-145"><a href="#cb4-145" aria-hidden="true" tabindex="-1"></a>        {<span class="st">"parameter"</span>: name, <span class="st">"x"</span>: sub[<span class="st">"x"</span>].iloc[<span class="dv">0</span>], <span class="st">"y_base"</span>: y_base, <span class="st">"y"</span>: y_base},</span>
+<span id="cb4-146"><a href="#cb4-146" aria-hidden="true" tabindex="-1"></a>    ])</span>
+<span id="cb4-147"><a href="#cb4-147" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-148"><a href="#cb4-148" aria-hidden="true" tabindex="-1"></a>    sub_int <span class="op">=</span> interval_df[interval_df[<span class="st">"parameter"</span>] <span class="op">==</span> name].sort_values(<span class="st">"x"</span>)</span>
+<span id="cb4-149"><a href="#cb4-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-150"><a href="#cb4-150" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(sub_int) <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb4-151"><a href="#cb4-151" aria-hidden="true" tabindex="-1"></a>        interval_polygon_rows.extend(sub_int.to_dict(<span class="st">"records"</span>))</span>
+<span id="cb4-152"><a href="#cb4-152" aria-hidden="true" tabindex="-1"></a>        interval_polygon_rows.extend([</span>
+<span id="cb4-153"><a href="#cb4-153" aria-hidden="true" tabindex="-1"></a>            {<span class="st">"parameter"</span>: name, <span class="st">"x"</span>: sub_int[<span class="st">"x"</span>].iloc[<span class="op">-</span><span class="dv">1</span>], <span class="st">"y_base"</span>: y_base, <span class="st">"y"</span>: y_base},</span>
+<span id="cb4-154"><a href="#cb4-154" aria-hidden="true" tabindex="-1"></a>            {<span class="st">"parameter"</span>: name, <span class="st">"x"</span>: sub_int[<span class="st">"x"</span>].iloc[<span class="dv">0</span>], <span class="st">"y_base"</span>: y_base, <span class="st">"y"</span>: y_base},</span>
+<span id="cb4-155"><a href="#cb4-155" aria-hidden="true" tabindex="-1"></a>        ])</span>
+<span id="cb4-156"><a href="#cb4-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-157"><a href="#cb4-157" aria-hidden="true" tabindex="-1"></a>polygon_df <span class="op">=</span> pd.DataFrame(polygon_rows)</span>
+<span id="cb4-158"><a href="#cb4-158" aria-hidden="true" tabindex="-1"></a>interval_polygon_df <span class="op">=</span> pd.DataFrame(interval_polygon_rows)</span>
+<span id="cb4-159"><a href="#cb4-159" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-160"><a href="#cb4-160" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> (</span>
+<span id="cb4-161"><a href="#cb4-161" aria-hidden="true" tabindex="-1"></a>    ggplot()</span>
+<span id="cb4-162"><a href="#cb4-162" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_vline(xintercept<span class="op">=</span><span class="dv">0</span>, color<span class="op">=</span><span class="st">"#d9d9d9"</span>, size<span class="op">=</span><span class="fl">1.2</span>)</span>
+<span id="cb4-163"><a href="#cb4-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-164"><a href="#cb4-164" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Full posterior density</span></span>
+<span id="cb4-165"><a href="#cb4-165" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_polygon(</span>
+<span id="cb4-166"><a href="#cb4-166" aria-hidden="true" tabindex="-1"></a>        polygon_df,</span>
+<span id="cb4-167"><a href="#cb4-167" aria-hidden="true" tabindex="-1"></a>        aes(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>, group<span class="op">=</span><span class="st">"parameter"</span>),</span>
+<span id="cb4-168"><a href="#cb4-168" aria-hidden="true" tabindex="-1"></a>        fill<span class="op">=</span><span class="st">"#c8dce8"</span>,</span>
+<span id="cb4-169"><a href="#cb4-169" aria-hidden="true" tabindex="-1"></a>        alpha<span class="op">=</span><span class="fl">0.75</span>,</span>
+<span id="cb4-170"><a href="#cb4-170" aria-hidden="true" tabindex="-1"></a>        color<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb4-171"><a href="#cb4-171" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-172"><a href="#cb4-172" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-173"><a href="#cb4-173" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Central 80% interval</span></span>
+<span id="cb4-174"><a href="#cb4-174" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_polygon(</span>
+<span id="cb4-175"><a href="#cb4-175" aria-hidden="true" tabindex="-1"></a>        interval_polygon_df,</span>
+<span id="cb4-176"><a href="#cb4-176" aria-hidden="true" tabindex="-1"></a>        aes(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>, group<span class="op">=</span><span class="st">"parameter"</span>),</span>
+<span id="cb4-177"><a href="#cb4-177" aria-hidden="true" tabindex="-1"></a>        fill<span class="op">=</span><span class="st">"#8fb7cb"</span>,</span>
+<span id="cb4-178"><a href="#cb4-178" aria-hidden="true" tabindex="-1"></a>        alpha<span class="op">=</span><span class="fl">0.70</span>,</span>
+<span id="cb4-179"><a href="#cb4-179" aria-hidden="true" tabindex="-1"></a>        color<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb4-180"><a href="#cb4-180" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-181"><a href="#cb4-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-182"><a href="#cb4-182" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Density outline</span></span>
+<span id="cb4-183"><a href="#cb4-183" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_line(</span>
+<span id="cb4-184"><a href="#cb4-184" aria-hidden="true" tabindex="-1"></a>        ridge_df,</span>
+<span id="cb4-185"><a href="#cb4-185" aria-hidden="true" tabindex="-1"></a>        aes(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>, group<span class="op">=</span><span class="st">"parameter"</span>),</span>
+<span id="cb4-186"><a href="#cb4-186" aria-hidden="true" tabindex="-1"></a>        color<span class="op">=</span><span class="st">"#002b63"</span>,</span>
+<span id="cb4-187"><a href="#cb4-187" aria-hidden="true" tabindex="-1"></a>        size<span class="op">=</span><span class="fl">1.2</span>,</span>
+<span id="cb4-188"><a href="#cb4-188" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-189"><a href="#cb4-189" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-190"><a href="#cb4-190" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Baseline for each ridge</span></span>
+<span id="cb4-191"><a href="#cb4-191" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_segment(</span>
+<span id="cb4-192"><a href="#cb4-192" aria-hidden="true" tabindex="-1"></a>        summary_df.assign(x_start<span class="op">=</span>x_grid.<span class="bu">min</span>(), x_end<span class="op">=</span>x_grid.<span class="bu">max</span>()),</span>
+<span id="cb4-193"><a href="#cb4-193" aria-hidden="true" tabindex="-1"></a>        aes(x<span class="op">=</span><span class="st">"x_start"</span>, xend<span class="op">=</span><span class="st">"x_end"</span>, y<span class="op">=</span><span class="st">"y_base"</span>, yend<span class="op">=</span><span class="st">"y_base"</span>),</span>
+<span id="cb4-194"><a href="#cb4-194" aria-hidden="true" tabindex="-1"></a>        color<span class="op">=</span><span class="st">"#002b63"</span>,</span>
+<span id="cb4-195"><a href="#cb4-195" aria-hidden="true" tabindex="-1"></a>        size<span class="op">=</span><span class="fl">1.0</span>,</span>
+<span id="cb4-196"><a href="#cb4-196" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-197"><a href="#cb4-197" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-198"><a href="#cb4-198" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Posterior median line</span></span>
+<span id="cb4-199"><a href="#cb4-199" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_segment(</span>
+<span id="cb4-200"><a href="#cb4-200" aria-hidden="true" tabindex="-1"></a>        summary_df,</span>
+<span id="cb4-201"><a href="#cb4-201" aria-hidden="true" tabindex="-1"></a>        aes(x<span class="op">=</span><span class="st">"median"</span>, xend<span class="op">=</span><span class="st">"median"</span>, y<span class="op">=</span><span class="st">"y_base"</span>, yend<span class="op">=</span><span class="st">"y_top"</span>),</span>
+<span id="cb4-202"><a href="#cb4-202" aria-hidden="true" tabindex="-1"></a>        color<span class="op">=</span><span class="st">"#4b8aa6"</span>,</span>
+<span id="cb4-203"><a href="#cb4-203" aria-hidden="true" tabindex="-1"></a>        size<span class="op">=</span><span class="fl">2.3</span>,</span>
+<span id="cb4-204"><a href="#cb4-204" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-205"><a href="#cb4-205" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-206"><a href="#cb4-206" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> scale_y_continuous(</span>
+<span id="cb4-207"><a href="#cb4-207" aria-hidden="true" tabindex="-1"></a>        breaks<span class="op">=</span>summary_df[<span class="st">"y_base"</span>].tolist(),</span>
+<span id="cb4-208"><a href="#cb4-208" aria-hidden="true" tabindex="-1"></a>        labels<span class="op">=</span>summary_df[<span class="st">"parameter"</span>].tolist(),</span>
+<span id="cb4-209"><a href="#cb4-209" aria-hidden="true" tabindex="-1"></a>        expand<span class="op">=</span>(<span class="fl">0.06</span>, <span class="fl">0.20</span>),</span>
+<span id="cb4-210"><a href="#cb4-210" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-211"><a href="#cb4-211" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> scale_x_continuous(expand<span class="op">=</span>(<span class="fl">0.02</span>, <span class="fl">0.02</span>))</span>
+<span id="cb4-212"><a href="#cb4-212" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> coord_cartesian(ylim<span class="op">=</span>(<span class="op">-</span><span class="fl">0.55</span>, <span class="bu">len</span>(plot_order) <span class="op">-</span> <span class="fl">0.15</span>))</span>
+<span id="cb4-213"><a href="#cb4-213" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-214"><a href="#cb4-214" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> labs(</span>
+<span id="cb4-215"><a href="#cb4-215" aria-hidden="true" tabindex="-1"></a>        title<span class="op">=</span><span class="st">"Posterior distributions"</span>,</span>
+<span id="cb4-216"><a href="#cb4-216" aria-hidden="true" tabindex="-1"></a>        subtitle<span class="op">=</span><span class="st">"with medians and 80</span><span class="sc">% i</span><span class="st">ntervals"</span>,</span>
+<span id="cb4-217"><a href="#cb4-217" aria-hidden="true" tabindex="-1"></a>        x<span class="op">=</span><span class="st">"Posterior coefficient estimate"</span>,</span>
+<span id="cb4-218"><a href="#cb4-218" aria-hidden="true" tabindex="-1"></a>        y<span class="op">=</span><span class="st">"Coefficients"</span>,</span>
+<span id="cb4-219"><a href="#cb4-219" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-220"><a href="#cb4-220" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-221"><a href="#cb4-221" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> theme(</span>
+<span id="cb4-222"><a href="#cb4-222" aria-hidden="true" tabindex="-1"></a>        figure_size<span class="op">=</span>(<span class="fl">9.5</span>, <span class="fl">6.0</span>),</span>
+<span id="cb4-223"><a href="#cb4-223" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-224"><a href="#cb4-224" aria-hidden="true" tabindex="-1"></a>        panel_background<span class="op">=</span>element_rect(fill<span class="op">=</span><span class="st">"white"</span>, color<span class="op">=</span><span class="st">"white"</span>),</span>
+<span id="cb4-225"><a href="#cb4-225" aria-hidden="true" tabindex="-1"></a>        plot_background<span class="op">=</span>element_rect(fill<span class="op">=</span><span class="st">"white"</span>, color<span class="op">=</span><span class="st">"white"</span>),</span>
+<span id="cb4-226"><a href="#cb4-226" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-227"><a href="#cb4-227" aria-hidden="true" tabindex="-1"></a>        panel_grid_major<span class="op">=</span>element_blank(),</span>
+<span id="cb4-228"><a href="#cb4-228" aria-hidden="true" tabindex="-1"></a>        panel_grid_minor<span class="op">=</span>element_blank(),</span>
+<span id="cb4-229"><a href="#cb4-229" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-230"><a href="#cb4-230" aria-hidden="true" tabindex="-1"></a>        axis_line_x<span class="op">=</span>element_line(color<span class="op">=</span><span class="st">"black"</span>, size<span class="op">=</span><span class="fl">0.8</span>),</span>
+<span id="cb4-231"><a href="#cb4-231" aria-hidden="true" tabindex="-1"></a>        axis_line_y<span class="op">=</span>element_line(color<span class="op">=</span><span class="st">"black"</span>, size<span class="op">=</span><span class="fl">0.8</span>),</span>
+<span id="cb4-232"><a href="#cb4-232" aria-hidden="true" tabindex="-1"></a>        axis_ticks_major<span class="op">=</span>element_line(color<span class="op">=</span><span class="st">"black"</span>, size<span class="op">=</span><span class="fl">0.8</span>),</span>
+<span id="cb4-233"><a href="#cb4-233" aria-hidden="true" tabindex="-1"></a>        axis_ticks_minor<span class="op">=</span>element_blank(),</span>
+<span id="cb4-234"><a href="#cb4-234" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-235"><a href="#cb4-235" aria-hidden="true" tabindex="-1"></a>        axis_text_x<span class="op">=</span>element_text(size<span class="op">=</span><span class="dv">12</span>, color<span class="op">=</span><span class="st">"#333333"</span>, family<span class="op">=</span><span class="st">"serif"</span>),</span>
+<span id="cb4-236"><a href="#cb4-236" aria-hidden="true" tabindex="-1"></a>        axis_text_y<span class="op">=</span>element_text(size<span class="op">=</span><span class="dv">12</span>, color<span class="op">=</span><span class="st">"#333333"</span>, family<span class="op">=</span><span class="st">"serif"</span>, weight<span class="op">=</span><span class="st">"bold"</span>),</span>
+<span id="cb4-237"><a href="#cb4-237" aria-hidden="true" tabindex="-1"></a>        axis_title_x<span class="op">=</span>element_text(size<span class="op">=</span><span class="dv">12</span>, color<span class="op">=</span><span class="st">"#333333"</span>, family<span class="op">=</span><span class="st">"serif"</span>, margin<span class="op">=</span>{<span class="st">"t"</span>: <span class="dv">10</span>}),</span>
+<span id="cb4-238"><a href="#cb4-238" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-239"><a href="#cb4-239" aria-hidden="true" tabindex="-1"></a>        plot_title<span class="op">=</span>element_text(size<span class="op">=</span><span class="dv">24</span>, family<span class="op">=</span><span class="st">"serif"</span>, color<span class="op">=</span><span class="st">"black"</span>),</span>
+<span id="cb4-240"><a href="#cb4-240" aria-hidden="true" tabindex="-1"></a>        plot_subtitle<span class="op">=</span>element_text(size<span class="op">=</span><span class="dv">17</span>, family<span class="op">=</span><span class="st">"serif"</span>, color<span class="op">=</span><span class="st">"black"</span>),</span>
+<span id="cb4-241"><a href="#cb4-241" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-242"><a href="#cb4-242" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-243"><a href="#cb4-243" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-244"><a href="#cb4-244" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-245"><a href="#cb4-245" aria-hidden="true" tabindex="-1"></a>p.save(<span class="st">"img/fork_weather_example_posteriors.png"</span>, dpi<span class="op">=</span><span class="dv">300</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div id="fig-fork-weather-example-posteriors" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-fork-weather-example-posteriors-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="img/fork_weather_example_posteriors.png" class="img-fluid figure-img" style="width:75.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-fork-weather-example-posteriors-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;13: Posterior distributions for the umbrella example.
+</figcaption>
+</figure>
+</div>
+<p>The posteriors tell a clear story about confounding. In the <strong>unadjusted model</strong>, <span class="math inline">\(\beta_{\text{umbrella}}\)</span> is centred near zero — naively suggesting that carrying an umbrella makes no difference to getting wet. This is the confound at work: rainy weather drives both umbrella use and getting wet, so the two variables appear unrelated once that shared cause dominates the marginal association.</p>
+<p>In the <strong>adjusted model</strong>, conditioning on weather blocks the backdoor path <span class="math inline">\(\text{Umbrella} \leftarrow \text{Weather} \rightarrow \text{GettingWet}\)</span>, and <span class="math inline">\(\beta_{\text{umbrella}}\)</span> shifts decisively to the left. A negative logit-scale coefficient means that, among people experiencing the same weather conditions, carrying an umbrella is associated with a lower probability of getting wet, exactly what the data-generating process encoded. The <strong>weather effect</strong> is itself strongly positive, confirming that rainy weather is the main driver of getting wet, independent of umbrella use.</p>
+<p><span class="highlight-key-point">This is the core lesson of confounding: an unadjusted association can be essentially zero even when the causal effect is real, because a common cause masks it. Conditioning on that cause separates the causal signal from the noise introduced by the shared pathway.</span></p>
+</section>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-8-contents" aria-controls="callout-8" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+What if we only observe Umbrella and Getting Wet, but not Weather?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-8" class="callout-8-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Up to this point, we assumed that <strong>Weather</strong>, <strong>Umbrella</strong>, and <strong>Getting Wet</strong> were all observed. In that case, the confounding structure is visible and can be blocked by conditioning on Weather:</p>
+<p><span class="math display">\[
+\text{Umbrella} \leftarrow \text{Weather} \rightarrow \text{Getting Wet}.
+\]</span></p>
+<p>Now suppose <strong>Weather is unobserved</strong>. The causal structure has not changed; the same fork still exists, but the common cause is now latent:</p>
+<p><span class="math display">\[
+\text{Umbrella} \leftarrow \text{Weather}_{\text{latent}} \rightarrow \text{Getting Wet}.
+\]</span></p>
+<p><span class="highlight-key-point">The confounder does not disappear just because we failed to measure it. It still keeps the backdoor path open.</span></p>
+<p>As a result, a model that regresses <strong>Getting Wet</strong> on <strong>Umbrella</strong> alone mixes two sources of association:</p>
+<ol type="1">
+<li>The causal effect of carrying an umbrella, and</li>
+<li>The non-causal association induced by hidden Weather.</li>
+</ol>
+<p>Because Weather is unobserved, ordinary adjustment cannot block this path directly. We therefore need another strategy. The most transparent first step is sensitivity analysis, which asks:</p>
+<div style="text-align: center;">
+<p>How large would unmeasured-confounding bias need to be to materially change the conclusion?</p>
+</div>
+<p>Other strategies are possible, but they require more data or more assumptions. We could measure Weather directly, use proxy variables such as rainfall or season, randomise umbrella use, or build a latent variable model that represents Weather explicitly. Each option addresses the same problem: the open backdoor path created by an unobserved common cause.</p>
+<p>The code below starts with a simple sensitivity analysis, then fits a latent variable model in which Weather is unobserved but still included in the generative structure.</p>
+<p><span class="highlight-key-point">Latent confounders are dangerous because they keep backdoor paths open. If the common cause is unmeasured, the model can attribute part of a spurious association to the causal effect we want to estimate.</span></p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-7-contents" aria-controls="callout-7" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Sensitivity analysis and latent variable model
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-7" class="callout-7-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<section id="sensitivity-analysis-for-hidden-confounding" class="level5">
+<h5 class="anchored" data-anchor-id="sensitivity-analysis-for-hidden-confounding">Sensitivity analysis for hidden confounding</h5>
+<p>We start with a simple sensitivity analysis. <a href="#fig-sensitivity-analysis-DAG" class="quarto-xref">Figure&nbsp;14</a> makes the causal problem explicit: hidden Weather is a common cause of both Umbrella and Getting Wet, so even if we observe those two variables perfectly, the umbrella coefficient from a model that omits Weather can mix together a causal effect and confounding bias.</p>
+<p>To formalise this, we write the naive umbrella association as the sum of a causal component and an omitted-confounding term:</p>
+<p><span class="math display">\[
+\beta_{\text{naive}} = \beta_{\text{causal}} + \delta,
+\]</span></p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">\(\beta_{\text{naive}}\)</span> is the umbrella coefficient from the unadjusted model,</li>
+<li><span class="math inline">\(\beta_{\text{causal}}\)</span> is the (unknown) causal umbrella effect we care about,</li>
+<li><span class="math inline">\(\delta \ge 0\)</span> is an assumed positive bias induced by hidden Weather.</li>
+</ul>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Why a positive bias?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Hidden Weather is a common cause of both Umbrella and Getting Wet as <a href="#fig-sensitivity-analysis-DAG" class="quarto-xref">Figure&nbsp;14</a> shows. This means that:</p>
+<ul>
+<li>When Weather = 1, umbrella use becomes more likely, and</li>
+<li>When Weather = 1, getting wet also becomes more likely.</li>
+</ul>
+<p>This shared cause induces an <strong>extra positive association</strong> between umbrella use and getting wet in the <strong>unadjusted model</strong>. In this sensitivity analysis, we represent that upward bias with <span class="math inline">\(\delta\)</span>, so we assume <span class="math inline">\(\delta \ge 0\)</span>.</p>
+<p><span class="highlight-key-point">The point is not that umbrellas truly increase wetness. The point is that hidden Weather can pull the naive umbrella coefficient upward, making the effect look less negative, closer to zero, or even positive.</span></p>
+<p>That is why we write:</p>
+<p><span class="math display">\[
+\beta_{\text{naive}} = \beta_{\text{causal}} + \delta
+\]</span></p>
+<p>and therefore:</p>
+<p><span class="math display">\[
+\beta_{\text{causal}}(\delta) = \beta_{\text{naive}} - \delta.
+\]</span></p>
+</div>
+</div>
+</div>
+<div id="fig-sensitivity-analysis-DAG" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-sensitivity-analysis-DAG-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="img/sensitivity_analysis_DAG.png" class="img-fluid figure-img" style="width:75.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sensitivity-analysis-DAG-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;14: Hidden weather confounder DAG for sensitivity analysis
+</figcaption>
+</figure>
+</div>
+<p>Rearranging gives the bias-corrected umbrella effect under an assumed bias level <span class="math inline">\(\delta\)</span>:</p>
+<p><span class="math display">\[
+\beta_{\text{causal}}(\delta) = \beta_{\text{naive}} - \delta.
+\]</span></p>
+<p>In Bayesian form, we apply this transformation to each posterior draw from the unadjusted model:</p>
+<p><span class="math display">\[
+\beta_{\text{causal}}(\delta_i) = \beta_{\text{naive}} - \delta_i, \quad i=1,\dots,N.
+\]</span></p>
+<p>For each value of <span class="math inline">\(\delta\)</span> on a grid, we compute summary statistics of the adjusted posterior draws <span class="math inline">\(\{\beta_{\text{causal}}(\delta)_i\}_{i=1}^N\)</span> and plot the median together with an 80% interval. <a href="#fig-sensitivity-analysis-explainer" class="quarto-xref">Figure&nbsp;15</a> shows the logic of this one-sided setup: as the assumed hidden-weather bias increases, the corrected umbrella effect is shifted downward by exactly that amount.</p>
+<div id="fig-sensitivity-analysis-explainer" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-sensitivity-analysis-explainer-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="img/sensitivity_analysis_explainer.png" class="img-fluid figure-img" style="width:75.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sensitivity-analysis-explainer-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;15: One-sided sensitivity analysis: higher assumed hidden bias shifts the corrected effect to more negative values.
+</figcaption>
+</figure>
+</div>
+<div id="6a8f8c83" class="cell" data-execution_count="6">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pyro</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pyro.distributions <span class="im">as</span> dist</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pyro.infer <span class="im">import</span> MCMC, NUTS</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> plotnine <span class="im">import</span> (</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    ggplot, aes, geom_line, geom_ribbon, geom_hline, geom_pointrange, geom_vline,</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    labs, theme_minimal, theme, element_blank, element_text, element_line,</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    element_rect, coord_flip,</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>pyro.set_rng_seed(<span class="dv">42</span>)</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>beta_unadjusted_draws <span class="op">=</span> posterior_unadjusted[<span class="st">"beta_umbrella"</span>].detach().numpy()</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Assume hidden weather creates a positive bias in the naive umbrella effect.</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="co"># For each assumed bias size, subtract it from the unadjusted posterior draws.</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>bias_grid <span class="op">=</span> np.linspace(<span class="fl">0.0</span>, <span class="fl">2.5</span>, <span class="dv">101</span>)</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>sensitivity_rows <span class="op">=</span> []</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> assumed_bias <span class="kw">in</span> bias_grid:</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>    corrected_draws <span class="op">=</span> beta_unadjusted_draws <span class="op">-</span> assumed_bias</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>    sensitivity_rows.append({</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>        <span class="st">"assumed_bias"</span>: assumed_bias,</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>        <span class="st">"mean"</span>: np.mean(corrected_draws),</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>        <span class="st">"median"</span>: np.median(corrected_draws),</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>        <span class="st">"lower"</span>: np.quantile(corrected_draws, <span class="fl">0.10</span>),</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>        <span class="st">"upper"</span>: np.quantile(corrected_draws, <span class="fl">0.90</span>),</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>sensitivity_df <span class="op">=</span> pd.DataFrame(sensitivity_rows)</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>crossing_df <span class="op">=</span> sensitivity_df[</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>    (sensitivity_df[<span class="st">"mean"</span>] <span class="op">&lt;</span> <span class="dv">0</span>) <span class="op">&amp;</span> (sensitivity_df[<span class="st">"upper"</span>] <span class="op">&lt;</span> <span class="dv">0</span>)</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>threshold_bias <span class="op">=</span> <span class="va">None</span> <span class="cf">if</span> crossing_df.empty <span class="cf">else</span> crossing_df[<span class="st">"assumed_bias"</span>].iloc[<span class="dv">0</span>]</span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>p_sensitivity <span class="op">=</span> (</span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>    ggplot(sensitivity_df, aes(x<span class="op">=</span><span class="st">"assumed_bias"</span>, y<span class="op">=</span><span class="st">"median"</span>))</span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_ribbon(aes(ymin<span class="op">=</span><span class="st">"lower"</span>, ymax<span class="op">=</span><span class="st">"upper"</span>), fill<span class="op">=</span><span class="st">"#c8dce8"</span>, alpha<span class="op">=</span><span class="fl">0.55</span>)</span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_line(color<span class="op">=</span><span class="st">"#002b63"</span>, size<span class="op">=</span><span class="fl">1.3</span>)</span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_hline(yintercept<span class="op">=</span><span class="dv">0</span>, color<span class="op">=</span><span class="st">"#9ca3af"</span>, linetype<span class="op">=</span><span class="st">"dashed"</span>, size<span class="op">=</span><span class="fl">0.9</span>)</span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> (</span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>        geom_vline(xintercept<span class="op">=</span>threshold_bias, color<span class="op">=</span><span class="st">"#c1121f"</span>, linetype<span class="op">=</span><span class="st">"dashed"</span>, size<span class="op">=</span><span class="fl">1.0</span>)</span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> threshold_bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span></span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span> <span class="va">None</span></span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> labs(</span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a>        title<span class="op">=</span><span class="st">"Sensitivity to hidden weather confounding"</span>,</span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a>        subtitle<span class="op">=</span>(</span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>            <span class="st">"Applies </span><span class="ch">\u03b2</span><span class="st">_causal(</span><span class="ch">\u03b4</span><span class="st">) = </span><span class="ch">\u03b2</span><span class="st">_naive </span><span class="ch">\u2212</span><span class="st"> </span><span class="ch">\u03b4</span><span class="st"> to the unadjusted posterior"</span></span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>            <span class="st">" (hidden-weather causal structure shown in Figure 14).</span><span class="ch">\n</span><span class="st">"</span></span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>            <span class="st">"Line: posterior median. Ribbon: central 80</span><span class="sc">% i</span><span class="st">nterval. Red line: first </span><span class="ch">\u03b4</span><span class="st"> where the posterior mean and 80</span><span class="sc">% i</span><span class="st">nterval are below zero."</span></span>
+<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a>        x<span class="op">=</span><span class="st">"Assumed omitted-confounder bias (</span><span class="ch">\u03b4</span><span class="st">) on the umbrella log-odds"</span>,</span>
+<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a>        y<span class="op">=</span><span class="st">"Bias-corrected umbrella effect  [</span><span class="ch">\u03b2</span><span class="st">_naive </span><span class="ch">\u2212</span><span class="st"> </span><span class="ch">\u03b4</span><span class="st">]"</span>,</span>
+<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> theme_minimal(base_size<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb5-61"><a href="#cb5-61" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> theme(</span>
+<span id="cb5-62"><a href="#cb5-62" aria-hidden="true" tabindex="-1"></a>        figure_size<span class="op">=</span>(<span class="fl">8.5</span>, <span class="fl">5.0</span>),</span>
+<span id="cb5-63"><a href="#cb5-63" aria-hidden="true" tabindex="-1"></a>        panel_background<span class="op">=</span>element_rect(fill<span class="op">=</span><span class="st">"white"</span>, color<span class="op">=</span><span class="st">"white"</span>),</span>
+<span id="cb5-64"><a href="#cb5-64" aria-hidden="true" tabindex="-1"></a>        plot_background<span class="op">=</span>element_rect(fill<span class="op">=</span><span class="st">"white"</span>, color<span class="op">=</span><span class="st">"white"</span>),</span>
+<span id="cb5-65"><a href="#cb5-65" aria-hidden="true" tabindex="-1"></a>        panel_grid_major<span class="op">=</span>element_line(color<span class="op">=</span><span class="st">"#ebebeb"</span>, size<span class="op">=</span><span class="fl">0.6</span>),</span>
+<span id="cb5-66"><a href="#cb5-66" aria-hidden="true" tabindex="-1"></a>        panel_grid_minor<span class="op">=</span>element_blank(),</span>
+<span id="cb5-67"><a href="#cb5-67" aria-hidden="true" tabindex="-1"></a>        axis_line_x<span class="op">=</span>element_line(color<span class="op">=</span><span class="st">"#333333"</span>, size<span class="op">=</span><span class="fl">0.7</span>),</span>
+<span id="cb5-68"><a href="#cb5-68" aria-hidden="true" tabindex="-1"></a>        axis_line_y<span class="op">=</span>element_line(color<span class="op">=</span><span class="st">"#333333"</span>, size<span class="op">=</span><span class="fl">0.7</span>),</span>
+<span id="cb5-69"><a href="#cb5-69" aria-hidden="true" tabindex="-1"></a>        plot_title<span class="op">=</span>element_text(weight<span class="op">=</span><span class="st">"bold"</span>, size<span class="op">=</span><span class="dv">14</span>),</span>
+<span id="cb5-70"><a href="#cb5-70" aria-hidden="true" tabindex="-1"></a>        plot_subtitle<span class="op">=</span>element_text(size<span class="op">=</span><span class="fl">9.5</span>),</span>
+<span id="cb5-71"><a href="#cb5-71" aria-hidden="true" tabindex="-1"></a>        axis_text<span class="op">=</span>element_text(size<span class="op">=</span><span class="dv">11</span>),</span>
+<span id="cb5-72"><a href="#cb5-72" aria-hidden="true" tabindex="-1"></a>        axis_title_x<span class="op">=</span>element_text(size<span class="op">=</span><span class="dv">11</span>, margin<span class="op">=</span>{<span class="st">"t"</span>: <span class="dv">8</span>}),</span>
+<span id="cb5-73"><a href="#cb5-73" aria-hidden="true" tabindex="-1"></a>        axis_title_y<span class="op">=</span>element_text(size<span class="op">=</span><span class="dv">11</span>, margin<span class="op">=</span>{<span class="st">"r"</span>: <span class="dv">8</span>}),</span>
+<span id="cb5-74"><a href="#cb5-74" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb5-75"><a href="#cb5-75" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-76"><a href="#cb5-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-77"><a href="#cb5-77" aria-hidden="true" tabindex="-1"></a>p_sensitivity</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="11">
+<div>
+<figure class="figure">
+<p><img src="DEL_modelling_Part_2_files/figure-html/cell-6-output-1.png" width="816" height="480" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>In this one-sided additive setup,</p>
+<p><span class="math display">\[
+\beta_{\text{causal}}(\delta) = \beta_{\text{naive}} - \delta, \quad \delta \ge 0,
+\]</span></p>
+<p>the line is linear by construction and moves downward as <span class="math inline">\(\delta\)</span> increases. The sensitivity plot above shows that at <span class="math inline">\(\delta = 0\)</span> the uncorrected effect, <span class="math inline">\(\beta_{\text{naive}}\)</span>, is already close to zero and the 80% interval still overlaps zero. As larger positive bias is assumed, both the median and the full 80% interval move further below zero.</p>
+<p>The red vertical line marks the first assumed bias level at which the posterior mean is below zero and the entire central 80% interval is also below zero.</p>
+<p>In the fitted plot here, the threshold occurs at <span class="math inline">\(\delta = 0.275\)</span>. The corresponding odds multiplier is <span class="math inline">\(e^{0.275} \approx 1.32\)</span>, so hidden Weather would need to increase the relevant odds by about 32% along the omitted-confounding pathway before the posterior mean and the full central 80% interval both fall below zero.</p>
+<p>Because <span class="math inline">\(\beta_{\text{naive}}\)</span> is already close to zero, this sensitivity analysis shows that the unadjusted association, in <a href="#fig-fork-weather-example-posteriors" class="quarto-xref">Figure&nbsp;13</a>, is fragile. Any positive hidden-weather bias pushes the corrected effect, <span class="math inline">\(\beta_{\text{causal}}(\delta)\)</span>, below zero, supporting the interpretation that umbrella use is protective (negative or protective umbrella effect means umbrella use is associated with less getting wet), once the open backdoor path through Weather is accounted for.</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Why sensitivity analysis still matters when the unadjusted effect is zero?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-6" class="callout-6-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Even if the unadjusted umbrella effect were exactly zero, we should not automatically ignore sensitivity analysis.</p>
+<p>In this example, <span class="math inline">\(\beta_{\text{naive}}\)</span> is already close to zero. Under the one-sided assumption that hidden Weather biases the umbrella coefficient upward, any positive value of <span class="math inline">\(\delta\)</span> moves the corrected effect below zero:</p>
+<p><span class="math display">\[
+\beta_{\text{causal}}(\delta)=\beta_{\text{naive}}-\delta.
+\]</span></p>
+<div id="fig-sensitivity-analysis-for-umbrella-example" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-sensitivity-analysis-for-umbrella-example-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="img/sensitivity_analysis_for_umbrella_example.png" class="img-fluid figure-img" style="width:75.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sensitivity-analysis-for-umbrella-example-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;16: Sensitivity analysis for umbrella example
+</figcaption>
+</figure>
+</div>
+<p>So the sensitivity analysis is not testing whether a strong positive umbrella effect survives adjustment. It is showing that the unadjusted association is fragile around zero: even modest hidden-weather bias would make the corrected effect negative, consistent with umbrellas reducing the chance of getting wet.</p>
+<p><span class="highlight-key-point">However, this does not mean that sensitivity analysis is unnecessary whenever an observed coefficient is near zero and a common cause is plausible.</span></p>
+<p>The direction and size of the hidden bias may be uncertain, the posterior uncertainty may be wide, and the causal question may depend on how large the corrected effect could plausibly become. Sensitivity analysis is still useful because it makes those assumptions explicit.</p>
+</div>
+</div>
+</div>
+</section>
+<section id="latent-variable-model-for-hidden-confounding" class="level5">
+<h5 class="anchored" data-anchor-id="latent-variable-model-for-hidden-confounding">Latent variable model for hidden confounding</h5>
+<p>The sensitivity analysis treated hidden Weather as an unknown source of bias. That is useful because it asks: how much hidden confounding would be needed to change our conclusion? But it does not try to model Weather directly.</p>
+<p>A stronger alternative is to write down a latent variable model. In this model, Weather is not just an abstract bias term. It is an explicit but unobserved variable that can affect both whether someone carries an umbrella and whether they get wet.</p>
+<p>The assumed causal structure is as shown in <a href="#fig-umbrella-association" class="quarto-xref">Figure&nbsp;12</a>: Weather is a common cause of both Umbrella and Getting Wet, and there is also a direct effect of Umbrella on Getting Wet. However, only Umbrella and GettingWet are observed. Weather is hidden. This is similar to the DAG in <a href="#fig-sensitivity-analysis-DAG" class="quarto-xref">Figure&nbsp;14</a>.</p>
+<p>Let, <span class="math display">\[
+W_i \in \{0, 1\}
+\]</span></p>
+<p>denote the latent weather state for observation <span class="math inline">\(i\)</span>, where <span class="math inline">\(W_i = 0\)</span> might mean dry weather and <span class="math inline">\(W_i = 1\)</span> might mean rainy weather. We observe:</p>
+<p><span class="math display">\[ U_i = Umbrella_i \]</span> <span class="math display">\[ G_i = GettingWet_i \]</span></p>
+<p>The model first assumes that each observation has some probability of being in rainy weather: <span class="math display">\[
+W_i \sim \text{Bernoulli}(p_{\text{weather}}),
+\]</span> Then, umbrella use depends on the hidden weather state: <span class="math display">\[
+U_i|W_i \sim \text{Bernoulli}(\text{logit}^{-1  }(\alpha_u + \beta_{\text{weather} \to \text{umbrella}} \cdot W_i)),
+\]</span> where, <span class="math inline">\(\alpha_u\)</span> is the baseline log-odds of carrying an umbrella when <span class="math inline">\(W_i=0\)</span>, and <span class="math inline">\(\beta_{\text{weather} \to \text{umbrella}}\)</span> captures how much the log-odds of carrying an umbrella increase when <span class="math inline">\(W_i=1\)</span>.</p>
+<p>Getting wet then depends on both umbrella use and the hidden weather state: <span class="math display">\[
+G_i|U_i, W_i \sim \text{Bernoulli}(\text{logit}^{-1  }(\alpha_g + \beta_{\text{umbrella} \to \text{wet}} \cdot U_i + \beta_{\text{weather} \to \text{wet}} \cdot W_i)),
+\]</span> where <span class="math inline">\(\alpha_g\)</span> is the baseline log-odds of getting wet when <span class="math inline">\(U_i=0\)</span> and <span class="math inline">\(W_i=0\)</span>, <span class="math inline">\(\beta_{\text{umbrella} \to \text{wet}}\)</span> captures the direct umbrella effect, after accounting for latent Weather, and <span class="math inline">\(\beta_{\text{weather} \to \text{wet}}\)</span> captures the direct effect of Weather on getting wet, i.e., how much the log-odds of getting wet increase when <span class="math inline">\(W_i=1\)</span>.</p>
+<p>The important computational detail is that we do not sample <span class="math inline">\(W_i\)</span> directly. Weather is discrete, and NUTS works best with continuous parameters. So instead we marginalise over the two possible weather states. ​ For each observation, the likelihood is: <span class="math display">\[
+P(U_i, G_i) = \Sigma_{w_i \in \{0, 1\}} P(W_i=w) P(U_i | W_i=w) P(G_i | U_i, W_i=w) = P(W_i=0) P(U_i | W_i=0) P(G_i | U_i, W_i=0) + P(W_i=1) P(U_i | W_i=1) P(G_i | U_i, W_i=1)
+\]</span></p>
+<p>So the model asks:</p>
+<p>For each observed pair <span class="math inline">\((U_i, G_i)\)</span>, how likely is this observation if the hidden weather state was dry, and how likely is it if the hidden weather state was rainy? It then averages those two possibilities according to the estimated probability of each weather state.</p>
+<p>Because Weather is never observed, the model must infer it entirely from the joint pattern of Umbrella and GettingWet. That means the <strong>result depends strongly on the assumed model form, the priors, and the assumption that a binary latent Weather variable is a reasonable representation of the hidden common cause</strong>.</p>
+<p><span class="highlight-key-point">So the latent variable model gives us a more mechanistic version of the hidden-confounding story, but it is not assumption-free. The sensitivity analysis is weaker but more transparent; the latent variable model is more structural but more model-dependent.</span></p>
+<div id="3ba78b84" class="cell" data-execution_count="7">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> latent_weather_model(umbrella, wet):</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Marginalized latent common-cause model:</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co">        Weather -&gt; Umbrella</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co">        Weather -&gt; GettingWet</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co">        Umbrella -&gt; GettingWet</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co">    Only Umbrella and GettingWet are observed.</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="co">    Weather is binary and latent, so we integrate it out of the likelihood.</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    logit_p_weather <span class="op">=</span> pyro.sample(<span class="st">"logit_p_weather"</span>, dist.Normal(<span class="fl">0.0</span>, <span class="fl">1.5</span>))</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    p_weather <span class="op">=</span> torch.sigmoid(logit_p_weather)</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    alpha_u <span class="op">=</span> pyro.sample(<span class="st">"alpha_u"</span>, dist.Normal(<span class="fl">0.0</span>, <span class="fl">2.0</span>))</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    beta_weather_to_umbrella <span class="op">=</span> pyro.sample(<span class="st">"beta_weather_to_umbrella"</span>, dist.Normal(<span class="fl">0.0</span>, <span class="fl">2.0</span>))</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    alpha_wet <span class="op">=</span> pyro.sample(<span class="st">"alpha_wet"</span>, dist.Normal(<span class="fl">0.0</span>, <span class="fl">2.0</span>))</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    beta_umbrella_to_wet <span class="op">=</span> pyro.sample(<span class="st">"beta_umbrella_to_wet"</span>, dist.Normal(<span class="fl">0.0</span>, <span class="fl">2.0</span>))</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    beta_weather_to_wet <span class="op">=</span> pyro.sample(<span class="st">"beta_weather_to_wet"</span>, dist.Normal(<span class="fl">0.0</span>, <span class="fl">2.0</span>))</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>    umbrella_log_prob_w0 <span class="op">=</span> dist.Bernoulli(logits<span class="op">=</span>alpha_u).log_prob(umbrella)</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>    umbrella_log_prob_w1 <span class="op">=</span> dist.Bernoulli(</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>        logits<span class="op">=</span>alpha_u <span class="op">+</span> beta_weather_to_umbrella</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>    ).log_prob(umbrella)</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>    wet_log_prob_w0 <span class="op">=</span> dist.Bernoulli(</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>        logits<span class="op">=</span>alpha_wet <span class="op">+</span> beta_umbrella_to_wet <span class="op">*</span> umbrella</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>    ).log_prob(wet)</span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>    wet_log_prob_w1 <span class="op">=</span> dist.Bernoulli(</span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>        logits<span class="op">=</span>alpha_wet <span class="op">+</span> beta_umbrella_to_wet <span class="op">*</span> umbrella <span class="op">+</span> beta_weather_to_wet</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>    ).log_prob(wet)</span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>    <span class="co"># The two terms log_prob_w0 and log_prob_w1 are the log-probabilities of the observed data under the two possible hidden Weather states.</span></span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>    log_prob_w0 <span class="op">=</span> torch.log1p(<span class="op">-</span>p_weather) <span class="op">+</span> umbrella_log_prob_w0 <span class="op">+</span> wet_log_prob_w0</span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>    log_prob_w1 <span class="op">=</span> torch.log(p_weather) <span class="op">+</span> umbrella_log_prob_w1 <span class="op">+</span> wet_log_prob_w1</span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>    <span class="co"># The logsumexp operation adds these two possibilities together on the probability scale while keeping the computation numerically stable.</span></span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>    pyro.factor(</span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>        <span class="st">"marginalized_obs_log_prob"</span>,</span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>        torch.logsumexp(torch.stack([log_prob_w0, log_prob_w1]), dim<span class="op">=</span><span class="dv">0</span>).<span class="bu">sum</span>(),</span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fit_latent_weather_model(data, num_samples<span class="op">=</span><span class="dv">1000</span>, warmup_steps<span class="op">=</span><span class="dv">500</span>):</span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>    pyro.clear_param_store()</span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>    umbrella <span class="op">=</span> torch.as_tensor(data[<span class="st">"Umbrella"</span>].values, dtype<span class="op">=</span>torch.float32)</span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a>    wet <span class="op">=</span> torch.as_tensor(data[<span class="st">"GettingWet"</span>].values, dtype<span class="op">=</span>torch.float32)</span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a>    nuts_kernel <span class="op">=</span> NUTS(latent_weather_model)</span>
+<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a>    mcmc <span class="op">=</span> MCMC(</span>
+<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a>        nuts_kernel,</span>
+<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a>        num_samples<span class="op">=</span>num_samples,</span>
+<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a>        warmup_steps<span class="op">=</span>warmup_steps,</span>
+<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a>        disable_progbar<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a>    mcmc.run(umbrella, wet)</span>
+<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mcmc.get_samples()</span>
+<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a>posterior_latent <span class="op">=</span> fit_latent_weather_model(data)</span>
+<span id="cb6-63"><a href="#cb6-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-64"><a href="#cb6-64" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> plotnine <span class="im">import</span> (</span>
+<span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a>    ggplot, aes, geom_polygon, geom_line, geom_segment, geom_vline,</span>
+<span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a>    labs, theme, element_text, element_blank, element_line,</span>
+<span id="cb6-67"><a href="#cb6-67" aria-hidden="true" tabindex="-1"></a>    element_rect, scale_y_continuous, scale_x_continuous, coord_cartesian,</span>
+<span id="cb6-68"><a href="#cb6-68" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> gaussian_kde</span>
+<span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a>summary_spec <span class="op">=</span> [</span>
+<span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"beta_weather_to_umbrella"</span>, <span class="st">"Weather -&gt; Umbrella"</span>),</span>
+<span id="cb6-73"><a href="#cb6-73" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"beta_umbrella_to_wet"</span>, <span class="st">"Umbrella -&gt; Getting wet"</span>),</span>
+<span id="cb6-74"><a href="#cb6-74" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"beta_weather_to_wet"</span>, <span class="st">"Weather -&gt; Getting wet"</span>),</span>
+<span id="cb6-75"><a href="#cb6-75" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb6-76"><a href="#cb6-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-77"><a href="#cb6-77" aria-hidden="true" tabindex="-1"></a>posterior_draws_latent <span class="op">=</span> {</span>
+<span id="cb6-78"><a href="#cb6-78" aria-hidden="true" tabindex="-1"></a>    label: posterior_latent[param_name].detach().numpy()</span>
+<span id="cb6-79"><a href="#cb6-79" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> param_name, label <span class="kw">in</span> summary_spec</span>
+<span id="cb6-80"><a href="#cb6-80" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-81"><a href="#cb6-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-82"><a href="#cb6-82" aria-hidden="true" tabindex="-1"></a>plot_order_latent <span class="op">=</span> [label <span class="cf">for</span> _, label <span class="kw">in</span> summary_spec]</span>
+<span id="cb6-83"><a href="#cb6-83" aria-hidden="true" tabindex="-1"></a>all_draws_latent <span class="op">=</span> np.concatenate([np.asarray(v) <span class="cf">for</span> v <span class="kw">in</span> posterior_draws_latent.values()])</span>
+<span id="cb6-84"><a href="#cb6-84" aria-hidden="true" tabindex="-1"></a>x_min_latent, x_max_latent <span class="op">=</span> np.quantile(all_draws_latent, [<span class="fl">0.005</span>, <span class="fl">0.995</span>])</span>
+<span id="cb6-85"><a href="#cb6-85" aria-hidden="true" tabindex="-1"></a>x_pad_latent <span class="op">=</span> <span class="fl">0.20</span> <span class="op">*</span> (x_max_latent <span class="op">-</span> x_min_latent)</span>
+<span id="cb6-86"><a href="#cb6-86" aria-hidden="true" tabindex="-1"></a>x_grid_latent <span class="op">=</span> np.linspace(x_min_latent <span class="op">-</span> x_pad_latent, x_max_latent <span class="op">+</span> x_pad_latent, <span class="dv">400</span>)</span>
+<span id="cb6-87"><a href="#cb6-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-88"><a href="#cb6-88" aria-hidden="true" tabindex="-1"></a>ridge_height_latent <span class="op">=</span> <span class="fl">0.72</span></span>
+<span id="cb6-89"><a href="#cb6-89" aria-hidden="true" tabindex="-1"></a>rows_latent <span class="op">=</span> []</span>
+<span id="cb6-90"><a href="#cb6-90" aria-hidden="true" tabindex="-1"></a>interval_rows_latent <span class="op">=</span> []</span>
+<span id="cb6-91"><a href="#cb6-91" aria-hidden="true" tabindex="-1"></a>summary_rows_latent <span class="op">=</span> []</span>
+<span id="cb6-92"><a href="#cb6-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-93"><a href="#cb6-93" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, name <span class="kw">in</span> <span class="bu">enumerate</span>(plot_order_latent):</span>
+<span id="cb6-94"><a href="#cb6-94" aria-hidden="true" tabindex="-1"></a>    draws <span class="op">=</span> np.asarray(posterior_draws_latent[name])</span>
+<span id="cb6-95"><a href="#cb6-95" aria-hidden="true" tabindex="-1"></a>    y_base <span class="op">=</span> <span class="bu">len</span>(plot_order_latent) <span class="op">-</span> <span class="dv">1</span> <span class="op">-</span> i</span>
+<span id="cb6-96"><a href="#cb6-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-97"><a href="#cb6-97" aria-hidden="true" tabindex="-1"></a>    kde <span class="op">=</span> gaussian_kde(draws)</span>
+<span id="cb6-98"><a href="#cb6-98" aria-hidden="true" tabindex="-1"></a>    density <span class="op">=</span> kde(x_grid_latent)</span>
+<span id="cb6-99"><a href="#cb6-99" aria-hidden="true" tabindex="-1"></a>    density_scaled <span class="op">=</span> density <span class="op">/</span> density.<span class="bu">max</span>() <span class="op">*</span> ridge_height_latent</span>
+<span id="cb6-100"><a href="#cb6-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-101"><a href="#cb6-101" aria-hidden="true" tabindex="-1"></a>    median <span class="op">=</span> np.median(draws)</span>
+<span id="cb6-102"><a href="#cb6-102" aria-hidden="true" tabindex="-1"></a>    lower, upper <span class="op">=</span> np.quantile(draws, [<span class="fl">0.025</span>, <span class="fl">0.975</span>])</span>
+<span id="cb6-103"><a href="#cb6-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-104"><a href="#cb6-104" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> x, d <span class="kw">in</span> <span class="bu">zip</span>(x_grid_latent, density_scaled):</span>
+<span id="cb6-105"><a href="#cb6-105" aria-hidden="true" tabindex="-1"></a>        rows_latent.append({</span>
+<span id="cb6-106"><a href="#cb6-106" aria-hidden="true" tabindex="-1"></a>            <span class="st">"parameter"</span>: name,</span>
+<span id="cb6-107"><a href="#cb6-107" aria-hidden="true" tabindex="-1"></a>            <span class="st">"x"</span>: x,</span>
+<span id="cb6-108"><a href="#cb6-108" aria-hidden="true" tabindex="-1"></a>            <span class="st">"y_base"</span>: y_base,</span>
+<span id="cb6-109"><a href="#cb6-109" aria-hidden="true" tabindex="-1"></a>            <span class="st">"y"</span>: y_base <span class="op">+</span> d,</span>
+<span id="cb6-110"><a href="#cb6-110" aria-hidden="true" tabindex="-1"></a>        })</span>
+<span id="cb6-111"><a href="#cb6-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-112"><a href="#cb6-112" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> lower <span class="op">&lt;=</span> x <span class="op">&lt;=</span> upper:</span>
+<span id="cb6-113"><a href="#cb6-113" aria-hidden="true" tabindex="-1"></a>            interval_rows_latent.append({</span>
+<span id="cb6-114"><a href="#cb6-114" aria-hidden="true" tabindex="-1"></a>                <span class="st">"parameter"</span>: name,</span>
+<span id="cb6-115"><a href="#cb6-115" aria-hidden="true" tabindex="-1"></a>                <span class="st">"x"</span>: x,</span>
+<span id="cb6-116"><a href="#cb6-116" aria-hidden="true" tabindex="-1"></a>                <span class="st">"y_base"</span>: y_base,</span>
+<span id="cb6-117"><a href="#cb6-117" aria-hidden="true" tabindex="-1"></a>                <span class="st">"y"</span>: y_base <span class="op">+</span> d,</span>
+<span id="cb6-118"><a href="#cb6-118" aria-hidden="true" tabindex="-1"></a>            })</span>
+<span id="cb6-119"><a href="#cb6-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-120"><a href="#cb6-120" aria-hidden="true" tabindex="-1"></a>    summary_rows_latent.append({</span>
+<span id="cb6-121"><a href="#cb6-121" aria-hidden="true" tabindex="-1"></a>        <span class="st">"parameter"</span>: name,</span>
+<span id="cb6-122"><a href="#cb6-122" aria-hidden="true" tabindex="-1"></a>        <span class="st">"median"</span>: median,</span>
+<span id="cb6-123"><a href="#cb6-123" aria-hidden="true" tabindex="-1"></a>        <span class="st">"lower"</span>: lower,</span>
+<span id="cb6-124"><a href="#cb6-124" aria-hidden="true" tabindex="-1"></a>        <span class="st">"upper"</span>: upper,</span>
+<span id="cb6-125"><a href="#cb6-125" aria-hidden="true" tabindex="-1"></a>        <span class="st">"y_base"</span>: y_base,</span>
+<span id="cb6-126"><a href="#cb6-126" aria-hidden="true" tabindex="-1"></a>        <span class="st">"y_top"</span>: y_base <span class="op">+</span> np.interp(median, x_grid_latent, density_scaled),</span>
+<span id="cb6-127"><a href="#cb6-127" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb6-128"><a href="#cb6-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-129"><a href="#cb6-129" aria-hidden="true" tabindex="-1"></a>ridge_df_latent <span class="op">=</span> pd.DataFrame(rows_latent)</span>
+<span id="cb6-130"><a href="#cb6-130" aria-hidden="true" tabindex="-1"></a>interval_df_latent <span class="op">=</span> pd.DataFrame(interval_rows_latent)</span>
+<span id="cb6-131"><a href="#cb6-131" aria-hidden="true" tabindex="-1"></a>summary_df_latent <span class="op">=</span> pd.DataFrame(summary_rows_latent)</span>
+<span id="cb6-132"><a href="#cb6-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-133"><a href="#cb6-133" aria-hidden="true" tabindex="-1"></a>polygon_rows_latent <span class="op">=</span> []</span>
+<span id="cb6-134"><a href="#cb6-134" aria-hidden="true" tabindex="-1"></a>interval_polygon_rows_latent <span class="op">=</span> []</span>
+<span id="cb6-135"><a href="#cb6-135" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-136"><a href="#cb6-136" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> name <span class="kw">in</span> plot_order_latent:</span>
+<span id="cb6-137"><a href="#cb6-137" aria-hidden="true" tabindex="-1"></a>    sub <span class="op">=</span> ridge_df_latent[ridge_df_latent[<span class="st">"parameter"</span>] <span class="op">==</span> name].sort_values(<span class="st">"x"</span>)</span>
+<span id="cb6-138"><a href="#cb6-138" aria-hidden="true" tabindex="-1"></a>    y_base <span class="op">=</span> sub[<span class="st">"y_base"</span>].iloc[<span class="dv">0</span>]</span>
+<span id="cb6-139"><a href="#cb6-139" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-140"><a href="#cb6-140" aria-hidden="true" tabindex="-1"></a>    polygon_rows_latent.extend(sub.to_dict(<span class="st">"records"</span>))</span>
+<span id="cb6-141"><a href="#cb6-141" aria-hidden="true" tabindex="-1"></a>    polygon_rows_latent.extend([</span>
+<span id="cb6-142"><a href="#cb6-142" aria-hidden="true" tabindex="-1"></a>        {<span class="st">"parameter"</span>: name, <span class="st">"x"</span>: sub[<span class="st">"x"</span>].iloc[<span class="op">-</span><span class="dv">1</span>], <span class="st">"y_base"</span>: y_base, <span class="st">"y"</span>: y_base},</span>
+<span id="cb6-143"><a href="#cb6-143" aria-hidden="true" tabindex="-1"></a>        {<span class="st">"parameter"</span>: name, <span class="st">"x"</span>: sub[<span class="st">"x"</span>].iloc[<span class="dv">0</span>], <span class="st">"y_base"</span>: y_base, <span class="st">"y"</span>: y_base},</span>
+<span id="cb6-144"><a href="#cb6-144" aria-hidden="true" tabindex="-1"></a>    ])</span>
+<span id="cb6-145"><a href="#cb6-145" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-146"><a href="#cb6-146" aria-hidden="true" tabindex="-1"></a>    sub_int <span class="op">=</span> interval_df_latent[interval_df_latent[<span class="st">"parameter"</span>] <span class="op">==</span> name].sort_values(<span class="st">"x"</span>)</span>
+<span id="cb6-147"><a href="#cb6-147" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(sub_int) <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb6-148"><a href="#cb6-148" aria-hidden="true" tabindex="-1"></a>        interval_polygon_rows_latent.extend(sub_int.to_dict(<span class="st">"records"</span>))</span>
+<span id="cb6-149"><a href="#cb6-149" aria-hidden="true" tabindex="-1"></a>        interval_polygon_rows_latent.extend([</span>
+<span id="cb6-150"><a href="#cb6-150" aria-hidden="true" tabindex="-1"></a>            {<span class="st">"parameter"</span>: name, <span class="st">"x"</span>: sub_int[<span class="st">"x"</span>].iloc[<span class="op">-</span><span class="dv">1</span>], <span class="st">"y_base"</span>: y_base, <span class="st">"y"</span>: y_base},</span>
+<span id="cb6-151"><a href="#cb6-151" aria-hidden="true" tabindex="-1"></a>            {<span class="st">"parameter"</span>: name, <span class="st">"x"</span>: sub_int[<span class="st">"x"</span>].iloc[<span class="dv">0</span>], <span class="st">"y_base"</span>: y_base, <span class="st">"y"</span>: y_base},</span>
+<span id="cb6-152"><a href="#cb6-152" aria-hidden="true" tabindex="-1"></a>        ])</span>
+<span id="cb6-153"><a href="#cb6-153" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-154"><a href="#cb6-154" aria-hidden="true" tabindex="-1"></a>polygon_df_latent <span class="op">=</span> pd.DataFrame(polygon_rows_latent)</span>
+<span id="cb6-155"><a href="#cb6-155" aria-hidden="true" tabindex="-1"></a>interval_polygon_df_latent <span class="op">=</span> pd.DataFrame(interval_polygon_rows_latent)</span>
+<span id="cb6-156"><a href="#cb6-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-157"><a href="#cb6-157" aria-hidden="true" tabindex="-1"></a>p_latent <span class="op">=</span> (</span>
+<span id="cb6-158"><a href="#cb6-158" aria-hidden="true" tabindex="-1"></a>    ggplot()</span>
+<span id="cb6-159"><a href="#cb6-159" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_vline(xintercept<span class="op">=</span><span class="dv">0</span>, color<span class="op">=</span><span class="st">"#d9d9d9"</span>, size<span class="op">=</span><span class="fl">1.2</span>)</span>
+<span id="cb6-160"><a href="#cb6-160" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_polygon(</span>
+<span id="cb6-161"><a href="#cb6-161" aria-hidden="true" tabindex="-1"></a>        polygon_df_latent,</span>
+<span id="cb6-162"><a href="#cb6-162" aria-hidden="true" tabindex="-1"></a>        aes(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>, group<span class="op">=</span><span class="st">"parameter"</span>),</span>
+<span id="cb6-163"><a href="#cb6-163" aria-hidden="true" tabindex="-1"></a>        fill<span class="op">=</span><span class="st">"#c8dce8"</span>,</span>
+<span id="cb6-164"><a href="#cb6-164" aria-hidden="true" tabindex="-1"></a>        alpha<span class="op">=</span><span class="fl">0.75</span>,</span>
+<span id="cb6-165"><a href="#cb6-165" aria-hidden="true" tabindex="-1"></a>        color<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb6-166"><a href="#cb6-166" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-167"><a href="#cb6-167" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_polygon(</span>
+<span id="cb6-168"><a href="#cb6-168" aria-hidden="true" tabindex="-1"></a>        interval_polygon_df_latent,</span>
+<span id="cb6-169"><a href="#cb6-169" aria-hidden="true" tabindex="-1"></a>        aes(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>, group<span class="op">=</span><span class="st">"parameter"</span>),</span>
+<span id="cb6-170"><a href="#cb6-170" aria-hidden="true" tabindex="-1"></a>        fill<span class="op">=</span><span class="st">"#8fb7cb"</span>,</span>
+<span id="cb6-171"><a href="#cb6-171" aria-hidden="true" tabindex="-1"></a>        alpha<span class="op">=</span><span class="fl">0.70</span>,</span>
+<span id="cb6-172"><a href="#cb6-172" aria-hidden="true" tabindex="-1"></a>        color<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb6-173"><a href="#cb6-173" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-174"><a href="#cb6-174" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_line(</span>
+<span id="cb6-175"><a href="#cb6-175" aria-hidden="true" tabindex="-1"></a>        ridge_df_latent,</span>
+<span id="cb6-176"><a href="#cb6-176" aria-hidden="true" tabindex="-1"></a>        aes(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>, group<span class="op">=</span><span class="st">"parameter"</span>),</span>
+<span id="cb6-177"><a href="#cb6-177" aria-hidden="true" tabindex="-1"></a>        color<span class="op">=</span><span class="st">"#002b63"</span>,</span>
+<span id="cb6-178"><a href="#cb6-178" aria-hidden="true" tabindex="-1"></a>        size<span class="op">=</span><span class="fl">1.2</span>,</span>
+<span id="cb6-179"><a href="#cb6-179" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-180"><a href="#cb6-180" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_segment(</span>
+<span id="cb6-181"><a href="#cb6-181" aria-hidden="true" tabindex="-1"></a>        summary_df_latent.assign(x_start<span class="op">=</span>x_grid_latent.<span class="bu">min</span>(), x_end<span class="op">=</span>x_grid_latent.<span class="bu">max</span>()),</span>
+<span id="cb6-182"><a href="#cb6-182" aria-hidden="true" tabindex="-1"></a>        aes(x<span class="op">=</span><span class="st">"x_start"</span>, xend<span class="op">=</span><span class="st">"x_end"</span>, y<span class="op">=</span><span class="st">"y_base"</span>, yend<span class="op">=</span><span class="st">"y_base"</span>),</span>
+<span id="cb6-183"><a href="#cb6-183" aria-hidden="true" tabindex="-1"></a>        color<span class="op">=</span><span class="st">"#002b63"</span>,</span>
+<span id="cb6-184"><a href="#cb6-184" aria-hidden="true" tabindex="-1"></a>        size<span class="op">=</span><span class="fl">1.0</span>,</span>
+<span id="cb6-185"><a href="#cb6-185" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-186"><a href="#cb6-186" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_segment(</span>
+<span id="cb6-187"><a href="#cb6-187" aria-hidden="true" tabindex="-1"></a>        summary_df_latent,</span>
+<span id="cb6-188"><a href="#cb6-188" aria-hidden="true" tabindex="-1"></a>        aes(x<span class="op">=</span><span class="st">"median"</span>, xend<span class="op">=</span><span class="st">"median"</span>, y<span class="op">=</span><span class="st">"y_base"</span>, yend<span class="op">=</span><span class="st">"y_top"</span>),</span>
+<span id="cb6-189"><a href="#cb6-189" aria-hidden="true" tabindex="-1"></a>        color<span class="op">=</span><span class="st">"#4b8aa6"</span>,</span>
+<span id="cb6-190"><a href="#cb6-190" aria-hidden="true" tabindex="-1"></a>        size<span class="op">=</span><span class="fl">2.3</span>,</span>
+<span id="cb6-191"><a href="#cb6-191" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-192"><a href="#cb6-192" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> scale_y_continuous(</span>
+<span id="cb6-193"><a href="#cb6-193" aria-hidden="true" tabindex="-1"></a>        breaks<span class="op">=</span>summary_df_latent[<span class="st">"y_base"</span>].tolist(),</span>
+<span id="cb6-194"><a href="#cb6-194" aria-hidden="true" tabindex="-1"></a>        labels<span class="op">=</span>summary_df_latent[<span class="st">"parameter"</span>].tolist(),</span>
+<span id="cb6-195"><a href="#cb6-195" aria-hidden="true" tabindex="-1"></a>        expand<span class="op">=</span>(<span class="fl">0.06</span>, <span class="fl">0.20</span>),</span>
+<span id="cb6-196"><a href="#cb6-196" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-197"><a href="#cb6-197" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> scale_x_continuous(expand<span class="op">=</span>(<span class="fl">0.02</span>, <span class="fl">0.02</span>))</span>
+<span id="cb6-198"><a href="#cb6-198" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> coord_cartesian(ylim<span class="op">=</span>(<span class="op">-</span><span class="fl">0.55</span>, <span class="bu">len</span>(plot_order_latent) <span class="op">-</span> <span class="fl">0.15</span>))</span>
+<span id="cb6-199"><a href="#cb6-199" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> labs(</span>
+<span id="cb6-200"><a href="#cb6-200" aria-hidden="true" tabindex="-1"></a>        title<span class="op">=</span><span class="st">"Latent variable model estimates"</span>,</span>
+<span id="cb6-201"><a href="#cb6-201" aria-hidden="true" tabindex="-1"></a>        subtitle<span class="op">=</span><span class="st">"with medians and 95</span><span class="sc">% i</span><span class="st">ntervals after marginalizing over hidden weather"</span>,</span>
+<span id="cb6-202"><a href="#cb6-202" aria-hidden="true" tabindex="-1"></a>        x<span class="op">=</span><span class="st">"Posterior coefficient estimate"</span>,</span>
+<span id="cb6-203"><a href="#cb6-203" aria-hidden="true" tabindex="-1"></a>        y<span class="op">=</span><span class="st">"Coefficients"</span>,</span>
+<span id="cb6-204"><a href="#cb6-204" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-205"><a href="#cb6-205" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> theme(</span>
+<span id="cb6-206"><a href="#cb6-206" aria-hidden="true" tabindex="-1"></a>        figure_size<span class="op">=</span>(<span class="fl">9.5</span>, <span class="fl">6.0</span>),</span>
+<span id="cb6-207"><a href="#cb6-207" aria-hidden="true" tabindex="-1"></a>        panel_background<span class="op">=</span>element_rect(fill<span class="op">=</span><span class="st">"white"</span>, color<span class="op">=</span><span class="st">"white"</span>),</span>
+<span id="cb6-208"><a href="#cb6-208" aria-hidden="true" tabindex="-1"></a>        plot_background<span class="op">=</span>element_rect(fill<span class="op">=</span><span class="st">"white"</span>, color<span class="op">=</span><span class="st">"white"</span>),</span>
+<span id="cb6-209"><a href="#cb6-209" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-210"><a href="#cb6-210" aria-hidden="true" tabindex="-1"></a>        panel_grid_major<span class="op">=</span>element_blank(),</span>
+<span id="cb6-211"><a href="#cb6-211" aria-hidden="true" tabindex="-1"></a>        panel_grid_minor<span class="op">=</span>element_blank(),</span>
+<span id="cb6-212"><a href="#cb6-212" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-213"><a href="#cb6-213" aria-hidden="true" tabindex="-1"></a>        axis_line_x<span class="op">=</span>element_line(color<span class="op">=</span><span class="st">"black"</span>, size<span class="op">=</span><span class="fl">0.8</span>),</span>
+<span id="cb6-214"><a href="#cb6-214" aria-hidden="true" tabindex="-1"></a>        axis_line_y<span class="op">=</span>element_line(color<span class="op">=</span><span class="st">"black"</span>, size<span class="op">=</span><span class="fl">0.8</span>),</span>
+<span id="cb6-215"><a href="#cb6-215" aria-hidden="true" tabindex="-1"></a>        axis_ticks_major<span class="op">=</span>element_line(color<span class="op">=</span><span class="st">"black"</span>, size<span class="op">=</span><span class="fl">0.8</span>),</span>
+<span id="cb6-216"><a href="#cb6-216" aria-hidden="true" tabindex="-1"></a>        axis_ticks_minor<span class="op">=</span>element_blank(),</span>
+<span id="cb6-217"><a href="#cb6-217" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-218"><a href="#cb6-218" aria-hidden="true" tabindex="-1"></a>        axis_text_x<span class="op">=</span>element_text(size<span class="op">=</span><span class="dv">12</span>, family<span class="op">=</span><span class="st">"serif"</span>, color<span class="op">=</span><span class="st">"#333333"</span>),</span>
+<span id="cb6-219"><a href="#cb6-219" aria-hidden="true" tabindex="-1"></a>        axis_text_y<span class="op">=</span>element_text(size<span class="op">=</span><span class="dv">12</span>, family<span class="op">=</span><span class="st">"serif"</span>, color<span class="op">=</span><span class="st">"#333333"</span>, weight<span class="op">=</span><span class="st">"bold"</span>),</span>
+<span id="cb6-220"><a href="#cb6-220" aria-hidden="true" tabindex="-1"></a>        axis_title_x<span class="op">=</span>element_text(size<span class="op">=</span><span class="dv">12</span>, family<span class="op">=</span><span class="st">"serif"</span>, color<span class="op">=</span><span class="st">"#333333"</span>, margin<span class="op">=</span>{<span class="st">"t"</span>: <span class="dv">10</span>}),</span>
+<span id="cb6-221"><a href="#cb6-221" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-222"><a href="#cb6-222" aria-hidden="true" tabindex="-1"></a>        plot_title<span class="op">=</span>element_text(size<span class="op">=</span><span class="dv">24</span>, family<span class="op">=</span><span class="st">"serif"</span>, color<span class="op">=</span><span class="st">"black"</span>),</span>
+<span id="cb6-223"><a href="#cb6-223" aria-hidden="true" tabindex="-1"></a>        plot_subtitle<span class="op">=</span>element_text(size<span class="op">=</span><span class="dv">17</span>, family<span class="op">=</span><span class="st">"serif"</span>, color<span class="op">=</span><span class="st">"black"</span>),</span>
+<span id="cb6-224"><a href="#cb6-224" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-225"><a href="#cb6-225" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-226"><a href="#cb6-226" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-227"><a href="#cb6-227" aria-hidden="true" tabindex="-1"></a>p_latent</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="12">
+<div>
+<figure class="figure">
+<p><img src="DEL_modelling_Part_2_files/figure-html/cell-7-output-1.png" width="912" height="576" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The latent-variable model gives a more structural representation of the hidden-confounding story: Weather is treated as an explicit but unobserved common cause of both Umbrella and GettingWet. However, <strong>the posterior estimates show wide uncertainty intervals for all three paths, and each interval overlaps zero. This means the model does not clearly identify the hidden Weather mechanism or the direct effect of Umbrella on GettingWet from the observed data alone.</strong></p>
+<p>In particular, the Umbrella → GettingWet coefficient is centred close to zero, suggesting little evidence for a strong direct umbrella effect after accounting for latent Weather. But this should not be interpreted as proof of no causal effect. Rather, it shows that once we allow for an unobserved common cause, the available data are compatible with a range of explanations.</p>
+<p>Latent-variable models can make hidden confounding explicit, but they require stronger assumptions. If the hidden variable is not observed, <strong>the model may be weakly identified</strong>, and the posterior can remain highly uncertain. In this example, the latent Weather model is more faithful to the causal DAG, but <strong>less transparent and more assumption-dependent than the sensitivity analysis</strong>.</p>
+<p>TODO: discuss the coeddicients one by one.</p>
+</section>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -749,6 +1682,18 @@ Code for the umbrella example
 <li><p>Classify each path by whether it is a backdoor path. A backdoor path has an arrow entering <span style="color:#bf616a"><span class="math inline">\(s\)</span></span>.</p></li>
 <li><p>If there are any open backdoor paths, decide which variable(s) to condition on to close it (if possible).</p></li>
 </ol>
+</section>
+</section>
+</section>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References:</h2>
+<ul>
+<li><a href="https://academic.oup.com/jrsssb/article/45/2/212/7027731">Rosenbaum &amp; Rubin (1983)</a> — classic paper on sensitivity to an unobserved binary covariate with a binary outcome.</li>
+<li><a href="https://pubmed.ncbi.nlm.nih.gov/28693043/">VanderWeele &amp; Ding (2017), E-value</a> — a very accessible modern approach: it quantifies how strongly an unmeasured confounder would need to be associated with both treatment and outcome to explain away an association.</li>
+<li><a href="https://academic.oup.com/jrsssb/article/82/1/39/7056023?guestAccessKey=">Cinelli &amp; Hazlett (2020), “Making Sense of Sensitivity”</a> — especially useful for regression-style intuition. Their “robustness value” asks how strong omitted confounding would need to be to overturn a conclusion.</li>
+<li><a href="https://carloscinelli.com/sensemakr/">sensemakr</a> — practical R/Stata implementation of Cinelli &amp; Hazlett’s approach; useful if you want a computational reference rather than only theory.</li>
+</ul>
 <hr>
 <p>TODO: -1. Add a fork image</p>
 <ol start="0" type="1">
@@ -778,9 +1723,6 @@ Code for the umbrella example
 </ol>
 
 
-</section>
-</section>
-</section>
 </section>
 
 </main> <!-- /main -->
