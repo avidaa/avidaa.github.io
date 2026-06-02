@@ -1,7 +1,7 @@
 ---
 title: "Modelling DNA-Encoded Libraries (DELs) - Part 1"
 format: html
-jupyter: del_model
+
 execute:
   echo: true
   cache: true
