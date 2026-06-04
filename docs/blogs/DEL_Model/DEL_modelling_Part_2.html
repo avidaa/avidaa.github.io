@@ -505,7 +505,7 @@ X \leftarrow Z \rightarrow Y
 <p><span class="math display">\[
 X \perp\!\!\!\perp Y \mid Z
 \]</span></p>
-<p>which reads as “<span class="math inline">\(X\)</span> is independent of <span class="math inline">\(Y\)</span> given <span class="math inline">\(Z\)</span>”.</p>
+<p>which reads as “<span class="math inline">\(X\)</span> is independent of <span class="math inline">\(Y\)</span> once we know <span class="math inline">\(Z\)</span>”.</p>
 <p><span class="highlight-key-point">Conditioning on <span class="math inline">\(Z\)</span> blocks the backdoor path through the confounder, <span class="math inline">\(Z\)</span>, and helps recover an unbiased estimate of the causal effect.</span></p>
 <div class="callout callout-style-default callout-note no-icon callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
@@ -534,7 +534,7 @@ X \leftarrow Z \rightarrow Y
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-9-contents" aria-controls="callout-9" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-10-contents" aria-controls="callout-10" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
@@ -543,7 +543,7 @@ Intuitive example of a fork structure and backdoor path
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-9" class="callout-9-contents callout-collapse collapse">
+<div id="callout-10" class="callout-10-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>Suppose we want to estimate whether carrying an umbrella has an effect on being wet. However, there is a confounder: weather conditions. Rainy weather affects both whether someone carries an umbrella and whether they gets wet.</p>
 <p>On rainy days, people are more likely to carry an umbrella and more likely to get wet. This can create a statistical association between umbrellas and getting wet, even if carrying an umbrella does not directly cause someone to get wet.</p>
@@ -575,24 +575,24 @@ X \leftarrow Z \rightarrow Y
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Code for the umbrella example
+Code for the fork example
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
 <div id="callout-4" class="callout-4-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>Let’s simulate some data to illustrate the umbrella example. We will create a simple dataset where weather conditions affect both umbrella use and getting wet.</p>
+<p>Let’s simulate some data to illustrate the fork example. We will create a simple dataset where weather conditions affect both umbrella use and getting wet.</p>
 <div id="fig-umbrella-dag" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-umbrella-dag-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="img/umbrella_dag.png" class="img-fluid figure-img" style="width:50.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-umbrella-dag-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;11: Umbrella example DAG.
+Figure&nbsp;11: Fork example DAG.
 </figcaption>
 </figure>
 </div>
-<div id="5dfc952d" class="cell" data-execution_count="2">
+<div id="fd2e1a76" class="cell" data-execution_count="2">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -695,7 +695,7 @@ Figure&nbsp;11: Umbrella example DAG.
 <h5 class="anchored" data-anchor-id="summary-of-the-simulated-data">Summary of the simulated data</h5>
 <p>Let’s plot the simulated data to see the associations between the variables.</p>
 <p>Starting with the raw association between Umbrella and GettingWet:</p>
-<div id="d5fd9c2c" class="cell" data-execution_count="3">
+<div id="3e0c9908" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
@@ -766,7 +766,7 @@ Figure&nbsp;11: Umbrella example DAG.
 <span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a>p1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="8">
+<div class="cell-output cell-output-display" data-execution_count="2">
 <div>
 <figure class="figure">
 <p><img src="DEL_modelling_Part_2_files/figure-html/cell-3-output-1.png" width="624" height="384" class="figure-img"></p>
@@ -775,7 +775,7 @@ Figure&nbsp;11: Umbrella example DAG.
 </div>
 </div>
 <p>And, stratified association by Weather, that show what happens after blocking the backdoor path:</p>
-<div id="53f4eedd" class="cell" data-execution_count="4">
+<div id="969caa51" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>strat_counts <span class="op">=</span> (</span>
@@ -847,7 +847,7 @@ Figure&nbsp;11: Umbrella example DAG.
 <span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a>p2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="9">
+<div class="cell-output cell-output-display" data-execution_count="3">
 <div>
 <figure class="figure">
 <p><img src="DEL_modelling_Part_2_files/figure-html/cell-4-output-1.png" width="768" height="384" class="figure-img"></p>
@@ -879,7 +879,7 @@ Figure&nbsp;12: Association between carrying an umbrella and getting wet.
 <p>The priors are weakly informative Normal(0, 2) distributions on each coefficient, which keep the logit-scale effects within a plausible range (<span class="math inline">\(\pm 4\)</span>) while placing no strong prior preference on direction:</p>
 <p><span class="math display">\[ \alpha \sim \text{Normal}(0, 2), \quad \beta_{\text{umbrella}} \sim \text{Normal}(0, 2), \quad \beta_{\text{weather}} \sim \text{Normal}(0, 2) \]</span></p>
 <p>Both models are fitted via NUTS (No-U-Turn Sampler) using Pyro. The key quantity of interest is <span class="math inline">\(\beta_{\text{umbrella}}\)</span>: comparing its posterior between the two models shows how much of the raw umbrella–wet association disappears once weather is held fixed.</p>
-<div id="66875aa2" class="cell" data-execution_count="5">
+<div id="eb1cfd3c" class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
@@ -1147,7 +1147,7 @@ Figure&nbsp;13: Posterior distributions for the umbrella example.
 </div>
 </div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-8-contents" aria-controls="callout-8" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-9-contents" aria-controls="callout-9" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
@@ -1156,7 +1156,7 @@ What if we only observe Umbrella and Getting Wet, but not Weather?
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-8" class="callout-8-contents callout-collapse collapse">
+<div id="callout-9" class="callout-9-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>Up to this point, we assumed that <strong>Weather</strong>, <strong>Umbrella</strong>, and <strong>Getting Wet</strong> were all observed. In that case, the confounding structure is visible and can be blocked by conditioning on Weather:</p>
 <p><span class="math display">\[
@@ -1180,7 +1180,7 @@ What if we only observe Umbrella and Getting Wet, but not Weather?
 <p>The code below starts with a simple sensitivity analysis, then fits a latent variable model in which Weather is unobserved but still included in the generative structure.</p>
 <p><span class="highlight-key-point">Latent confounders are dangerous because they keep backdoor paths open. If the common cause is unmeasured, the model can attribute part of a spurious association to the causal effect we want to estimate.</span></p>
 <div class="callout callout-style-default callout-note no-icon callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-7-contents" aria-controls="callout-7" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-8-contents" aria-controls="callout-8" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
@@ -1189,7 +1189,7 @@ Sensitivity analysis and latent variable model
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-7" class="callout-7-contents callout-collapse collapse">
+<div id="callout-8" class="callout-8-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <section id="sensitivity-analysis-for-hidden-confounding" class="level5">
 <h5 class="anchored" data-anchor-id="sensitivity-analysis-for-hidden-confounding">Sensitivity analysis for hidden confounding</h5>
@@ -1263,7 +1263,7 @@ Figure&nbsp;15: One-sided sensitivity analysis: higher assumed hidden bias shift
 </figcaption>
 </figure>
 </div>
-<div id="6a8f8c83" class="cell" data-execution_count="6">
+<div id="a262752c" class="cell" data-execution_count="6">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -1344,7 +1344,7 @@ Figure&nbsp;15: One-sided sensitivity analysis: higher assumed hidden bias shift
 <span id="cb5-76"><a href="#cb5-76" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-77"><a href="#cb5-77" aria-hidden="true" tabindex="-1"></a>p_sensitivity</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="11">
+<div class="cell-output cell-output-display" data-execution_count="5">
 <div>
 <figure class="figure">
 <p><img src="DEL_modelling_Part_2_files/figure-html/cell-6-output-1.png" width="816" height="480" class="figure-img"></p>
@@ -1419,7 +1419,7 @@ P(U_i, G_i) = \Sigma_{w_i \in \{0, 1\}} P(W_i=w) P(U_i | W_i=w) P(G_i | U_i, W_i
 <p>For each observed pair <span class="math inline">\((U_i, G_i)\)</span>, how likely is this observation if the hidden weather state was dry, and how likely is it if the hidden weather state was rainy? It then averages those two possibilities according to the estimated probability of each weather state.</p>
 <p>Because Weather is never observed, the model must infer it entirely from the joint pattern of Umbrella and GettingWet. That means the <strong>result depends strongly on the assumed model form, the priors, and the assumption that a binary latent Weather variable is a reasonable representation of the hidden common cause</strong>.</p>
 <p><span class="highlight-key-point">So the latent variable model gives us a more mechanistic version of the hidden-confounding story, but it is not assumption-free. The sensitivity analysis is weaker but more transparent; the latent variable model is more structural but more model-dependent.</span></p>
-<div id="3ba78b84" class="cell" data-execution_count="7">
+<div id="15886ac1" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> latent_weather_model(umbrella, wet):</span>
@@ -1650,7 +1650,7 @@ P(U_i, G_i) = \Sigma_{w_i \in \{0, 1\}} P(W_i=w) P(U_i | W_i=w) P(G_i | U_i, W_i
 <span id="cb6-226"><a href="#cb6-226" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-227"><a href="#cb6-227" aria-hidden="true" tabindex="-1"></a>p_latent</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="12">
+<div class="cell-output cell-output-display" data-execution_count="6">
 <div>
 <figure class="figure">
 <p><img src="DEL_modelling_Part_2_files/figure-html/cell-7-output-1.png" width="912" height="576" class="figure-img"></p>
@@ -1658,14 +1658,245 @@ P(U_i, G_i) = \Sigma_{w_i \in \{0, 1\}} P(W_i=w) P(U_i | W_i=w) P(G_i | U_i, W_i
 </div>
 </div>
 </div>
-<p>The latent-variable model gives a more structural representation of the hidden-confounding story: Weather is treated as an explicit but unobserved common cause of both Umbrella and GettingWet. However, <strong>the posterior estimates show wide uncertainty intervals for all three paths, and each interval overlaps zero. This means the model does not clearly identify the hidden Weather mechanism or the direct effect of Umbrella on GettingWet from the observed data alone.</strong></p>
+<p>The latent-variable model gives a more structural representation of the hidden-confounding story: Weather is treated as an explicit but unobserved common cause of both Umbrella and GettingWet. However, the posterior estimates show wide uncertainty intervals for all three paths, and each interval overlaps zero. This means the model does not clearly identify the hidden Weather mechanism or the direct effect of Umbrella on GettingWet from the observed data alone.</p>
 <p>In particular, the Umbrella → GettingWet coefficient is centred close to zero, suggesting little evidence for a strong direct umbrella effect after accounting for latent Weather. But this should not be interpreted as proof of no causal effect. Rather, it shows that once we allow for an unobserved common cause, the available data are compatible with a range of explanations.</p>
-<p>Latent-variable models can make hidden confounding explicit, but they require stronger assumptions. If the hidden variable is not observed, <strong>the model may be weakly identified</strong>, and the posterior can remain highly uncertain. In this example, the latent Weather model is more faithful to the causal DAG, but <strong>less transparent and more assumption-dependent than the sensitivity analysis</strong>.</p>
-<p>TODO: discuss the coeddicients one by one.</p>
+<p>Latent-variable models can make hidden confounding explicit, but they require stronger assumptions. If the hidden variable is not observed, <strong>the parameters may be weakly identified</strong>, and the posterior can remain highly uncertain. In this example, the latent Weather model is more faithful to the causal DAG, but <strong>less transparent and more assumption-dependent than the sensitivity analysis</strong>.</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-7-contents" aria-controls="callout-7" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+A Note on Parameter Identifiability
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-7" class="callout-7-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>The weak identification we saw above is not unique to latent-variable models. It belongs to a broader class of difficulties that arise whenever the data and model structure are not informative enough to pin down a parameter’s value. This can happen because of a modelling mistake, but it also occurs in perfectly correct models.</p>
+<p>A practical signal of weak identification is that the posterior looks a lot like the prior. If the data carry little information about a parameter, Bayesian updating has little to update, and the posterior will closely track whatever prior we started with. Comparing the two is therefore a useful diagnostic: a posterior that remains wide and prior-shaped is not a sign that something went wrong, it is the correct answer to the question we asked. But it is also an invitation to ask a sharper question, <strong>collect more data</strong>, or reconsider whether the parameter is estimable at all given the available evidence.</p>
+<div id="7f4cac44" class="cell" data-execution_count="8">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>rng_ident <span class="op">=</span> np.random.default_rng(<span class="dv">42</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>n_prior_ident <span class="op">=</span> <span class="dv">5_000</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>prior_sd_ident <span class="op">=</span> <span class="fl">2.0</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>param_spec_ident <span class="op">=</span> [</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"beta_weather_to_umbrella"</span>, <span class="st">"Weather → Umbrella"</span>),</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"beta_umbrella_to_wet"</span>,     <span class="st">"Umbrella → Getting wet"</span>),</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"beta_weather_to_wet"</span>,      <span class="st">"Weather → Getting wet"</span>),</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>prior_draws_ident <span class="op">=</span> {</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    label: rng_ident.normal(<span class="fl">0.0</span>, prior_sd_ident, n_prior_ident)</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> _, label <span class="kw">in</span> param_spec_ident</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>post_draws_ident <span class="op">=</span> {</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    label: posterior_latent[pname].detach().numpy()</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> pname, label <span class="kw">in</span> param_spec_ident</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>all_vals_ident <span class="op">=</span> np.concatenate([</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    np.concatenate([prior_draws_ident[l], post_draws_ident[l]])</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> _, l <span class="kw">in</span> param_spec_ident</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>])</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>x_lo_i, x_hi_i <span class="op">=</span> np.quantile(all_vals_ident, [<span class="fl">0.005</span>, <span class="fl">0.995</span>])</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>x_pad_i <span class="op">=</span> <span class="fl">0.15</span> <span class="op">*</span> (x_hi_i <span class="op">-</span> x_lo_i)</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>x_grid_i <span class="op">=</span> np.linspace(x_lo_i <span class="op">-</span> x_pad_i, x_hi_i <span class="op">+</span> x_pad_i, <span class="dv">400</span>)</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>plot_order_i <span class="op">=</span> [label <span class="cf">for</span> _, label <span class="kw">in</span> param_spec_ident]</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>ridge_h_i <span class="op">=</span> <span class="fl">0.72</span></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> build_ridge_rows_ident(draws_dict, plot_order, x_grid, ridge_h):</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>    rows, int_rows <span class="op">=</span> [], []</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, name <span class="kw">in</span> <span class="bu">enumerate</span>(plot_order):</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>        y_base <span class="op">=</span> <span class="bu">len</span>(plot_order) <span class="op">-</span> <span class="dv">1</span> <span class="op">-</span> i</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>        kde <span class="op">=</span> gaussian_kde(draws_dict[name])</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>        dens <span class="op">=</span> kde(x_grid)</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>        dens_s <span class="op">=</span> dens <span class="op">/</span> dens.<span class="bu">max</span>() <span class="op">*</span> ridge_h</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>        lo, hi <span class="op">=</span> np.quantile(draws_dict[name], [<span class="fl">0.025</span>, <span class="fl">0.975</span>])</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> x, d <span class="kw">in</span> <span class="bu">zip</span>(x_grid, dens_s):</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>            rows.append({<span class="st">"parameter"</span>: name, <span class="st">"x"</span>: x, <span class="st">"y_base"</span>: y_base, <span class="st">"y"</span>: y_base <span class="op">+</span> d})</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> lo <span class="op">&lt;=</span> x <span class="op">&lt;=</span> hi:</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>                int_rows.append({<span class="st">"parameter"</span>: name, <span class="st">"x"</span>: x, <span class="st">"y_base"</span>: y_base, <span class="st">"y"</span>: y_base <span class="op">+</span> d})</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> pd.DataFrame(rows), pd.DataFrame(int_rows)</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> build_polygon_ident(df, plot_order):</span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>    rows <span class="op">=</span> []</span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> name <span class="kw">in</span> plot_order:</span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>        sub <span class="op">=</span> df[df[<span class="st">"parameter"</span>] <span class="op">==</span> name].sort_values(<span class="st">"x"</span>)</span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>(sub) <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a>        y_base <span class="op">=</span> sub[<span class="st">"y_base"</span>].iloc[<span class="dv">0</span>]</span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a>        rows.extend(sub.to_dict(<span class="st">"records"</span>))</span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>        rows <span class="op">+=</span> [</span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a>            {<span class="st">"parameter"</span>: name, <span class="st">"x"</span>: sub[<span class="st">"x"</span>].iloc[<span class="op">-</span><span class="dv">1</span>], <span class="st">"y_base"</span>: y_base, <span class="st">"y"</span>: y_base},</span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>            {<span class="st">"parameter"</span>: name, <span class="st">"x"</span>: sub[<span class="st">"x"</span>].iloc[<span class="dv">0</span>],  <span class="st">"y_base"</span>: y_base, <span class="st">"y"</span>: y_base},</span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a>        ]</span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> pd.DataFrame(rows)</span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a>prior_df_i, _ <span class="op">=</span> build_ridge_rows_ident(prior_draws_ident, plot_order_i, x_grid_i, ridge_h_i)</span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a>post_df_i, post_int_df_i <span class="op">=</span> build_ridge_rows_ident(post_draws_ident, plot_order_i, x_grid_i, ridge_h_i)</span>
+<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a>prior_poly_i    <span class="op">=</span> build_polygon_ident(prior_df_i,    plot_order_i)</span>
+<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a>post_poly_i     <span class="op">=</span> build_polygon_ident(post_df_i,     plot_order_i)</span>
+<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a>post_int_poly_i <span class="op">=</span> build_polygon_ident(post_int_df_i, plot_order_i)</span>
+<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a>summary_rows_i <span class="op">=</span> []</span>
+<span id="cb7-70"><a href="#cb7-70" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, name <span class="kw">in</span> <span class="bu">enumerate</span>(plot_order_i):</span>
+<span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a>    y_base <span class="op">=</span> <span class="bu">len</span>(plot_order_i) <span class="op">-</span> <span class="dv">1</span> <span class="op">-</span> i</span>
+<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a>    draws <span class="op">=</span> post_draws_ident[name]</span>
+<span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a>    kde <span class="op">=</span> gaussian_kde(draws)</span>
+<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a>    dens_s <span class="op">=</span> kde(x_grid_i)</span>
+<span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a>    dens_s <span class="op">=</span> dens_s <span class="op">/</span> dens_s.<span class="bu">max</span>() <span class="op">*</span> ridge_h_i</span>
+<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a>    median <span class="op">=</span> np.median(draws)</span>
+<span id="cb7-77"><a href="#cb7-77" aria-hidden="true" tabindex="-1"></a>    summary_rows_i.append({</span>
+<span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a>        <span class="st">"parameter"</span>: name,</span>
+<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a>        <span class="st">"y_base"</span>: y_base,</span>
+<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a>        <span class="st">"median"</span>: median,</span>
+<span id="cb7-81"><a href="#cb7-81" aria-hidden="true" tabindex="-1"></a>        <span class="st">"y_top"</span>: y_base <span class="op">+</span> np.interp(median, x_grid_i, dens_s),</span>
+<span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb7-83"><a href="#cb7-83" aria-hidden="true" tabindex="-1"></a>summary_df_i <span class="op">=</span> pd.DataFrame(summary_rows_i)</span>
+<span id="cb7-84"><a href="#cb7-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-85"><a href="#cb7-85" aria-hidden="true" tabindex="-1"></a>p_ident <span class="op">=</span> (</span>
+<span id="cb7-86"><a href="#cb7-86" aria-hidden="true" tabindex="-1"></a>    ggplot()</span>
+<span id="cb7-87"><a href="#cb7-87" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_vline(xintercept<span class="op">=</span><span class="dv">0</span>, color<span class="op">=</span><span class="st">"#d9d9d9"</span>, size<span class="op">=</span><span class="fl">1.2</span>)</span>
+<span id="cb7-88"><a href="#cb7-88" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_polygon(prior_poly_i, aes(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>, group<span class="op">=</span><span class="st">"parameter"</span>),</span>
+<span id="cb7-89"><a href="#cb7-89" aria-hidden="true" tabindex="-1"></a>                   fill<span class="op">=</span><span class="st">"#e0e0e0"</span>, alpha<span class="op">=</span><span class="fl">0.85</span>, color<span class="op">=</span><span class="va">None</span>)</span>
+<span id="cb7-90"><a href="#cb7-90" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_line(prior_df_i, aes(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>, group<span class="op">=</span><span class="st">"parameter"</span>),</span>
+<span id="cb7-91"><a href="#cb7-91" aria-hidden="true" tabindex="-1"></a>                color<span class="op">=</span><span class="st">"#999999"</span>, size<span class="op">=</span><span class="fl">0.9</span>, linetype<span class="op">=</span><span class="st">"dashed"</span>)</span>
+<span id="cb7-92"><a href="#cb7-92" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_polygon(post_poly_i, aes(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>, group<span class="op">=</span><span class="st">"parameter"</span>),</span>
+<span id="cb7-93"><a href="#cb7-93" aria-hidden="true" tabindex="-1"></a>                   fill<span class="op">=</span><span class="st">"#c8dce8"</span>, alpha<span class="op">=</span><span class="fl">0.75</span>, color<span class="op">=</span><span class="va">None</span>)</span>
+<span id="cb7-94"><a href="#cb7-94" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_polygon(post_int_poly_i, aes(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>, group<span class="op">=</span><span class="st">"parameter"</span>),</span>
+<span id="cb7-95"><a href="#cb7-95" aria-hidden="true" tabindex="-1"></a>                   fill<span class="op">=</span><span class="st">"#8fb7cb"</span>, alpha<span class="op">=</span><span class="fl">0.70</span>, color<span class="op">=</span><span class="va">None</span>)</span>
+<span id="cb7-96"><a href="#cb7-96" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_line(post_df_i, aes(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>, group<span class="op">=</span><span class="st">"parameter"</span>),</span>
+<span id="cb7-97"><a href="#cb7-97" aria-hidden="true" tabindex="-1"></a>                color<span class="op">=</span><span class="st">"#002b63"</span>, size<span class="op">=</span><span class="fl">1.2</span>)</span>
+<span id="cb7-98"><a href="#cb7-98" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_segment(</span>
+<span id="cb7-99"><a href="#cb7-99" aria-hidden="true" tabindex="-1"></a>        summary_df_i.assign(x_start<span class="op">=</span>x_grid_i.<span class="bu">min</span>(), x_end<span class="op">=</span>x_grid_i.<span class="bu">max</span>()),</span>
+<span id="cb7-100"><a href="#cb7-100" aria-hidden="true" tabindex="-1"></a>        aes(x<span class="op">=</span><span class="st">"x_start"</span>, xend<span class="op">=</span><span class="st">"x_end"</span>, y<span class="op">=</span><span class="st">"y_base"</span>, yend<span class="op">=</span><span class="st">"y_base"</span>),</span>
+<span id="cb7-101"><a href="#cb7-101" aria-hidden="true" tabindex="-1"></a>        color<span class="op">=</span><span class="st">"#002b63"</span>, size<span class="op">=</span><span class="fl">1.0</span>,</span>
+<span id="cb7-102"><a href="#cb7-102" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-103"><a href="#cb7-103" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_segment(</span>
+<span id="cb7-104"><a href="#cb7-104" aria-hidden="true" tabindex="-1"></a>        summary_df_i,</span>
+<span id="cb7-105"><a href="#cb7-105" aria-hidden="true" tabindex="-1"></a>        aes(x<span class="op">=</span><span class="st">"median"</span>, xend<span class="op">=</span><span class="st">"median"</span>, y<span class="op">=</span><span class="st">"y_base"</span>, yend<span class="op">=</span><span class="st">"y_top"</span>),</span>
+<span id="cb7-106"><a href="#cb7-106" aria-hidden="true" tabindex="-1"></a>        color<span class="op">=</span><span class="st">"#4b8aa6"</span>, size<span class="op">=</span><span class="fl">2.3</span>,</span>
+<span id="cb7-107"><a href="#cb7-107" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-108"><a href="#cb7-108" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> scale_y_continuous(</span>
+<span id="cb7-109"><a href="#cb7-109" aria-hidden="true" tabindex="-1"></a>        breaks<span class="op">=</span>summary_df_i[<span class="st">"y_base"</span>].tolist(),</span>
+<span id="cb7-110"><a href="#cb7-110" aria-hidden="true" tabindex="-1"></a>        labels<span class="op">=</span>summary_df_i[<span class="st">"parameter"</span>].tolist(),</span>
+<span id="cb7-111"><a href="#cb7-111" aria-hidden="true" tabindex="-1"></a>        expand<span class="op">=</span>(<span class="fl">0.06</span>, <span class="fl">0.20</span>),</span>
+<span id="cb7-112"><a href="#cb7-112" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-113"><a href="#cb7-113" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> scale_x_continuous(expand<span class="op">=</span>(<span class="fl">0.02</span>, <span class="fl">0.02</span>))</span>
+<span id="cb7-114"><a href="#cb7-114" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> coord_cartesian(ylim<span class="op">=</span>(<span class="op">-</span><span class="fl">0.55</span>, <span class="bu">len</span>(plot_order_i) <span class="op">-</span> <span class="fl">0.15</span>))</span>
+<span id="cb7-115"><a href="#cb7-115" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> labs(</span>
+<span id="cb7-116"><a href="#cb7-116" aria-hidden="true" tabindex="-1"></a>        title<span class="op">=</span><span class="st">"Prior vs posterior: latent weather model"</span>,</span>
+<span id="cb7-117"><a href="#cb7-117" aria-hidden="true" tabindex="-1"></a>        subtitle<span class="op">=</span><span class="st">"grey dashed = prior  ·  blue filled = posterior (95</span><span class="sc">% i</span><span class="st">nterval shaded)"</span>,</span>
+<span id="cb7-118"><a href="#cb7-118" aria-hidden="true" tabindex="-1"></a>        x<span class="op">=</span><span class="st">"Coefficient value"</span>,</span>
+<span id="cb7-119"><a href="#cb7-119" aria-hidden="true" tabindex="-1"></a>        y<span class="op">=</span><span class="st">""</span>,</span>
+<span id="cb7-120"><a href="#cb7-120" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-121"><a href="#cb7-121" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> theme(</span>
+<span id="cb7-122"><a href="#cb7-122" aria-hidden="true" tabindex="-1"></a>        figure_size<span class="op">=</span>(<span class="fl">9.5</span>, <span class="fl">6.0</span>),</span>
+<span id="cb7-123"><a href="#cb7-123" aria-hidden="true" tabindex="-1"></a>        panel_background<span class="op">=</span>element_rect(fill<span class="op">=</span><span class="st">"white"</span>, color<span class="op">=</span><span class="st">"white"</span>),</span>
+<span id="cb7-124"><a href="#cb7-124" aria-hidden="true" tabindex="-1"></a>        plot_background<span class="op">=</span>element_rect(fill<span class="op">=</span><span class="st">"white"</span>, color<span class="op">=</span><span class="st">"white"</span>),</span>
+<span id="cb7-125"><a href="#cb7-125" aria-hidden="true" tabindex="-1"></a>        panel_grid_major<span class="op">=</span>element_blank(),</span>
+<span id="cb7-126"><a href="#cb7-126" aria-hidden="true" tabindex="-1"></a>        panel_grid_minor<span class="op">=</span>element_blank(),</span>
+<span id="cb7-127"><a href="#cb7-127" aria-hidden="true" tabindex="-1"></a>        axis_line_x<span class="op">=</span>element_line(color<span class="op">=</span><span class="st">"black"</span>, size<span class="op">=</span><span class="fl">0.8</span>),</span>
+<span id="cb7-128"><a href="#cb7-128" aria-hidden="true" tabindex="-1"></a>        axis_line_y<span class="op">=</span>element_line(color<span class="op">=</span><span class="st">"black"</span>, size<span class="op">=</span><span class="fl">0.8</span>),</span>
+<span id="cb7-129"><a href="#cb7-129" aria-hidden="true" tabindex="-1"></a>        axis_ticks_major<span class="op">=</span>element_line(color<span class="op">=</span><span class="st">"black"</span>, size<span class="op">=</span><span class="fl">0.8</span>),</span>
+<span id="cb7-130"><a href="#cb7-130" aria-hidden="true" tabindex="-1"></a>        axis_ticks_minor<span class="op">=</span>element_blank(),</span>
+<span id="cb7-131"><a href="#cb7-131" aria-hidden="true" tabindex="-1"></a>        axis_text_x<span class="op">=</span>element_text(size<span class="op">=</span><span class="dv">12</span>, family<span class="op">=</span><span class="st">"serif"</span>, color<span class="op">=</span><span class="st">"#333333"</span>),</span>
+<span id="cb7-132"><a href="#cb7-132" aria-hidden="true" tabindex="-1"></a>        axis_text_y<span class="op">=</span>element_text(size<span class="op">=</span><span class="dv">12</span>, family<span class="op">=</span><span class="st">"serif"</span>, color<span class="op">=</span><span class="st">"#333333"</span>, weight<span class="op">=</span><span class="st">"bold"</span>),</span>
+<span id="cb7-133"><a href="#cb7-133" aria-hidden="true" tabindex="-1"></a>        axis_title_x<span class="op">=</span>element_text(size<span class="op">=</span><span class="dv">12</span>, family<span class="op">=</span><span class="st">"serif"</span>, color<span class="op">=</span><span class="st">"#333333"</span>, margin<span class="op">=</span>{<span class="st">"t"</span>: <span class="dv">10</span>}),</span>
+<span id="cb7-134"><a href="#cb7-134" aria-hidden="true" tabindex="-1"></a>        plot_title<span class="op">=</span>element_text(size<span class="op">=</span><span class="dv">24</span>, family<span class="op">=</span><span class="st">"serif"</span>, color<span class="op">=</span><span class="st">"black"</span>),</span>
+<span id="cb7-135"><a href="#cb7-135" aria-hidden="true" tabindex="-1"></a>        plot_subtitle<span class="op">=</span>element_text(size<span class="op">=</span><span class="dv">17</span>, family<span class="op">=</span><span class="st">"serif"</span>, color<span class="op">=</span><span class="st">"black"</span>),</span>
+<span id="cb7-136"><a href="#cb7-136" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-137"><a href="#cb7-137" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-138"><a href="#cb7-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-139"><a href="#cb7-139" aria-hidden="true" tabindex="-1"></a>p_ident</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<div>
+<figure class="figure">
+<p><img src="DEL_modelling_Part_2_files/figure-html/cell-8-output-1.png" width="912" height="576" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
 </section>
 </div>
 </div>
 </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<p>The second is the <strong>pipe</strong> or <strong>mediation</strong> structure:</p>
+<div id="fig-pipe-structure" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-pipe-structure-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="img/pipe_structure.png" class="img-fluid figure-img" style="width:60.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pipe-structure-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;17: Pipe structure.
+</figcaption>
+</figure>
+</div>
+<p>In a pipe, <span class="math inline">\(Z\)</span> lies on the causal path from <span class="math inline">\(X\)</span> to <span class="math inline">\(Y\)</span>. It is a <strong>mediator</strong>, not a common cause.</p>
+<p><span class="math display">\[
+X \rightarrow Z \rightarrow Y
+\]</span></p>
+<p>Conditioning on <span class="math inline">\(Z\)</span> blocks this mediation path (<span class="math inline">\(X \perp\!\!\!\perp Y \mid Z\)</span>). That is helpful only if our goal is to estimate the <strong>direct effect</strong> of <span class="math inline">\(X\)</span> on <span class="math inline">\(Y\)</span> that does not run through <span class="math inline">\(Z\)</span>. If we want to estimate the <strong>total effect</strong> of <span class="math inline">\(X\)</span> on <span class="math inline">\(Y\)</span>, then conditioning on <span class="math inline">\(Z\)</span> is inappropriate because it removes part of the causal effect we are trying to measure.</p>
+<p><span class="highlight-key-point">To estimate the total effect of <span class="math inline">\(X\)</span> on <span class="math inline">\(Y\)</span>, we do not condition on <span class="math inline">\(Z\)</span>, because the mediator carries part of the causal signal.</span></p>
+<p><span class="highlight-key-point">To estimate the direct effect of <span class="math inline">\(X\)</span> on <span class="math inline">\(Y\)</span> that bypasses <span class="math inline">\(Z\)</span>, we do condition on <span class="math inline">\(Z\)</span>. This is a different estimand and answers a different causal question.</span></p>
+<div class="callout callout-style-default callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-12-contents" aria-controls="callout-12" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Intuitive example of a pipe structure
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-12" class="callout-12-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Suppose we want to understand whether exercise affects blood pressure, and part of that effect works through weight loss:</p>
+<p><span class="math display">\[
+X = \text{Exercise}
+\]</span> <span class="math display">\[
+Z = \text{Weight loss}
+\]</span> <span class="math display">\[
+Y = \text{Blood pressure}
+\]</span></p>
+<p>The assumed causal path is:</p>
+<p><span class="math display">\[
+\text{Exercise} \rightarrow \text{Weight loss} \rightarrow \text{Blood pressure}
+\]</span></p>
+<p>Here, weight loss mediates part of the effect of exercise on blood pressure. Exercise changes body weight, and that weight change in turn affects blood pressure.</p>
+<p>If we condition on weight loss, we block that mediated path. The model then asks a narrower question: does exercise affect blood pressure <em>other than through weight loss</em>? That is the <strong>direct effect</strong> of exercise that bypasses the mediator.</p>
+<p>If instead we want the <strong>total effect</strong> of exercise on blood pressure, we should <em>not</em> condition on weight loss, because weight loss is one of the mechanisms through which exercise works. Conditioning on the mediator would remove that part of the causal signal and change the estimand.</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-11-contents" aria-controls="callout-11" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Code for the pipe structure example
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-11" class="callout-11-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+
 </div>
 </div>
 </div>

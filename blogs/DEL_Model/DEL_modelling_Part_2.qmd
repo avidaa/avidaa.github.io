@@ -6,7 +6,11 @@ format:
     theme: default
     mermaid: {}
 
-jupyter: del_model_env
+jupyter:
+  kernelspec:
+    name: del_model_env
+    language: python
+    display_name: del_model_env
 
 execute:
   echo: true
@@ -242,7 +246,7 @@ $$
 X \perp\!\!\!\perp Y \mid Z
 $$  
 
-which reads as “$X$ is independent of $Y$ given $Z$”.
+which reads as “$X$ is independent of $Y$ once we know $Z$”.
 
 [Conditioning on $Z$ blocks the backdoor path through the confounder, $Z$, and helps recover an unbiased estimate of the causal effect.]{.highlight-key-point}
 
@@ -317,11 +321,11 @@ $$
 Conditioning on weather blocks this backdoor path. It separates the association caused by shared weather conditions from the possible direct effect of carrying an umbrella on getting wet. Once we compare people under the same weather conditions, we would expect umbrella use to be associated with a lower chance of getting wet, if umbrellas are effective.
 
 ::::: {.callout-note icon="false" collapse="true"}
-# Code for the umbrella example
+# Code for the fork example
 
-Let's simulate some data to illustrate the umbrella example. We will create a simple dataset where weather conditions affect both umbrella use and getting wet.
+Let's simulate some data to illustrate the fork example. We will create a simple dataset where weather conditions affect both umbrella use and getting wet.
 
-![Umbrella example DAG.](img/umbrella_dag.png){#fig-umbrella-dag width="50%"}
+![Fork example DAG.](img/umbrella_dag.png){#fig-umbrella-dag width="50%"}
 
 
 ```{python}
@@ -1035,7 +1039,6 @@ So the sensitivity analysis is not testing whether a strong positive umbrella ef
 [However, this does not mean that sensitivity analysis is unnecessary whenever an observed coefficient is near zero and a common cause is plausible.]{.highlight-key-point} 
 
 The direction and size of the hidden bias may be uncertain, the posterior uncertainty may be wide, and the causal question may depend on how large the corrected effect could plausibly become. Sensitivity analysis is still useful because it makes those assumptions explicit.
-
 :::
 
 
@@ -1322,15 +1325,213 @@ The latent-variable model gives a more structural representation of the hidden-c
 
 In particular, the Umbrella → GettingWet coefficient is centred close to zero, suggesting little evidence for a strong direct umbrella effect after accounting for latent Weather. But this should not be interpreted as proof of no causal effect. Rather, it shows that once we allow for an unobserved common cause, the available data are compatible with a range of explanations.
 
-Latent-variable models can make hidden confounding explicit, but they require stronger assumptions. If the hidden variable is not observed, **the model may be weakly identified**, and the posterior can remain highly uncertain. In this example, the latent Weather model is more faithful to the causal DAG, but **less transparent and more assumption-dependent than the sensitivity analysis**.
+Latent-variable models can make hidden confounding explicit, but they require stronger assumptions. If the hidden variable is not observed, **the parameters may be weakly identified**, and the posterior can remain highly uncertain. In this example, the latent Weather model is more faithful to the causal DAG, but **less transparent and more assumption-dependent than the sensitivity analysis**.
+
+
+:::{.callout-note icon="false" collapse="true"}
+## A Note on Parameter Identifiability
+
+The weak identification we saw above is not unique to latent-variable models. It belongs to a broader class of difficulties that arise whenever the data and model structure are not informative enough to pin down a parameter’s value. This can happen because of a modelling mistake, but it also occurs in perfectly correct models.
+
+A practical signal of weak identification is that the posterior looks a lot like the prior. If the data carry little information about a parameter, Bayesian updating has little to update, and the posterior will closely track whatever prior we started with. Comparing the two is therefore a useful diagnostic: a posterior that remains wide and prior-shaped is not a sign that something went wrong, it is the correct answer to the question we asked. But it is also an invitation to ask a sharper question, **collect more data**, or reconsider whether the parameter is estimable at all given the available evidence.
+
+```{python}
+rng_ident = np.random.default_rng(42)
+n_prior_ident = 5_000
+prior_sd_ident = 2.0
+
+param_spec_ident = [
+    ("beta_weather_to_umbrella", "Weather → Umbrella"),
+    ("beta_umbrella_to_wet",     "Umbrella → Getting wet"),
+    ("beta_weather_to_wet",      "Weather → Getting wet"),
+]
+
+prior_draws_ident = {
+    label: rng_ident.normal(0.0, prior_sd_ident, n_prior_ident)
+    for _, label in param_spec_ident
+}
+post_draws_ident = {
+    label: posterior_latent[pname].detach().numpy()
+    for pname, label in param_spec_ident
+}
+
+all_vals_ident = np.concatenate([
+    np.concatenate([prior_draws_ident[l], post_draws_ident[l]])
+    for _, l in param_spec_ident
+])
+x_lo_i, x_hi_i = np.quantile(all_vals_ident, [0.005, 0.995])
+x_pad_i = 0.15 * (x_hi_i - x_lo_i)
+x_grid_i = np.linspace(x_lo_i - x_pad_i, x_hi_i + x_pad_i, 400)
+
+plot_order_i = [label for _, label in param_spec_ident]
+ridge_h_i = 0.72
+
+
+def build_ridge_rows_ident(draws_dict, plot_order, x_grid, ridge_h):
+    rows, int_rows = [], []
+    for i, name in enumerate(plot_order):
+        y_base = len(plot_order) - 1 - i
+        kde = gaussian_kde(draws_dict[name])
+        dens = kde(x_grid)
+        dens_s = dens / dens.max() * ridge_h
+        lo, hi = np.quantile(draws_dict[name], [0.025, 0.975])
+        for x, d in zip(x_grid, dens_s):
+            rows.append({"parameter": name, "x": x, "y_base": y_base, "y": y_base + d})
+            if lo <= x <= hi:
+                int_rows.append({"parameter": name, "x": x, "y_base": y_base, "y": y_base + d})
+    return pd.DataFrame(rows), pd.DataFrame(int_rows)
+
+
+def build_polygon_ident(df, plot_order):
+    rows = []
+    for name in plot_order:
+        sub = df[df["parameter"] == name].sort_values("x")
+        if len(sub) == 0:
+            continue
+        y_base = sub["y_base"].iloc[0]
+        rows.extend(sub.to_dict("records"))
+        rows += [
+            {"parameter": name, "x": sub["x"].iloc[-1], "y_base": y_base, "y": y_base},
+            {"parameter": name, "x": sub["x"].iloc[0],  "y_base": y_base, "y": y_base},
+        ]
+    return pd.DataFrame(rows)
+
+
+prior_df_i, _ = build_ridge_rows_ident(prior_draws_ident, plot_order_i, x_grid_i, ridge_h_i)
+post_df_i, post_int_df_i = build_ridge_rows_ident(post_draws_ident, plot_order_i, x_grid_i, ridge_h_i)
+
+prior_poly_i    = build_polygon_ident(prior_df_i,    plot_order_i)
+post_poly_i     = build_polygon_ident(post_df_i,     plot_order_i)
+post_int_poly_i = build_polygon_ident(post_int_df_i, plot_order_i)
+
+summary_rows_i = []
+for i, name in enumerate(plot_order_i):
+    y_base = len(plot_order_i) - 1 - i
+    draws = post_draws_ident[name]
+    kde = gaussian_kde(draws)
+    dens_s = kde(x_grid_i)
+    dens_s = dens_s / dens_s.max() * ridge_h_i
+    median = np.median(draws)
+    summary_rows_i.append({
+        "parameter": name,
+        "y_base": y_base,
+        "median": median,
+        "y_top": y_base + np.interp(median, x_grid_i, dens_s),
+    })
+summary_df_i = pd.DataFrame(summary_rows_i)
+
+p_ident = (
+    ggplot()
+    + geom_vline(xintercept=0, color="#d9d9d9", size=1.2)
+    + geom_polygon(prior_poly_i, aes(x="x", y="y", group="parameter"),
+                   fill="#e0e0e0", alpha=0.85, color=None)
+    + geom_line(prior_df_i, aes(x="x", y="y", group="parameter"),
+                color="#999999", size=0.9, linetype="dashed")
+    + geom_polygon(post_poly_i, aes(x="x", y="y", group="parameter"),
+                   fill="#c8dce8", alpha=0.75, color=None)
+    + geom_polygon(post_int_poly_i, aes(x="x", y="y", group="parameter"),
+                   fill="#8fb7cb", alpha=0.70, color=None)
+    + geom_line(post_df_i, aes(x="x", y="y", group="parameter"),
+                color="#002b63", size=1.2)
+    + geom_segment(
+        summary_df_i.assign(x_start=x_grid_i.min(), x_end=x_grid_i.max()),
+        aes(x="x_start", xend="x_end", y="y_base", yend="y_base"),
+        color="#002b63", size=1.0,
+    )
+    + geom_segment(
+        summary_df_i,
+        aes(x="median", xend="median", y="y_base", yend="y_top"),
+        color="#4b8aa6", size=2.3,
+    )
+    + scale_y_continuous(
+        breaks=summary_df_i["y_base"].tolist(),
+        labels=summary_df_i["parameter"].tolist(),
+        expand=(0.06, 0.20),
+    )
+    + scale_x_continuous(expand=(0.02, 0.02))
+    + coord_cartesian(ylim=(-0.55, len(plot_order_i) - 0.15))
+    + labs(
+        title="Prior vs posterior: latent weather model",
+        subtitle="grey dashed = prior  ·  blue filled = posterior (95% interval shaded)",
+        x="Coefficient value",
+        y="",
+    )
+    + theme(
+        figure_size=(9.5, 6.0),
+        panel_background=element_rect(fill="white", color="white"),
+        plot_background=element_rect(fill="white", color="white"),
+        panel_grid_major=element_blank(),
+        panel_grid_minor=element_blank(),
+        axis_line_x=element_line(color="black", size=0.8),
+        axis_line_y=element_line(color="black", size=0.8),
+        axis_ticks_major=element_line(color="black", size=0.8),
+        axis_ticks_minor=element_blank(),
+        axis_text_x=element_text(size=12, family="serif", color="#333333"),
+        axis_text_y=element_text(size=12, family="serif", color="#333333", weight="bold"),
+        axis_title_x=element_text(size=12, family="serif", color="#333333", margin={"t": 10}),
+        plot_title=element_text(size=24, family="serif", color="black"),
+        plot_subtitle=element_text(size=17, family="serif", color="black"),
+    )
+)
+
+p_ident
+```
+
+:::
 
 ::::::
-
-
 :::::
-
 ::::
 
+The second is the **pipe** or **mediation** structure:
+
+![Pipe structure.](img/pipe_structure.png){#fig-pipe-structure width="60%"}
+
+In a pipe, $Z$ lies on the causal path from $X$ to $Y$. It is a **mediator**, not a common cause.
+
+$$
+X \rightarrow Z \rightarrow Y
+$$
+
+Conditioning on $Z$ blocks this mediation path ($X \perp\!\!\!\perp Y \mid Z$). That is helpful only if our goal is to estimate the **direct effect** of $X$ on $Y$ that does not run through $Z$. If we want to estimate the **total effect** of $X$ on $Y$, then conditioning on $Z$ is inappropriate because it removes part of the causal effect we are trying to measure.
+
+[To estimate the total effect of $X$ on $Y$, we do not condition on $Z$, because the mediator carries part of the causal signal.]{.highlight-key-point}
+
+[To estimate the direct effect of $X$ on $Y$ that bypasses $Z$, we do condition on $Z$. This is a different estimand and answers a different causal question.]{.highlight-key-point}
+
+::: {.callout-tip icon="false" collapse="true"}
+# Intuitive example of a pipe structure
+
+Suppose we want to understand whether exercise affects blood pressure, and part of that effect works through weight loss:
+
+$$
+X = \text{Exercise}
+$$
+$$
+Z = \text{Weight loss}
+$$
+$$
+Y = \text{Blood pressure}
+$$
+
+The assumed causal path is:
+
+$$
+\text{Exercise} \rightarrow \text{Weight loss} \rightarrow \text{Blood pressure}
+$$
+
+Here, weight loss mediates part of the effect of exercise on blood pressure. Exercise changes body weight, and that weight change in turn affects blood pressure.
+
+If we condition on weight loss, we block that mediated path. The model then asks a narrower question: does exercise affect blood pressure *other than through weight loss*? That is the **direct effect** of exercise that bypasses the mediator.
+
+If instead we want the **total effect** of exercise on blood pressure, we should *not* condition on weight loss, because weight loss is one of the mechanisms through which exercise works. Conditioning on the mediator would remove that part of the causal signal and change the estimand.
+
+:::: {.callout-note icon="false" collapse="true"}
+
+## Code for the pipe structure example
+
+::::
+:::
 
 
 ##### How do path structures guide conditioning decisions for <span style="color:#bf616a">$s$</span>?
