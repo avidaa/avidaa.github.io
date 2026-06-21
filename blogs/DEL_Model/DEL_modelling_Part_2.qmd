@@ -1935,7 +1935,7 @@ after conditioning on admission.
 ```{python}
 # ── Probability of being athletic, grouped by smart status ─────────────────
 
-
+from plotnine import ggplot, aes, geom_col, labs, theme_minimal, theme, element_text
 
 prop_df = (
     pd.concat([
