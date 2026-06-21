@@ -48,183 +48,125 @@ This is the key modeling idea for the rest of the post: observed counts are trea
 
 ## A Bayesian workflow for modelling DEL counts
 
-A central point made by McElreath in Statistical Rethinking is that a DAG does not uniquely determine a statistical model. It encodes causal assumptions and conditional independencies, thereby constraining which variables may be connected, which adjustment sets are valid, and which conditional independencies must hold. However, it does not specify the likelihood, link function, or prior structure. As a result, a single DAG defines a family of compatible statistical models, which must be evaluated based on both predictive performance and their ability to faithfully represent the underlying data-generating process.
+A DAG does not uniquely determine a statistical model. It tells us which causal relationships we are assuming, which paths should be blocked or left open, and which variables should or should not be conditioned on. But it does not choose the likelihood, link function, priors, hierarchy, or dispersion model. Those choices define the actual probabilistic model.
 
-With that in mind, we model DEL counts in the following order:
+For DEL counts, the workflow is:
 
 1.  **State the causal assumptions (DAG first).**\
-    Clarify which variables influence counts (e.g., library composition, matrix effects, target effects, replicate variation) and identify potential confounding and collider structures. The DAG fixes the causal scaffolding that every candidate model must respect and determines which variables must (or must not) be conditioned on for valid inference.
+    Decide which processes generate the counts: input abundance, matrix background, target-specific enrichment, and replicate-level technical variation. Use the DAG to identify confounders, mediators, and colliders before writing a model.
 
-2.  **Enumerate candidate generative models compatible with the DAG.**\
-    From the same DAG, write down several plausible statistical models that differ in, for example:
+2.  **Write the generative model.**\
+    Translate the DAG into a likelihood, link function, priors, and deterministic relationships between latent quantities and observed counts. Several models can be compatible with the same DAG, for example Negative Binomial versus Poisson-lognormal counts, different pooling structures, or different dispersion assumptions.
 
-    -   likelihood family (e.g., Poisson-Gamma/Negative Binomial vs. Poisson-Lognormal),
-    -   link function and parameterization of the rate,
-    -   hierarchical structure (pooling across replicates, matrices, or compounds),
-    -   inclusion of interaction or nonlinear terms,
-    -   mixture components for latent subpopulations.
+3.  **Simulate from the assumed data-generating process.**\
+    Before fitting the model to real data, simulate synthetic DEL counts from the model. This is where we check whether the assumed process can produce data that look like plausible DEL data. The simulation should include the same components we claim are present in the experiment: library abundance, matrix background, target enrichment, count noise, and replicate effects.
 
-    Each candidate is a concrete realization of the same causal assumptions, but may differ substantially in its statistical and predictive behavior.
+    This step answers a different question from model fitting: *if this model were true, what kind of data would it generate?* If the simulated counts are obviously unrealistic, the model is not ready to be fit.
 
-3.  **Specify likelihoods and priors for each candidate.**\
-    For every candidate model, write the full generative specification: likelihood, priors, and deterministic relationships (including background, enrichment, and replicate terms) before fitting any parameters. This step makes explicit all modeling assumptions implied but not fixed by the DAG.
+4.  **Fit the model to observed data.**\
+    Estimate the posterior distribution for the latent quantities and parameters. For large DEL datasets this may require scalable inference, while smaller examples can use MCMC.
 
-4.  **Run prior predictive simulation for each candidate.**\
-    Simulate synthetic counts from the priors of each candidate to check whether its assumptions are plausible. We use this to:
+5.  **Check the fitted model.**\
+    Use posterior summaries and posterior predictive checks to ask whether the fitted model reproduces the observed data. Important checks include count dispersion, tail behaviour, replicate-to-replicate variation, and matrix-target relationships.
 
-    -   verify prior scales are reasonable,
-    -   detect impossible predictions,
-    -   understand implied behavior before seeing data,
-    -   discard candidates whose prior predictive distributions are incompatible with known properties of DEL data.
+6.  **Compare and revise.**\
+    Compare candidate models using posterior predictive checks and, where useful, WAIC, LOO, or stacking. Good prediction is not enough on its own: the model also has to preserve the causal interpretation implied by the DAG.
 
-5.  **Fit each surviving candidate to data.**\
-    Estimate the posterior for each model (e.g., using variational inference for scalability on large DEL datasets, or MCMC where feasible).
+7.  **Interpret the target-binding signal.**\
+    Once a model is both causally coherent and predictively adequate, use the posterior to interpret target-binding propensity, uncertainty, and causal contrasts justified by the DAG.
 
-6.  **Inspect posterior inferences.**\
-    Summarize posterior distributions, credible intervals, and parameter dependencies to understand uncertainty, identifiability, and trade-offs between latent components within each candidate.
-
-7.  **Perform posterior predictive checks.**\
-    Generate replicated datasets from each fitted model and compare them with observed data. Key diagnostics include:
-
-    -   variance mismatch (suggesting misspecified likelihood),
-    -   tail behavior mismatch (suggesting incorrect distributional assumptions),
-    -   missing structure such as multimodality or heterogeneity (suggesting missing latent structure).
-
-8.  **Compare candidate models by predictive performance.**\
-    Because the DAG admits multiple statistical models, model comparison is intrinsic to the workflow rather than an afterthought. Use WAIC, LOO cross-validation, and stacking when useful, alongside the posterior predictive checks from step 7. Notice that strong predictive performance does not guarantee correct causal interpretation.
-
-9.  **Revise and expand the model family if needed.**\
-   If no candidate passes predictive checks, propose new candidates, still constrained by the DAG, by modifying:
-
-    -   likelihood family,
-    -   hierarchical structure,
-    -   predictors or interactions,
-    -   nonlinear transformations,
-    -   mixture components.
-
-    If domain knowledge suggests that the DAG itself is incomplete or incorrect, revise the DAG and return to step 2.
-
-10. **Interpret and decide.**\
-    Use the posterior of the chosen model (or a stacked combination of candidates) to interpret parameters, generate predictions via posterior predictive distributions, and evaluate causal contrasts or counterfactuals where the causal assumptions encoded in the DAG justify such interpretations.
 
 ### State the causal assumptions (DAG first)
 
-The first step in the Bayesian workflow is to make the causal assumptions explicit as a directed acyclic graph (DAG). In our DAG, **an observation is represented as a square node**, **a latent variable (unobserved) as a circle**, and **causal relationships are represented as directed edges between nodes**. We build the DAG incrementally, starting from what is actually measured and then introducing the latent quantities needed to explain it.
+The first step in the Bayesian workflow is to make the causal assumptions explicit as a directed acyclic graph (DAG). In our DAG, **an observation is represented as a square node**, **a latent variable (unobserved) as a circle**, and **causal relationships are represented as directed edges between nodes**. We build the DAG incrementally, starting from what is measured and then introducing the latent quantities needed to explain it.
 
 For a single compound, the experiment yields three observed counts:
 
-- Matrix counts, <span style="color:#5e81ac">$C_m$</span>,
-- Target counts, <span style="color:#d08770">$C_t$</span>,
-- Library counts (pre-selection), <span style="color:#b48ead">$C_l$</span>.
+-   Matrix counts, [$C_m$]{style="color:#5e81ac"},
+-   Target counts, [$C_t$]{style="color:#d08770"},
+-   Library counts (pre-selection), [$C_l$]{style="color:#b48ead"}.
 
 These are shown as the only nodes in the initial DAG:
 
-![DAG showing observed counts for one compound.](img/observed_counts_only.png){#fig-dag-ct-only width="50%"}
+![DAG showing observed counts for one compound.](img/observed_counts_only.png){#fig-dag-ct-only width="75%"}
 
-Each observed count is assumed to arise from a stochastic process governed by an underlying rate: 
+The library counts [$C_l$]{style="color:#b48ead"} are measured before any selection. The matrix counts [$C_m$]{style="color:#5e81ac"} are measured after the library is exposed to the experimental matrix, so they are influenced by input abundance. The target counts [$C_t$]{style="color:#d08770"} are measured after the library is exposed to both the matrix and the target, so they are influenced by input abundance and matrix background.
 
-- <span style="color:#5e81ac">$\lambda_m$</span>, for matrix counts, 
-- <span style="color:#d08770">$\lambda_t$</span>, for target counts,
-- <span style="color:#b48ead">$\lambda_l$</span>, for library counts, 
+![Relationship between observed counts.](img/observed_counts_relationship.png){#fig-observed-counts-relationship width="50%"}
 
-as shown in the DAG below:
+So far the DAG captures the relationship between observed counts for one compound only. However, DEL experiments involve large numbers of compounds. To model this, we introduce a plate that replicates the structure for each compound $i$:
 
-![DAG showing observed counts and their underlying rates.](img/observed_counts_and_rates.png){#fig-dag-ct-lambda width="50%"}
+<!-- 
 
-The exact form of this process (the likelihood or exact parameterization) and how the rates relate to one another are left unspecified for now.
+![DAG showing observed counts for multiple compounds.](img/dag_with_plate.png){#fig-dag-with-plate width="60%"}
 
-::: {.callout-note icon="false" collapse="true"}
-# Why are latent rates in the DAG but not in the causal sketch?
-The causal sketch is meant to stay at a high level: it shows the **latent causes** we care about and the **observed counts** we measure. In reality, however, the counts <span style="color:#5e81ac">$C_m$</span>, <span style="color:#d08770">$C_t$</span>, and <span style="color:#b48ead">$C_l$</span> are not direct outputs of those causes. They are noisy observations affected by sampling, PCR amplification, sequencing depth, and other technical variation.
-
-The latent rates <span style="color:#5e81ac">$\lambda_m$</span>, <span style="color:#d08770">$\lambda_t$</span>, and <span style="color:#b48ead">$\lambda_l$</span> are the bridge between these two levels: they represent the expected count intensity implied by the latent causes, before observation noise is added. Including them makes the statistical model more faithful, because it lets us separate the signal-generating process from the noise-generating process.
-
-They are not emphasized in the causal sketch because doing so would add another layer of detail and make the diagram harder to read, without changing its main causal message. [The sketch is therefore a simplified summary of the main latent causes and observed outcomes, whereas the full probabilistic model should include the latent rates explicitly.]{.highlight-key-point}
-:::
-
-The rate parameters <span style="color:#5e81ac">$\lambda_m$</span>, <span style="color:#d08770">$\lambda_t$</span>, and <span style="color:#b48ead">$\lambda_l$</span> are not independent; they are influenced by several latent factors that we introduce as new nodes in the DAG. These include:
-
-- Compound abundance in the input library, <span style="color:#a3be8c">$a$</span>,
-- Matrix background propensity, <span style="color:#88c0d0">$b$</span>,
-- Target-binding propensity, <span style="color:#bf616a">$s$</span>,
-
-
-![DAG showing observed counts, rates, and latent factors.](img/dag_with_latent_factors.png){#fig-dag-latent-factors width="50%"}
-
-The arrows in the DAG encode which latent factors influence which rates:
-
-- **Compound abundance, <span style="color:#a3be8c">$a$</span>** enters all three rates (<span style="color:#b48ead">$\lambda_l$</span>, <span style="color:#5e81ac">$\lambda_m$</span>, <span style="color:#d08770">$\lambda_t$</span>). More copies of a compound in the input library mean more molecules available to be sequenced in every downstream condition, so <span style="color:#a3be8c">$a$</span> sets a baseline for all observed counts.
-- **Matrix background, <span style="color:#88c0d0">$b$</span>** enters <span style="color:#5e81ac">$\lambda_m$</span> and <span style="color:#d08770">$\lambda_t$</span> but not <span style="color:#b48ead">$\lambda_l$</span>. It captures non-specific retention (e.g., sticking to beads, resin, or other surfaces) that occurs whenever the library is exposed to the experimental matrix, regardless of whether the target is present. The library counts <span style="color:#b48ead">$C_l$</span> are measured before the matrix is introduced, so they are not influenced by <span style="color:#88c0d0">$b$</span>.
-- **Target-binding propensity, <span style="color:#bf616a">$s$</span>** enters only <span style="color:#d08770">$\lambda_t$</span>. It represents the additional enrichment a compound experiences specifically because it binds the target, and **is the quantity we ultimately want to infer**.
 
 So far the DAG captures the main sources of variation in observed counts for one comopound only. However, DEL experiments involve large numbers of compounds. To model this, we introduce a plate that replicates the structure for each compound $i$:
 
 ![DAG showing observed counts, rates, and latent factors for multiple compounds.](img/dag_with_latent_factors_with_plate.png){#fig-dag-with-latent-factors-with-plate width="60%"}
 
-Here, the plate indicates that each compound $i$ has its own set of observed counts (<span style="color:#5e81ac">$C_{m,i}$</span>, <span style="color:#d08770">$C_{t,i}$</span>, <span style="color:#b48ead">$C_{l,i}$</span>), rates (<span style="color:#5e81ac">$\lambda_{m,i}$</span>, <span style="color:#d08770">$\lambda_{t,i}$</span>, <span style="color:#b48ead">$\lambda_{l,i}$</span>), and latent factors (<span style="color:#a3be8c">$a_i$</span>, <span style="color:#88c0d0">$b_i$</span>, <span style="color:#bf616a">$s_i$</span>). The causal structure within the plate is the same for every compound, but the parameters can vary across compounds.
+Here, the plate indicates that each compound $i$ has its own set of observed counts ([$C_{m,i}$]{style="color:#5e81ac"}, [$C_{t,i}$]{style="color:#d08770"}, [$C_{l,i}$]{style="color:#b48ead"}), rates ([$\lambda_{m,i}$]{style="color:#5e81ac"}, [$\lambda_{t,i}$]{style="color:#d08770"}, [$\lambda_{l,i}$]{style="color:#b48ead"}), and latent factors ([$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}). The causal structure within the plate is the same for every compound, but the parameters can vary across compounds.
 
-Another source of variation is technical noise at the replicate level: differences in sequencing depth, library preparation efficiency, and other batch effects mean that repeated measurements of the same compound are not identical. We extend the DAG with a second plate, indexed by replicate. This plate contains replicate-specific parameters <span style="color:#5e81ac">$\gamma_{m,r}$</span> and <span style="color:#d08770">$\gamma_{t,r}$</span> acting on the matrix and target rates, respectively. The compound plate and the replicate plate overlap on the observed counts, so each <span style="color:#5e81ac">$C_{m,i,r}$</span> and <span style="color:#d08770">$C_{t,i,r}$</span> is influenced by both its compound-level latent factors (<span style="color:#a3be8c">$a_i$</span>, <span style="color:#88c0d0">$b_i$</span>, <span style="color:#bf616a">$s_i$</span>) and its replicate-level effects (<span style="color:#5e81ac">$\gamma_{m,r}$</span>, <span style="color:#d08770">$\gamma_{t,r}$</span>).
+Another source of variation is technical noise at the replicate level: differences in sequencing depth, library preparation efficiency, and other batch effects mean that repeated measurements of the same compound are not identical. We extend the DAG with a second plate, indexed by replicate. This plate contains replicate-specific parameters [$\gamma_{m,r}$]{style="color:#5e81ac"} and [$\gamma_{t,r}$]{style="color:#d08770"} acting on the matrix and target rates, respectively. The compound plate and the replicate plate overlap on the observed counts, so each [$C_{m,i,r}$]{style="color:#5e81ac"} and [$C_{t,i,r}$]{style="color:#d08770"} is influenced by both its compound-level latent factors ([$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}) and its replicate-level effects ([$\gamma_{m,r}$]{style="color:#5e81ac"}, [$\gamma_{t,r}$]{style="color:#d08770"}).
 
 ![DAG showing observed counts, rates, latent factors, and replicate effects.](img/dag_with_latent_factors_and_replicates.png){#fig-dag-with-latent-factors-and-replicates width="75%"}
 
-A DAG does not guarantee valid inference. It only specifies the assumed causal structure and conditional independencies. Inference can still fail if we condition on variables that distort the causal pathways implied by the graph. Therefore, the next step in the workflow is to analyze the DAG to determine which variables should and should not be conditioned on when making inferences about the target-binding propensity <span style="color:#bf616a">$s$</span>.
+A DAG does not guarantee valid inference. It only specifies the assumed causal structure and conditional independencies. Inference can still fail if we condition on variables that distort the causal pathways implied by the graph. Therefore, the next step in the workflow is to analyze the DAG to determine which variables should and should not be conditioned on when making inferences about the target-binding propensity [$s$]{style="color:#bf616a"}. -->
 
 ::: {.callout-note icon="false" collapse="true"}
 # What does valid inference mean in the context of a DAG?
-**Valid inference** means that the statistical model allows us to recover the latent target-binding propensity <span style="color:#bf616a">$s$</span> from the observed counts in a way that is consistent with the causal assumptions encoded in the DAG. In practice, this means accounting properly for other causes of the target counts, such as:
 
-- Input abundance <span style="color:#a3be8c">$a$</span>, 
-- Matrix background <span style="color:#88c0d0">$b$</span>,
-- Replicate-level variation <span style="color:#5e81ac">$\gamma_m$</span> and <span style="color:#d08770">$\gamma_t$</span>, 
+**Valid inference** means that the statistical model allows us to recover the latent target-binding propensity [$s$]{style="color:#bf616a"} from the observed counts in a way that is consistent with the causal assumptions encoded in the DAG. In practice, this means accounting properly for other causes of the target counts, such as:
 
-and avoiding conditioning choices that introduce bias, such as conditioning on **colliders** or **leaving backdoor paths** open. 
+-   Input abundance [$a$]{style="color:#a3be8c"},
+-   Matrix background [$b$]{style="color:#88c0d0"},
+-   Replicate-level variation [$\gamma_m$]{style="color:#5e81ac"} and [$\gamma_t$]{style="color:#d08770"},
 
-**Invalid inference** occurs when the model attributes variation to <span style="color:#bf616a">$s_i$</span> that is actually due to other pathways, or, when <span style="color:#bf616a">$s_i$</span> is not identifiable from the observed data under the assumed model.
+and avoiding conditioning choices that introduce bias, such as conditioning on **colliders** or **leaving backdoor paths** open.
+
+**Invalid inference** occurs when the model attributes variation to [$s_i$]{style="color:#bf616a"} that is actually due to other pathways, or, when [$s_i$]{style="color:#bf616a"} is not identifiable from the observed data under the assumed model.
 
 [A DAG helps you reason about bias from conditioning, but valid inference also depends on model identification and likelihood specification. So even with the right DAG, inference can still be invalid if the statistical model is misspecified or the latent parameters are not identifiable.]{.highlight-key-point}
 :::
 
 #### Which variables should and should not be conditioned on?
 
-Our goal is to infer the target-binding propensity <span style="color:#bf616a">$s$</span>. To do this, we need to understand how information about <span style="color:#bf616a">$s$</span> flows through the DAG. This is where the concepts of **path**, **open and closed paths**, **four elemental confounds** (as described by McElreath - second edition of statistical rethinking, Figure 6.6) come in.
-
+Our goal is to infer the target-binding propensity [$s$]{style="color:#bf616a"}. To do this, we need to understand how information about [$s$]{style="color:#bf616a"} flows through the DAG. This is where the concepts of **path**, **open and closed paths**, **four elemental confounds** (as described by McElreath - second edition of statistical rethinking, Figure 6.6) come in.
 
 ##### What is a path in a DAG?
 
-A path is a sequence of edges connecting two nodes, **regardless of the direction of the arrows**. Every consecutive pair of nodes in the sequence must be joined by an edge in the DAG. For example, in our DAG, one path connecting <span style="color:#bf616a">$s$</span> to <span style="color:#d08770">$C_{t}$</span> is:
+<!-- A path is a sequence of edges connecting two nodes, **regardless of the direction of the arrows**. Every consecutive pair of nodes in the sequence must be joined by an edge in the DAG. For example, in our DAG, one path connecting [$s$]{style="color:#bf616a"} to [$C_{t}$]{style="color:#d08770"} is:
 
-- <span style="color:#bf616a">$s$</span> → <span style="color:#d08770">$\lambda_t$</span> → <span style="color:#d08770">$C_{t}$</span>
+-   [$s$]{style="color:#bf616a"} → [$\lambda_t$]{style="color:#d08770"} → [$C_{t}$]{style="color:#d08770"}
 
 ![Path from $s$ to $C_t$.](img/path_s_to_Ct.png){#fig-path-s-to-Ct width="75%"}
 
-There are also paths from <span style="color:#bf616a">$s$</span> to other nodes in the graph, for example:
+There are also paths from [$s$]{style="color:#bf616a"} to other nodes in the graph, for example:
 
-- <span style="color:#bf616a">$s$</span> → <span style="color:#d08770">$\lambda_t$</span> ← <span style="color:#a3be8c">$a$</span> → <span style="color:#b48ead">$\lambda_l$</span> → <span style="color:#b48ead">$C_{l}$</span>
+-   [$s$]{style="color:#bf616a"} → [$\lambda_t$]{style="color:#d08770"} ← [$a$]{style="color:#a3be8c"} → [$\lambda_l$]{style="color:#b48ead"} → [$C_{l}$]{style="color:#b48ead"}
 
 ![Path from $s$ to $C_l$.](img/path_s_to_Cl.png){#fig-path-s-to-Cl width="75%"}
 
-- <span style="color:#bf616a">$s$</span> → <span style="color:#d08770">$\lambda_t$</span> ← <span style="color:#88c0d0">$b$</span> → <span style="color:#5e81ac">$\lambda_m$</span> → <span style="color:#5e81ac">$C_{m}$</span>
+-   [$s$]{style="color:#bf616a"} → [$\lambda_t$]{style="color:#d08770"} ← [$b$]{style="color:#88c0d0"} → [$\lambda_m$]{style="color:#5e81ac"} → [$C_{m}$]{style="color:#5e81ac"}
 
-![Path from $s$ to $C_m$.](img/path_s_to_Cm.png){#fig-path-s-to-Cm width="75%"}
-
+![Path from $s$ to $C_m$.](img/path_s_to_Cm.png){#fig-path-s-to-Cm width="75%"} -->
 
 ##### What does open or closed path mean in a DAG?
 
-A path is **open** when information can pass along it, meaning the two variables may become statistically associated. 
+A path is **open** when information can pass along it, meaning the two variables may become statistically associated.
 
 A path is **closed** when something blocks that route, so the variables are independent along that path.
 
 Whether a path is open or closed depends on two things:
 
-1. The arrow pattern along the path, and  
-2. Which variables we condition on.
+1.  The arrow pattern along the path, and\
+2.  Which variables we condition on.
 
 Opening and closing paths matter because conditioning can change the associations implied by a DAG. Closing an unwanted path, such as a confounding path, can reduce bias. But conditioning can also do harm: it may block part of the causal effect we want to estimate, or open a previously closed path and create a spurious association.
 
 McElreath shows that these changes in path status are governed by a small set of recurring path structures. In practice, DAG reasoning means identifying which structure appears along a path and then asking whether conditioning on a node blocks bias or introduces it.
 
 [This is why simply removing correlated predictors is not a causal solution. As McElreath puts it, “Pairwise correlations are not the problem.” What matters is why variables are correlated and what conditioning on them does. A high correlation may arise because two variables share a common cause, because one mediates the effect of the other, or because both are downstream of some selection process. These situations require different modelling choices.]{.highlight-key-point}
-
 
 ##### What are the recurring path structures and how they can open or close a path?
 
@@ -244,7 +186,7 @@ Because both $X$ and $Y$ are caused by $Z$, they may be statistically associated
 
 $$
 X \perp\!\!\!\perp Y \mid Z
-$$  
+$$
 
 which reads as “$X$ is independent of $Y$ once we know $Z$”.
 
@@ -255,12 +197,11 @@ which reads as “$X$ is independent of $Y$ once we know $Z$”.
 
 A backdoor path is a non-causal path between $X$ and $Y$ that sneaks in through a common cause and can make $X$ look associated with $Y$ even when the association is partly or entirely confounded.
 
-A front-door causal path is:
-$$
+A front-door causal path is: $$
 X \rightarrow Y
 $$
 
-This is the direct causal effect we want to estimate: the effect of $X$ on $Y$. 
+This is the direct causal effect we want to estimate: the effect of $X$ on $Y$.
 
 Backdoor path start by **going backwards out of** $X$ into one of its causes (in this case, $Z$), then forward to $Y$:
 
@@ -271,10 +212,9 @@ $$
 Recall that a **path** is a sequence of edges connecting two nodes, **regardless of the direction of the arrows**. So the path from $X$ to $Y$ can go backwards from $X$ to $Z$, and then forward from $Z$ to $Y$. This is a backdoor path because it goes “backwards” out of $X$ before going forward to $Y$.
 
 A backdoor path carries confounding. To estimate the causal effect of $X$ on $Y$, we usually want to block backdoor paths by conditioning on appropriate common causes such as $Z$.
-
 :::
 
-::: {.callout-tip icon="false" collapse="true"}
+:::::::::: {.callout-tip icon="false" collapse="true"}
 # Intuitive example of a fork structure and backdoor path
 
 Suppose we want to estimate whether carrying an umbrella has an effect on being wet. However, there is a confounder: weather conditions. Rainy weather affects both whether someone carries an umbrella and whether they gets wet.
@@ -283,11 +223,9 @@ On rainy days, people are more likely to carry an umbrella and more likely to ge
 
 $$
 X = \text{Carrying an umbrella}
-$$
-$$
+$$ $$
 Y = \text{Getting wet}
-$$
-$$
+$$ $$
 Z = \text{Weather conditions (rainy or not)}
 $$
 
@@ -297,20 +235,17 @@ $$
 X \leftarrow Z \rightarrow Y
 $$
 
-or
-$$\text{Carrying an umbrella} \leftarrow \text{Weather conditions} \rightarrow \text{Getting wet}$$
+or $$\text{Carrying an umbrella} \leftarrow \text{Weather conditions} \rightarrow \text{Getting wet}$$
 
 So the association between umbrella use and getting wet is partly coming through the backdoor path via weather.
 
-The path is called a backdoor path because instead of going forward from umbrella to getting wet:
-$$\text{Carrying an umbrella} \rightarrow \text{Getting wet}$$
+The path is called a backdoor path because instead of going forward from umbrella to getting wet: $$\text{Carrying an umbrella} \rightarrow \text{Getting wet}$$
 
 It goes backwards from umbrella to one of its causes (weather):
 
 $$\text{Carrying an umbrella} \leftarrow \text{Weather conditions}$$
 
-and then forward from weather to getting wet:
-$$\text{Weather conditions} \rightarrow \text{Getting wet}$$
+and then forward from weather to getting wet: $$\text{Weather conditions} \rightarrow \text{Getting wet}$$
 
 If we condition on weather, we compare people under the same weather conditions. This makes the causal question clearer. Weather creates a backdoor path because it affects both whether someone carries an umbrella and whether they get wet:
 
@@ -320,13 +255,12 @@ $$
 
 Conditioning on weather blocks this backdoor path. It separates the association caused by shared weather conditions from the possible direct effect of carrying an umbrella on getting wet. Once we compare people under the same weather conditions, we would expect umbrella use to be associated with a lower chance of getting wet, if umbrellas are effective.
 
-::::: {.callout-note icon="false" collapse="true"}
+::: {.callout-note icon="false" collapse="true"}
 # Code for the fork example
 
 Let's simulate some data to illustrate the fork example. We will create a simple dataset where weather conditions affect both umbrella use and getting wet.
 
 ![Fork example DAG.](img/umbrella_dag.png){#fig-umbrella-dag width="50%"}
-
 
 ```{python}
 import numpy as np
@@ -352,42 +286,33 @@ from IPython.display import display
 display(data.head())
 ```
 
-This code simulates a dataset of 1000 observations with three variables: Weather, Umbrella, and GettingWet. 
+This code simulates a dataset of 1000 observations with three variables: Weather, Umbrella, and GettingWet.
 
-##### Weather 
+##### Weather
 
 Weather is simulated as a binary variable where 1 indicates rainy weather and 0 indicates not rainy. The probability of it being rainy is set to 0.3, meaning that 30% of the time it will be rainy.
 
-##### Umbrella 
+##### Umbrella
 
-The probability of carrying an umbrella is influenced by the weather and is defined as:
-$$ 0.8 * weather + 0.1 $$
+The probability of carrying an umbrella is influenced by the weather and is defined as: $$ 0.8 * weather + 0.1 $$
 
 This means that:
 
-- If it's rainy (weather = 1), the probability of carrying an umbrella is 90%: 
-$$ 0.8 * 1 + 0.1 = 0.9 $$
+-   If it's rainy (weather = 1), the probability of carrying an umbrella is 90%: $$ 0.8 * 1 + 0.1 = 0.9 $$
 
-- If it's not rainy (weather = 0), the probability of carrying an umbrella is 10%: 
-$$ 0.8 * 0 + 0.1 = 0.1 $$
+-   If it's not rainy (weather = 0), the probability of carrying an umbrella is 10%: $$ 0.8 * 0 + 0.1 = 0.1 $$
 
 ##### Getting Wet
 
-The probability of getting wet is defined as:
-$$ 0.7 * weather * (1 - umbrella) + 0.1 * weather * umbrella + 0.05 * (1 - weather) $$
+The probability of getting wet is defined as: $$ 0.7 * weather * (1 - umbrella) + 0.1 * weather * umbrella + 0.05 * (1 - weather) $$
 
-This means that: 
+This means that:
 
-- If it's rainy and the person is not carrying an umbrella (weather = 1, umbrella = 0), the probability of getting wet is 70%:
-$$ 0.7 * 1 * (1 - 0) + 0.1 * 1 * 0 + 0.05 * (1 - 1) = 0.7 $$
+-   If it's rainy and the person is not carrying an umbrella (weather = 1, umbrella = 0), the probability of getting wet is 70%: $$ 0.7 * 1 * (1 - 0) + 0.1 * 1 * 0 + 0.05 * (1 - 1) = 0.7 $$
 
-- If it's rainy and the person is carrying an umbrella (weather = 1, umbrella = 1), the probability of getting wet is 10%:
-$$ 0.7 * 1 * (1 - 1) + 0.1 * 1 * 1 + 0.05 * (1 - 1) = 0.1 $$
+-   If it's rainy and the person is carrying an umbrella (weather = 1, umbrella = 1), the probability of getting wet is 10%: $$ 0.7 * 1 * (1 - 1) + 0.1 * 1 * 1 + 0.05 * (1 - 1) = 0.1 $$
 
-- If it's not rainy (weather = 0), the probability of getting wet is always low at 5%, regardless of umbrella use.
-$$ 0.7 * 0 * (1 - umbrella) + 0.1 * 0 * umbrella + 0.05 * (1 - 0) = 0.05 $$
-
-
+-   If it's not rainy (weather = 0), the probability of getting wet is always low at 5%, regardless of umbrella use. $$ 0.7 * 0 * (1 - umbrella) + 0.1 * 0 * umbrella + 0.05 * (1 - 0) = 0.05 $$
 
 ##### Summary of the simulated data
 
@@ -540,7 +465,7 @@ p2
 
 ##### Analyze the data to see the associations
 
-We are interested in the association between carrying an umbrella and getting wet, and how this association changes when we condition on weather. 
+We are interested in the association between carrying an umbrella and getting wet, and how this association changes when we condition on weather.
 
 ![Association between carrying an umbrella and getting wet.](img/umbrella_association.png){#fig-umbrella-association width="50%"}
 
@@ -563,7 +488,6 @@ The priors are weakly informative Normal(0, 2) distributions on each coefficient
 $$ \alpha \sim \text{Normal}(0, 2), \quad \beta_{\text{umbrella}} \sim \text{Normal}(0, 2), \quad \beta_{\text{weather}} \sim \text{Normal}(0, 2) $$
 
 Both models are fitted via NUTS (No-U-Turn Sampler) using Pyro. The key quantity of interest is $\beta_{\text{umbrella}}$: comparing its posterior between the two models shows how much of the raw umbrella–wet association disappears once weather is held fixed.
-
 
 ```{python}
 import warnings
@@ -816,17 +740,14 @@ p.save("img/fork_weather_example_posteriors.png", dpi=300)
 
 ![Posterior distributions for the umbrella example.](img/fork_weather_example_posteriors.png){#fig-fork-weather-example-posteriors width="75%"}
 
-
 The posteriors tell a clear story about confounding. In the **unadjusted model**, $\beta_{\text{umbrella}}$ is centred near zero — naively suggesting that carrying an umbrella makes no difference to getting wet. This is the confound at work: rainy weather drives both umbrella use and getting wet, so the two variables appear unrelated once that shared cause dominates the marginal association.
 
 In the **adjusted model**, conditioning on weather blocks the backdoor path $\text{Umbrella} \leftarrow \text{Weather} \rightarrow \text{GettingWet}$, and $\beta_{\text{umbrella}}$ shifts decisively to the left. A negative logit-scale coefficient means that, among people experiencing the same weather conditions, carrying an umbrella is associated with a lower probability of getting wet, exactly what the data-generating process encoded. The **weather effect** is itself strongly positive, confirming that rainy weather is the main driver of getting wet, independent of umbrella use.
 
 [This is the core lesson of confounding: an unadjusted association can be essentially zero even when the causal effect is real, because a common cause masks it. Conditioning on that cause separates the causal signal from the noise introduced by the shared pathway.]{.highlight-key-point}
+:::
 
-:::::
-
-::::: {.callout-tip icon="false" collapse="true"}
-
+:::::::: {.callout-tip icon="false" collapse="true"}
 # What if we only observe Umbrella and Getting Wet, but not Weather?
 
 Up to this point, we assumed that **Weather**, **Umbrella**, and **Getting Wet** were all observed. In that case, the confounding structure is visible and can be blocked by conditioning on Weather:
@@ -845,8 +766,8 @@ $$
 
 As a result, a model that regresses **Getting Wet** on **Umbrella** alone mixes two sources of association:
 
-1. The causal effect of carrying an umbrella, and
-2. The non-causal association induced by hidden Weather.
+1.  The causal effect of carrying an umbrella, and
+2.  The non-causal association induced by hidden Weather.
 
 Because Weather is unobserved, ordinary adjustment cannot block this path directly. We therefore need another strategy. The most transparent first step is sensitivity analysis, which asks:
 
@@ -859,7 +780,6 @@ Other strategies are possible, but they require more data or more assumptions. W
 The code below starts with a simple sensitivity analysis, then fits a latent variable model in which Weather is unobserved but still included in the generative structure.
 
 [Latent confounders are dangerous because they keep backdoor paths open. If the common cause is unmeasured, the model can attribute part of a spurious association to the causal effect we want to estimate.]{.highlight-key-point}
-
 
 :::::: {.callout-note icon="false" collapse="true"}
 # Sensitivity analysis and latent variable model
@@ -876,20 +796,19 @@ $$
 
 where:
 
-- $\beta_{\text{naive}}$ is the umbrella coefficient from the unadjusted model,
-- $\beta_{\text{causal}}$ is the (unknown) causal umbrella effect we care about,
-- $\delta \ge 0$ is an assumed positive bias induced by hidden Weather.
+-   $\beta_{\text{naive}}$ is the umbrella coefficient from the unadjusted model,
+-   $\beta_{\text{causal}}$ is the (unknown) causal umbrella effect we care about,
+-   $\delta \ge 0$ is an assumed positive bias induced by hidden Weather.
 
 ::: {.callout-tip icon="false" collapse="true"}
-
 ## Why a positive bias?
 
 Hidden Weather is a common cause of both Umbrella and Getting Wet as @fig-sensitivity-analysis-DAG shows. This means that:
 
-- When Weather = 1, umbrella use becomes more likely, and
-- When Weather = 1, getting wet also becomes more likely.
+-   When Weather = 1, umbrella use becomes more likely, and
+-   When Weather = 1, getting wet also becomes more likely.
 
-This shared cause induces an **extra positive association** between umbrella use and getting wet in the **unadjusted model**. In this sensitivity analysis, we represent that upward bias with $\delta$, so we assume $\delta \ge 0$. 
+This shared cause induces an **extra positive association** between umbrella use and getting wet in the **unadjusted model**. In this sensitivity analysis, we represent that upward bias with $\delta$, so we assume $\delta \ge 0$.
 
 [The point is not that umbrellas truly increase wetness. The point is that hidden Weather can pull the naive umbrella coefficient upward, making the effect look less negative, closer to zero, or even positive.]{.highlight-key-point}
 
@@ -904,7 +823,6 @@ and therefore:
 $$
 \beta_{\text{causal}}(\delta) = \beta_{\text{naive}} - \delta.
 $$
-
 :::
 
 ![Hidden weather confounder DAG for sensitivity analysis](img/sensitivity_analysis_DAG.png){#fig-sensitivity-analysis-DAG width="75%"}
@@ -921,7 +839,7 @@ $$
 \beta_{\text{causal}}(\delta_i) = \beta_{\text{naive}} - \delta_i, \quad i=1,\dots,N.
 $$
 
-For each value of $\delta$ on a grid, we compute summary statistics of the adjusted posterior draws $\{\beta_{\text{causal}}(\delta)_i\}_{i=1}^N$ and plot the median together with an 80\% interval. @fig-sensitivity-analysis-explainer shows the logic of this one-sided setup: as the assumed hidden-weather bias increases, the corrected umbrella effect is shifted downward by exactly that amount.
+For each value of $\delta$ on a grid, we compute summary statistics of the adjusted posterior draws $\{\beta_{\text{causal}}(\delta)_i\}_{i=1}^N$ and plot the median together with an 80% interval. @fig-sensitivity-analysis-explainer shows the logic of this one-sided setup: as the assumed hidden-weather bias increases, the corrected umbrella effect is shifted downward by exactly that amount.
 
 ![One-sided sensitivity analysis: higher assumed hidden bias shifts the corrected effect to more negative values.](img/sensitivity_analysis_explainer.png){#fig-sensitivity-analysis-explainer width="75%"}
 
@@ -1013,15 +931,13 @@ $$
 
 the line is linear by construction and moves downward as $\delta$ increases. The sensitivity plot above shows that at $\delta = 0$ the uncorrected effect, $\beta_{\text{naive}}$, is already close to zero and the 80% interval still overlaps zero. As larger positive bias is assumed, both the median and the full 80% interval move further below zero.
 
-The red vertical line marks the first assumed bias level at which the posterior mean is below zero and the entire central 80\% interval is also below zero.
+The red vertical line marks the first assumed bias level at which the posterior mean is below zero and the entire central 80% interval is also below zero.
 
-
-In the fitted plot here, the threshold occurs at $\delta = 0.275$. The corresponding odds multiplier is $e^{0.275} \approx 1.32$, so hidden Weather would need to increase the relevant odds by about 32\% along the omitted-confounding pathway before the posterior mean and the full central 80\% interval both fall below zero.
+In the fitted plot here, the threshold occurs at $\delta = 0.275$. The corresponding odds multiplier is $e^{0.275} \approx 1.32$, so hidden Weather would need to increase the relevant odds by about 32% along the omitted-confounding pathway before the posterior mean and the full central 80% interval both fall below zero.
 
 Because $\beta_{\text{naive}}$ is already close to zero, this sensitivity analysis shows that the unadjusted association, in @fig-fork-weather-example-posteriors, is fragile. Any positive hidden-weather bias pushes the corrected effect, $\beta_{\text{causal}}(\delta)$, below zero, supporting the interpretation that umbrella use is protective (negative or protective umbrella effect means umbrella use is associated with less getting wet), once the open backdoor path through Weather is accounted for.
 
-:::{.callout-note icon="false" collapse="true"}
-
+::: {.callout-note icon="false" collapse="true"}
 ## Why sensitivity analysis still matters when the unadjusted effect is zero?
 
 Even if the unadjusted umbrella effect were exactly zero, we should not automatically ignore sensitivity analysis.
@@ -1036,11 +952,10 @@ $$
 
 So the sensitivity analysis is not testing whether a strong positive umbrella effect survives adjustment. It is showing that the unadjusted association is fragile around zero: even modest hidden-weather bias would make the corrected effect negative, consistent with umbrellas reducing the chance of getting wet.
 
-[However, this does not mean that sensitivity analysis is unnecessary whenever an observed coefficient is near zero and a common cause is plausible.]{.highlight-key-point} 
+[However, this does not mean that sensitivity analysis is unnecessary whenever an observed coefficient is near zero and a common cause is plausible.]{.highlight-key-point}
 
 The direction and size of the hidden bias may be uncertain, the posterior uncertainty may be wide, and the causal question may depend on how large the corrected effect could plausibly become. Sensitivity analysis is still useful because it makes those assumptions explicit.
 :::
-
 
 ##### Latent variable model for hidden confounding
 
@@ -1050,47 +965,36 @@ A stronger alternative is to write down a latent variable model. In this model, 
 
 The assumed causal structure is as shown in @fig-umbrella-association: Weather is a common cause of both Umbrella and Getting Wet, and there is also a direct effect of Umbrella on Getting Wet. However, only Umbrella and GettingWet are observed. Weather is hidden. This is similar to the DAG in @fig-sensitivity-analysis-DAG.
 
-Let,
-$$
+Let, $$
 W_i \in \{0, 1\}
 $$
 
 denote the latent weather state for observation $i$, where $W_i = 0$ might mean dry weather and $W_i = 1$ might mean rainy weather. We observe:
 
-$$ U_i = Umbrella_i $$
-$$ G_i = GettingWet_i $$
+$$ U_i = Umbrella_i $$ $$ G_i = GettingWet_i $$
 
-The model first assumes that each observation has some probability of being in rainy weather:
-$$
+The model first assumes that each observation has some probability of being in rainy weather: $$
 W_i \sim \text{Bernoulli}(p_{\text{weather}}),
-$$
-Then, umbrella use depends on the hidden weather state:
-$$
+$$ Then, umbrella use depends on the hidden weather state: $$
 U_i|W_i \sim \text{Bernoulli}(\text{logit}^{-1  }(\alpha_u + \beta_{\text{weather} \to \text{umbrella}} \cdot W_i)),
-$$
-where, $\alpha_u$ is the baseline log-odds of carrying an umbrella when $W_i=0$, and $\beta_{\text{weather} \to \text{umbrella}}$ captures how much the log-odds of carrying an umbrella increase when $W_i=1$.
+$$ where, $\alpha_u$ is the baseline log-odds of carrying an umbrella when $W_i=0$, and $\beta_{\text{weather} \to \text{umbrella}}$ captures how much the log-odds of carrying an umbrella increase when $W_i=1$.
 
-Getting wet then depends on both umbrella use and the hidden weather state:
-$$
+Getting wet then depends on both umbrella use and the hidden weather state: $$
 G_i|U_i, W_i \sim \text{Bernoulli}(\text{logit}^{-1  }(\alpha_g + \beta_{\text{umbrella} \to \text{wet}} \cdot U_i + \beta_{\text{weather} \to \text{wet}} \cdot W_i)),
-$$
-where $\alpha_g$ is the baseline log-odds of getting wet when $U_i=0$ and $W_i=0$, $\beta_{\text{umbrella} \to \text{wet}}$ captures the direct umbrella effect, after accounting for latent Weather, and $\beta_{\text{weather} \to \text{wet}}$ captures the direct effect of Weather on getting wet, i.e., how much the log-odds of getting wet increase when $W_i=1$.
+$$ where $\alpha_g$ is the baseline log-odds of getting wet when $U_i=0$ and $W_i=0$, $\beta_{\text{umbrella} \to \text{wet}}$ captures the direct umbrella effect, after accounting for latent Weather, and $\beta_{\text{weather} \to \text{wet}}$ captures the direct effect of Weather on getting wet, i.e., how much the log-odds of getting wet increase when $W_i=1$.
 
-The important computational detail is that we do not sample $W_i$ directly. Weather is discrete, and NUTS works best with continuous parameters. So instead we marginalise over the two possible weather states.
-	​
-For each observation, the likelihood is:
-$$
+The important computational detail is that we do not sample $W_i$ directly. Weather is discrete, and NUTS works best with continuous parameters. So instead we marginalise over the two possible weather states. ​ For each observation, the likelihood is: $$
 P(U_i, G_i) = \Sigma_{w_i \in \{0, 1\}} P(W_i=w) P(U_i | W_i=w) P(G_i | U_i, W_i=w) = P(W_i=0) P(U_i | W_i=0) P(G_i | U_i, W_i=0) + P(W_i=1) P(U_i | W_i=1) P(G_i | U_i, W_i=1)
 $$
 
-So the model asks: 
+So the model asks:
 
 For each observed pair $(U_i, G_i)$, how likely is this observation if the hidden weather state was dry, and how likely is it if the hidden weather state was rainy? It then averages those two possibilities according to the estimated probability of each weather state.
 
 Because Weather is never observed, the model must infer it entirely from the joint pattern of Umbrella and GettingWet. That means the **result depends strongly on the assumed model form, the priors, and the assumption that a binary latent Weather variable is a reasonable representation of the hidden common cause**.
 
 [So the latent variable model gives us a more mechanistic version of the hidden-confounding story, but it is not assumption-free. The sensitivity analysis is weaker but more transparent; the latent variable model is more structural but more model-dependent.]{.highlight-key-point}
- 
+
 ```{python}
 def latent_weather_model(umbrella, wet):
     """
@@ -1327,8 +1231,7 @@ In particular, the Umbrella → GettingWet coefficient is centred close to zero,
 
 Latent-variable models can make hidden confounding explicit, but they require stronger assumptions. If the hidden variable is not observed, **the parameters may be weakly identified**, and the posterior can remain highly uncertain. In this example, the latent Weather model is more faithful to the causal DAG, but **less transparent and more assumption-dependent than the sensitivity analysis**.
 
-
-:::{.callout-note icon="false" collapse="true"}
+::: {.callout-note icon="false" collapse="true"}
 ## A Note on Parameter Identifiability
 
 The weak identification we saw above is not unique to latent-variable models. It belongs to a broader class of difficulties that arise whenever the data and model structure are not informative enough to pin down a parameter’s value. This can happen because of a modelling mistake, but it also occurs in perfectly correct models.
@@ -1476,12 +1379,10 @@ p_ident = (
 
 p_ident
 ```
-
 :::
-
 ::::::
-:::::
-::::
+::::::::
+::::::::::
 
 The second is the **pipe** or **mediation** structure:
 
@@ -1499,18 +1400,16 @@ Conditioning on $Z$ blocks this mediation path ($X \perp\!\!\!\perp Y \mid Z$). 
 
 [To estimate the direct effect of $X$ on $Y$ that bypasses $Z$, we do condition on $Z$. This is a different estimand and answers a different causal question.]{.highlight-key-point}
 
-::: {.callout-tip icon="false" collapse="true"}
+::::: {.callout-tip icon="false" collapse="true"}
 # Intuitive example of a pipe structure
 
 Suppose we want to understand whether exercise affects blood pressure, and part of that effect works through weight loss:
 
 $$
 X = \text{Exercise}
-$$
-$$
+$$ $$
 Z = \text{Weight loss}
-$$
-$$
+$$ $$
 Y = \text{Blood pressure}
 $$
 
@@ -1526,57 +1425,574 @@ If we condition on weight loss, we block that mediated path. The model then asks
 
 If instead we want the **total effect** of exercise on blood pressure, we should *not* condition on weight loss, because weight loss is one of the mechanisms through which exercise works. Conditioning on the mediator would remove that part of the causal signal and change the estimand.
 
-:::: {.callout-note icon="false" collapse="true"}
+::: {.callout-note icon="false" collapse="true"}
+## Total effect vs direct effect vs mediated effect in the pipe structure
 
-## Code for the pipe structure example
+#### Total effect
 
-::::
+The **total effect** is the overall effect of Exercise on Blood pressure, allowing the effect to travel through **all available causal routes**. In this pipe example, there is only one route:
+
+$$
+\text{Exercise} \rightarrow \text{Weight loss} \rightarrow \text{Blood pressure}
+$$
+
+So the total effect includes the full contribution of Weight loss as a mediator.
+
+![Total effect of Exercise on Blood pressure, regardless of mechanism.](img/pipe_total_effect.png){#fig-pipe-total-effect width="60%"}
+
+Interpretation: this asks, "if a person exercises rather than not exercising, how much does their blood pressure change overall?" To answer that question, we **do not** condition on Weight loss, because Weight loss is part of how Exercise works.
+
+#### Direct effect
+
+The **direct effect** is the effect of Exercise on Blood pressure **after blocking the route through Weight loss**. That means we ask whether Exercise still changes Blood pressure once Weight loss is held fixed.
+
+![Direct effect of Exercise on Blood pressure.](img/pipe_direct_effect.png){#fig-pipe-direct-effect width="60%"}
+
+Interpretation: this asks, "if two people had the same Weight loss, but one exercised and the other did not, would their Blood pressure still differ?" In the [Code for the pipe example]{.box-ref-highlight} section, the simulated data-generating process says no. So in that example, the true direct effect is 0.
+
+#### Mediated path
+
+The **mediated path** is the route through Weight loss. It is the part of the story in which Exercise first changes Weight loss, and Weight loss then changes Blood pressure.
+
+![Mediated effect of Exercise on Blood pressure through Weight loss.](img/pipe_mediated_effect.png){#fig-pipe-mediated-effect width="70%"}
+
+Interpretation: this panel is not asking about the overall effect of Exercise. It is isolating the mediator-to-outcome part of the pipe, namely how Blood pressure changes as Weight loss changes. Later, when we fit the Bayesian models, this is the quantity represented by the `WeightLoss -> BP | Exercise` coefficient.
+
+[These three pictures answer three different questions. Total effect asks for the overall effect of Exercise on Blood pressure. Direct effect asks what remains after Weight loss is held fixed. Mediated path isolates the WeightLoss -> Blood pressure part of the mechanism.]{.highlight-key-point}
 :::
 
+::: {.callout-note icon="false" collapse="true"}
+## Code for the pipe example
 
-##### How do path structures guide conditioning decisions for <span style="color:#bf616a">$s$</span>?
+Let’s simulate some data to illustrate the pipe example. We will create a simple dataset where exercise affects both weight loss and blood pressure.
 
-Here, one important role of the DAG is to help us decide which variables it makes sense to condition on, and which ones we should avoid conditioning on, when estimating the target-binding propensity <span style="color:#bf616a">$s$</span>. To do this, we follow the recipe suggested by McElreath in Chapter 6 of the second edition of *Statistical Rethinking*:
+![Pipe example DAG.](img/weight_loss_dag.png){#fig-weight-loss-dag width="50%"}
 
-(1) List all of the paths connecting <span style="color:#bf616a">$s$</span> and <span style="color:#d08770">$C_{t}$</span>.
+Exercise raises weight loss by 0.5 units (on a standardised scale); each unit of weight loss reduces blood pressure by 2 mmHg (millimetres of mercury, the standard clinical unit for blood pressure). There is **no direct path** from Exercise to Blood pressure: the entire effect is mediated.
 
-(2) Classify each path by whether it is open or closed. A path is open unless it contains a collider.
+$$
+\text{True total effect of Exercise (Exercise} \rightarrow \text{Blood Pressure)} = 0.5 \times (-2) = -1 \text{ mmHg}
+$$ $$
+\text{True direct effect of Exercise (Exercise} \rightarrow \text{Blood Pressure | WeightLoss)} = 0
+$$ $$
+\text{True mediated path (WeightLoss} \rightarrow \text{Blood Pressure | Exercise)} = -2 \text{ mmHg per unit}
+$$
 
-(3) Classify each path by whether it is a backdoor path. A backdoor path has an arrow entering <span style="color:#bf616a">$s$</span>.  
+```{python}
+# ── Data-generating process ───────────────────────────────────────────────
+rng_pipe   = np.random.default_rng(42)
+n_pipe     = 1000
 
-(4) If there are any open backdoor paths, decide which variable(s) to condition on to  close it (if possible). 
+exercise_pipe  = rng_pipe.binomial(1, 0.5, n_pipe).astype(float)
+weight_loss    = 0.5 * exercise_pipe + rng_pipe.normal(0, 1.0, n_pipe)
+blood_pressure = 120.0 - 2.0 * weight_loss + rng_pipe.normal(0, 5.0, n_pipe)
 
+ex_t = torch.tensor(exercise_pipe,  dtype=torch.float32)
+wl_t = torch.tensor(weight_loss,    dtype=torch.float32)
+bp_t = torch.tensor(blood_pressure, dtype=torch.float32)
+
+pd.DataFrame({
+    "Exercise": exercise_pipe,
+    "WeightLoss": weight_loss,
+    "BloodPressure": blood_pressure,
+}).head()
+
+```
+
+This code simulates a dataset of 1000 observations from the true pipe structure with three variables: `Exercise`, `WeightLoss`, and `BloodPressure`. Exercise is a binary variable indicating whether someone exercised (1) or not (0). Weight loss is a continuous variable that depends on exercise, with exercisers losing more weight on average. Blood pressure is a continuous variable that depends on weight loss, with higher weight loss associated with lower blood pressure. There is no direct effect of exercise on blood pressure after accounting for weight loss.
+
+##### Summary of the simulated data
+
+Let’s plot the simulated data to see the associations between the variables.
+
+```{python}
+from plotnine import geom_jitter, geom_boxplot, geom_smooth, scale_color_manual, scale_fill_manual, theme_minimal, geom_point
+
+pipe_plot_df = pd.DataFrame({
+    "Exercise":    exercise_pipe.astype(int).astype(str).tolist(),
+    "WeightLoss":  weight_loss.tolist(),
+    "BloodPressure":          blood_pressure.tolist(),
+})
+
+COLORS = {"0": "#5e81ac", "1": "#bf616a"}
+
+# ── Panel 1: WeightLoss by Exercise (X → Z) ──────────────────────────────
+p_xz = (
+    ggplot(pipe_plot_df, aes(x="Exercise", y="WeightLoss", color="Exercise", fill="Exercise"))
+    + geom_jitter(width=0.15, alpha=0.30, size=1.5)
+    + geom_boxplot(width=0.35, alpha=0.55, outlier_alpha=0)
+    + scale_color_manual(values=COLORS, guide=None)
+    + scale_fill_manual( values=COLORS, guide=None)
+    + labs(
+        title="Exercise → Weight loss",
+        subtitle="Exercisers (1) have higher weight loss on average",
+        x="Exercise (0 = No, 1 = Yes)",
+        y="Weight loss (standardised units)",
+    )
+    + theme(
+        figure_size=(5.5, 5.0),
+        panel_background=element_rect(fill="white", color="white"),
+        plot_background=element_rect(fill="white", color="white"),
+        panel_grid_major=element_line(color="#ebebeb", size=0.6),
+        panel_grid_minor=element_blank(),
+        axis_line_x=element_line(color="black", size=0.8),
+        axis_line_y=element_line(color="black", size=0.8),
+        axis_text=element_text(size=12, family="serif", color="#333333"),
+        axis_title_x=element_text(size=12, family="serif", color="#333333", margin={"t": 10}),
+        axis_title_y=element_text(size=12, family="serif", color="#333333"),
+        plot_title=element_text(size=18, family="serif", color="black"),
+        plot_subtitle=element_text(size=13, family="serif", color="#555555"),
+        legend_position="none",
+    )
+)
+
+# ── Panel 2: BloodPressure vs WeightLoss, coloured by Exercise (Z → Y) ─────────────
+p_zy = (
+    ggplot(pipe_plot_df, aes(x="WeightLoss", y="BloodPressure", color="Exercise"))
+    + geom_point(alpha=0.35, size=1.5)
+    + geom_smooth(method="lm", se=False, size=1.2)
+    + scale_color_manual(
+        values=COLORS,
+        labels=["No exercise", "Exercise"],
+        name="",
+    )
+    + labs(
+        title="Weight loss → Blood pressure",
+        subtitle="Both groups follow the same slope (−2 mmHg / unit).\nExercise shifts the WeightLoss distribution, not the slope",
+        x="Weight loss (standardised units)",
+        y="Blood pressure (mmHg)",
+    )
+    + theme(
+        figure_size=(7.5, 5.0),
+        panel_background=element_rect(fill="white", color="white"),
+        plot_background=element_rect(fill="white", color="white"),
+        panel_grid_major=element_line(color="#ebebeb", size=0.6),
+        panel_grid_minor=element_blank(),
+        axis_line_x=element_line(color="black", size=0.8),
+        axis_line_y=element_line(color="black", size=0.8),
+        axis_text=element_text(size=12, family="serif", color="#333333"),
+        axis_title_x=element_text(size=12, family="serif", color="#333333", margin={"t": 10}),
+        axis_title_y=element_text(size=12, family="serif", color="#333333"),
+        plot_title=element_text(size=18, family="serif", color="black"),
+        plot_subtitle=element_text(size=13, family="serif", color="#555555"),
+        legend_position="bottom",
+        legend_text=element_text(size=11, family="serif"),
+    )
+)
+
+(p_xz / p_zy) + theme(figure_size=(6.0, 12.0))
+
+```
+
+**Top panel** ($Exercise \rightarrow WeightLoss$): exercisers tend to have higher weight loss than non-exercisers. This is the first step of the mediation: the cause (Exercise) moves the mediator (WeightLoss).
+
+**Bottom panel** ($WeightLoss \rightarrow BloodPressure$): higher weight loss is associated with lower blood pressure, at a slope of −2 mmHg per unit. Both the blue (no exercise) and red (exercise) regression lines have the **same slope**. The only difference is that the red group sits further to the right because they lost more weight.
+
+[Exercise does not have a special additional pull on blood pressure. It simply moves people to a higher weight-loss value, and it is the higher weight loss that then lowers their blood pressure. If we took two people with identical weight loss, one who exercised and one who did not, their blood pressures would be the same. The entire benefit of exercise on blood pressure runs through the weight loss which is a mediator.]{.highlight-key-point}
+
+##### Analyze the data to see the associations
+
+We fit two Bayesian models with Pyro. The only difference is whether `WeightLoss` appears as a predictor.
+
+**Model 1 — total effect** (Exercise only):
+
+$$
+\alpha \sim \mathcal{N}(120,\, 10) 
+$$ $$
+\beta_{\text{ex}} \sim \mathcal{N}(0,\, 5) 
+$$ $$
+\sigma \sim \text{HalfNormal}(10)
+$$ $$
+\mu_i = \alpha + \underbrace{\beta_{\text{ex}}}_{\text{total effect}} \cdot \text{Exercise}_i 
+$$ $$
+\text{BP}_i \sim \mathcal{N}(\mu_i,\, \sigma)
+$$
+
+**Model 2 — direct effect** (Exercise and WeightLoss):
+
+$$
+\alpha \sim \mathcal{N}(120,\, 10)
+$$ $$ 
+\beta_{\text{ex}} \sim \mathcal{N}(0,\, 5) 
+$$ $$
+\beta_{\text{wl}} \sim \mathcal{N}(0,\, 5) 
+$$ $$
+\sigma \sim \text{HalfNormal}(10)
+$$ $$
+\mu_i = \alpha +  \underbrace{\beta_{\text{ex}}}_{\text{direct effect}} \cdot \text{Exercise}_i + \underbrace{\beta_{\text{wl}}}_{\text{mediated effect}} \cdot \text{WeightLoss}_i 
+$$ $$
+\text{BP}_i \sim \mathcal{N}(\mu_i,\, \sigma)
+$$
+
+In Model 1, $\beta_{\text{ex}}$ captures the **total effect** of exercise: that is, everything that reaches blood pressure through any path, including through weight loss.
+
+In Model 2, conditioning on `WeightLoss` blocks the mediated path, so $\beta_{\text{ex}}$ estimates only the **direct effect** that bypasses the mediator, and $\beta_{\text{wl}}$ isolates the weight-loss-to-blood-pressure relationship.
+
+```{python}
+
+# ── Model 1: total effect (no conditioning on WeightLoss) ─────────────────
+def total_effect_model(exercise, bp):
+    alpha    = pyro.sample("alpha",   dist.Normal(120.0, 10.0))
+    beta_ex  = pyro.sample("beta_ex", dist.Normal(0.0,   5.0))
+    sigma    = pyro.sample("sigma",   dist.HalfNormal(10.0))
+    mu = alpha + beta_ex * exercise
+    with pyro.plate("obs", len(bp)):
+        pyro.sample("bp", dist.Normal(mu, sigma), obs=bp)
+
+
+# ── Model 2: direct effect (conditioning on WeightLoss) ───────────────────
+def direct_effect_model(exercise, weight_loss, bp):
+    alpha    = pyro.sample("alpha",   dist.Normal(120.0, 10.0))
+    beta_ex  = pyro.sample("beta_ex", dist.Normal(0.0,   5.0))
+    beta_wl  = pyro.sample("beta_wl", dist.Normal(0.0,   5.0))
+    sigma    = pyro.sample("sigma",   dist.HalfNormal(10.0))
+    mu = alpha + beta_ex * exercise + beta_wl * weight_loss
+    with pyro.plate("obs", len(bp)):
+        pyro.sample("bp", dist.Normal(mu, sigma), obs=bp)
+
+
+def run_pipe_mcmc(model, *args, num_samples=1000, warmup_steps=500):
+    pyro.clear_param_store()
+    mcmc = MCMC(NUTS(model), num_samples=num_samples,
+                warmup_steps=warmup_steps, disable_progbar=True)
+    mcmc.run(*args)
+    return mcmc.get_samples()
+
+
+post_total_pipe  = run_pipe_mcmc(total_effect_model,  ex_t,       bp_t)
+post_direct_pipe = run_pipe_mcmc(direct_effect_model, ex_t, wl_t, bp_t)
+```
+
+```{python}
+draws_pipe = {
+    "Total effect\n(Exercise -> BP)":          post_total_pipe["beta_ex"].numpy(),
+    "Direct effect\n(Exercise -> BP | WL)":    post_direct_pipe["beta_ex"].numpy(),
+    "Mediated path\n(WeightLoss -> BP | Ex.)": post_direct_pipe["beta_wl"].numpy(),
+}
+true_vals_pipe = {
+    "Total effect\n(Exercise -> BP)":          -1.0,
+    "Direct effect\n(Exercise -> BP | WL)":     0.0,
+    "Mediated path\n(WeightLoss -> BP | Ex.)": -2.0,
+}
+
+plot_order_pipe = list(draws_pipe.keys())
+all_pipe_vals   = np.concatenate(list(draws_pipe.values()))
+x_lo_p, x_hi_p = np.quantile(all_pipe_vals, [0.005, 0.995])
+x_pad_p         = 0.15 * (x_hi_p - x_lo_p)
+x_grid_p        = np.linspace(x_lo_p - x_pad_p, x_hi_p + x_pad_p, 400)
+ridge_h_p       = 0.72
+
+pipe_rows, pipe_int_rows, pipe_summary_rows = [], [], []
+
+for i, name in enumerate(plot_order_pipe):
+    y_base = len(plot_order_pipe) - 1 - i
+    draws  = draws_pipe[name]
+    kde    = gaussian_kde(draws)
+    dens   = kde(x_grid_p)
+    dens_s = dens / dens.max() * ridge_h_p
+    lo, hi = np.quantile(draws, [0.025, 0.975])
+    median = np.median(draws)
+    tv     = true_vals_pipe[name]
+
+    for x, d in zip(x_grid_p, dens_s):
+        pipe_rows.append({"label": name, "x": x, "y_base": y_base, "y": y_base + d})
+        if lo <= x <= hi:
+            pipe_int_rows.append({"label": name, "x": x, "y_base": y_base, "y": y_base + d})
+
+    pipe_summary_rows.append({
+        "label":    name,
+        "y_base":   y_base,
+        "median":   median,
+        "true_val": tv,
+        "y_top":    y_base + np.interp(median, x_grid_p, dens_s),
+        "y_true_top": y_base + np.interp(tv, x_grid_p, dens_s),
+    })
+
+
+def build_polygon_pipe(df, order, col="label"):
+    rows = []
+    for name in order:
+        sub = df[df[col] == name].sort_values("x")
+        if len(sub) == 0:
+            continue
+        yb = sub["y_base"].iloc[0]
+        rows.extend(sub.to_dict("records"))
+        rows += [
+            {col: name, "x": sub["x"].iloc[-1], "y_base": yb, "y": yb},
+            {col: name, "x": sub["x"].iloc[0],  "y_base": yb, "y": yb},
+        ]
+    return pd.DataFrame(rows)
+
+
+pipe_df       = pd.DataFrame(pipe_rows)
+pipe_int_df   = pd.DataFrame(pipe_int_rows)
+pipe_poly     = build_polygon_pipe(pipe_df,     plot_order_pipe)
+pipe_int_poly = build_polygon_pipe(pipe_int_df, plot_order_pipe)
+pipe_sum_df   = pd.DataFrame(pipe_summary_rows)
+
+p_pipe = (
+    ggplot()
+    + geom_vline(xintercept=0, color="#d9d9d9", size=1.2)
+    + geom_polygon(pipe_poly,     aes(x="x", y="y", group="label"),
+                   fill="#c8dce8", alpha=0.75, color=None)
+    + geom_polygon(pipe_int_poly, aes(x="x", y="y", group="label"),
+                   fill="#8fb7cb", alpha=0.70, color=None)
+    + geom_line(pipe_df, aes(x="x", y="y", group="label"),
+                color="#002b63", size=1.2)
+    + geom_segment(
+        pipe_sum_df.assign(x_start=x_grid_p.min(), x_end=x_grid_p.max()),
+        aes(x="x_start", xend="x_end", y="y_base", yend="y_base"),
+        color="#002b63", size=1.0,
+    )
+    + geom_segment(
+        pipe_sum_df,
+        aes(x="median", xend="median", y="y_base", yend="y_top"),
+        color="#4b8aa6", size=2.3,
+    )
+    + geom_segment(
+        pipe_sum_df,
+        aes(x="true_val", xend="true_val", y="y_base", yend="y_true_top"),
+        color="#c1121f", size=2.3,
+    )
+    + scale_y_continuous(
+        breaks=pipe_sum_df["y_base"].tolist(),
+        labels=pipe_sum_df["label"].tolist(),
+        expand=(0.06, 0.25),
+    )
+    + scale_x_continuous(expand=(0.02, 0.02))
+    + coord_cartesian(ylim=(-0.55, len(plot_order_pipe) - 0.15))
+    + labs(
+        title="Total effect vs. direct effect: pipe structure",
+        subtitle="blue tick = posterior median  ·  red tick = true value  ·  shaded = 95% interval",
+        x="Coefficient estimate (mmHg)",
+        y="",
+    )
+    + theme(
+        figure_size=(10.5, 6.8),
+        panel_background=element_rect(fill="white", color="white"),
+        plot_background=element_rect(fill="white", color="white"),
+        panel_grid_major=element_blank(),
+        panel_grid_minor=element_blank(),
+        axis_line_x=element_line(color="black", size=0.8),
+        axis_line_y=element_line(color="black", size=0.8),
+        axis_ticks_major=element_line(color="black", size=0.8),
+        axis_ticks_minor=element_blank(),
+        axis_text_x=element_text(size=12, family="serif", color="#333333"),
+        axis_text_y=element_text(size=11, family="serif", color="#333333", weight="bold"),
+        axis_title_x=element_text(size=12, family="serif", color="#333333", margin={"t": 10}),
+        plot_title=element_text(size=24, family="serif", color="black"),
+        plot_subtitle=element_text(size=17, family="serif", color="black"),
+    )
+)
+
+p_pipe
+```
+
+The fitted posteriors make a clear distinction between **total effect**, **direct effect**, and **mediated path**.
+
+For the **total effect** of `Exercise` on `Blood pressure`, the posterior median sits very close to the true value of $-1$ mmHg. This is the quantity we recover when we do **not** condition on `WeightLoss`, because we want to keep the whole causal route
+
+$$
+\text{Exercise} \rightarrow \text{WeightLoss} \rightarrow \text{Blood pressure}
+$$
+
+inside the estimand. In other words, this model asks for the overall effect of `Exercise` on `Blood pressure`, including the part that works through `WeightLoss`.
+
+For the **direct effect** of `Exercise` on `Blood pressure` conditional on `WeightLoss`, the posterior is much more uncertain and is centred somewhat to the right of zero. But the 95\% interval still includes $0$, which is the true direct effect in this simulation. This is exactly the question:
+
+::: {style="text-align: center;"}
+If two people had the same `WeightLoss`, would `Exercise` still predict a difference in `Blood pressure`?
+:::
+
+In the data-generating process used here, the answer is no. So once we condition on `WeightLoss`, the remaining exercise coefficient should be interpreted as a noisy estimate of a direct effect that is truly absent.
+
+For the **mediated path** coefficient, the posterior is tight and close to the true value of $-2$ mmHg. This coefficient measures the relationship between `WeightLoss` and `Blood pressure` after accounting for `Exercise`. Because `WeightLoss` is a continuous predictor with a strong effect, the model learns this parameter much more precisely than either of the `Exercise` coefficients.
+
+The key point is that the two `Exercise` coefficients are different because they answer different causal questions. Leaving `WeightLoss` out gives the **total effect** of `Exercise`. Putting `WeightLoss` into the model blocks the mediation route and gives the **direct effect** instead.
+
+[Conditioning on the mediator does not make the model better or worse. It changes the question. If `WeightLoss` is part of the mechanism we want to measure, we should leave it out and estimate the total effect. If we want the part of the `Exercise` effect that does not run through `WeightLoss`, we should condition on it and estimate the direct effect.]{.highlight-key-point}
+
+:::
+:::::
+
+The third is the **collider** structure:
+
+![Collider structure.](img/collider_structure.png){#fig-collider-structure width="50%"}
+
+In a collider, two arrows meet at the same node:
+
+$$
+X \rightarrow Z \leftarrow Y
+$$
+
+Here, $Z$ is a common **effect** of $X$ and $Y$. This is very different from a fork. In a fork, the middle node is a common cause and conditioning on it blocks a confounding path. In a collider, the middle node is a common effect and conditioning on it opens a path that was previously closed.
+
+Without conditioning on $Z$, the path between $X$ and $Y$ is closed:
+
+$$
+X \perp\!\!\!\perp Y
+$$
+
+But once we condition on the collider, information can flow through it:
+
+$$
+X \not\!\perp\!\!\!\perp Y \mid Z
+$$
+
+This can create an association between $X$ and $Y$ even when neither causes the other. The association is not evidence of a causal relationship between the endpoints; it is a consequence of conditioning on a shared outcome. This is called **collider bias** or **selection bias**.
+
+[The practical rule is: do not condition on a collider, or on a variable downstream of a collider, unless the estimand specifically requires it and the induced bias is understood.]{.highlight-key-point}
+
+::::: {.callout-tip icon="false" collapse="true"}
+
+## Intuitive example of a collider structure
+
+Suppose a selective university admits students who are either smart or athletic, or some combination of the two. In the general population, assume intelligence and athleticism are unrelated: knowing that someone is smart tells us nothing about whether they are athletic.
+
+The admission decision is therefore a shared effect:
+
+$$
+    \text{Smart} \rightarrow \text{Admitted} \leftarrow \text{Athletic}
+$$
+
+If we look only at admitted students, we have conditioned on the collider. This can create a negative association between intelligence and athleticism even though the two traits were independent in the wider population. Among admitted students, someone who is not athletic is more likely to be very smart, because they still had to clear the admissions threshold somehow.
+
+This is the collider intuition: once we know the shared outcome occurred, learning that one possible cause is absent makes the other cause more plausible. The two causes begin to "explain away" each other.
+
+[The observed trade-off is not evidence that intelligence reduces athleticism, or that athleticism reduces intelligence. It is a selection artifact created by conditioning on their shared outcome.]{.highlight-key-point}
+
+::::: {.callout-note icon="false" collapse="true"}
+
+## Code for the collider example
+
+Let's simulate a simple collider structure using the university admissions example. In the full population, `Smart` and `Athletic` are generated independently. Admission then depends on either being smart or being athletic:
+
+$$
+\text{Smart} \rightarrow \text{Admitted} \leftarrow \text{Athletic}
+$$
+
+This means that `Admitted` is a collider: it is caused by both `Smart` and `Athletic`.
+
+```{python}
+# ── Full population data-generating process ───────────────────────────────
+rng_collider = np.random.default_rng(42)
+
+n_population = 1000
+
+smart = rng_collider.binomial(1, 0.5, n_population)
+athletic = rng_collider.binomial(1, 0.5, n_population)
+
+# A student is admitted if they are smart, athletic, or both
+admitted = ((smart == 1) | (athletic == 1)).astype(int)
+
+population_df = pd.DataFrame({
+    "Smart": smart,
+    "Athletic": athletic,
+    "Admitted": admitted
+})
+
+population_df.head()
+```
+
+In the full population, `Smart` and `Athletic` are independent by construction. Being smart does not make someone more or less likely to be athletic:
+
+```{python}
+population_df[["Smart", "Athletic"]].corr()
+```
+
+Now suppose we only look at admitted students. This is equivalent to conditioning on the collider `Admitted`.
+
+```{python}
+# ── Selected sample: admitted students only ───────────────────────────────
+admitted_df = population_df.query("Admitted == 1").copy()
+
+admitted_df.head()
+```
+
+Among admitted students, `Smart` and `Athletic` are no longer independent:
+
+```{python}
+admitted_df[["Smart", "Athletic"]].corr()
+```
+
+The reason is selection. In the admitted group, if a student is not smart, they must usually be athletic to have been admitted. Similarly, if a student is not athletic, they must usually be smart. This creates a negative association between `Smart` and `Athletic`, even though no such association exists in the full population.
+
+So the key point is:
+
+$$
+\text{Smart} \perp\!\!\!\perp \text{Athletic}
+$$
+
+in the full population, but
+
+$$  
+\text{Smart} \not\!\perp\!\!\!\perp \text{Athletic} \mid \text{Admitted}
+$$
+
+after conditioning on admission.
+
+
+```{python}
+# ── Probability of being athletic, grouped by smart status ─────────────────
+
+
+
+prop_df = (
+    pd.concat([
+        population_df.assign(Dataset="Full population"),
+        admitted_df.assign(Dataset="Admitted students only")
+    ])
+    .groupby(["Dataset", "Smart"], as_index=False)
+    .agg(Probability_Athletic=("Athletic", "mean"))
+)
+
+prop_df["Smart"] = prop_df["Smart"].map({0: "Not smart", 1: "Smart"})
+
+(
+    ggplot(prop_df, aes(x="Smart", y="Probability_Athletic", fill="Dataset"))
+    + geom_col(position="dodge", width=0.65)
+    + labs(
+        title="The collider effect appears after selecting admitted students",
+        subtitle="In the full population, being smart does not change the probability of being athletic. Among admitted students, it does.",
+        x="Smart status",
+        y="P(Athletic = 1)"
+    )
+    + theme_minimal()
+    + theme(
+        figure_size=(7, 4),
+        plot_title=element_text(weight="bold")
+    )
+)
+```
+
+:::::
+
+:::::
+
+##### How do path structures guide conditioning decisions for [$s$]{style="color:#bf616a"}?
+
+Here, one important role of the DAG is to help us decide which variables it makes sense to condition on, and which ones we should avoid conditioning on, when estimating the target-binding propensity [$s$]{style="color:#bf616a"}. To do this, we follow the recipe suggested by McElreath in Chapter 6 of the second edition of *Statistical Rethinking*:
+
+In the statistical model, **conditioning on a variable** usually means including it as an observed predictor or covariate. In the DAG, the same choice has a causal interpretation: it can block some paths and open others. So the question is not only whether a variable improves prediction, but whether conditioning on it changes the causal path we are trying to learn from.
+
+1.  List all paths connecting [$s$]{style="color:#bf616a"} and [$C_t$]{style="color:#d08770"}.
+
+2.  Classify each path as open or closed. Conditioning on a non-collider blocks a path, while conditioning on a collider, or on one of its descendants, opens a path that would otherwise be closed.
+
+3.  Identify whether any open path is a backdoor path. A backdoor path has an arrow entering [$s$]{style="color:#bf616a"} and can carry confounding rather than the target-binding signal we want.
+
+4.  Decide which variables should be conditioned on. Common causes usually need to be adjusted for, mediators depend on whether we want total or direct effects, and colliders should usually be left unconditioned.
+
+For the DEL model, this means we should not ask only whether a variable is predictive of [$C_t$]{style="color:#d08770"}. We should ask what role it plays in the DAG. A variable can be predictive because it is a cause, a mediator, a confounder, or a collider. These cases imply different modelling choices.
+
+[The DAG turns variable selection into a causal question: condition on variables that block unwanted backdoor paths, avoid conditioning on colliders, and condition on mediators only when the target estimand is a direct effect.]{.highlight-key-point}
 
 ## References:
 
-- [Rosenbaum & Rubin (1983)](https://academic.oup.com/jrsssb/article/45/2/212/7027731) — classic paper on sensitivity to an unobserved binary covariate with a binary outcome. 
-- [VanderWeele & Ding (2017), E-value](https://pubmed.ncbi.nlm.nih.gov/28693043/) — a very accessible modern approach: it quantifies how strongly an unmeasured confounder would need to be associated with both treatment and outcome to explain away an association.
-- [Cinelli & Hazlett (2020), “Making Sense of Sensitivity”](https://academic.oup.com/jrsssb/article/82/1/39/7056023?guestAccessKey=) — especially useful for regression-style intuition. Their “robustness value” asks how strong omitted confounding would need to be to overturn a conclusion.
-- [sensemakr](https://carloscinelli.com/sensemakr/) — practical R/Stata implementation of Cinelli & Hazlett’s approach; useful if you want a computational reference rather than only theory.
----
+-   [Rosenbaum & Rubin (1983)](https://academic.oup.com/jrsssb/article/45/2/212/7027731) — classic paper on sensitivity to an unobserved binary covariate with a binary outcome.
 
+-   [VanderWeele & Ding (2017), E-value](https://pubmed.ncbi.nlm.nih.gov/28693043/) — a very accessible modern approach: it quantifies how strongly an unmeasured confounder would need to be associated with both treatment and outcome to explain away an association.
 
-TODO:
--1. Add a fork image
+-   [Cinelli & Hazlett (2020), “Making Sense of Sensitivity”](https://academic.oup.com/jrsssb/article/82/1/39/7056023?guestAccessKey=) — especially useful for regression-style intuition. Their “robustness value” asks how strong omitted confounding would need to be to overturn a conclusion.
 
-0. How can we check for identifiability of all the unobserved parameters?
-
-1. I think we need to make it clear why we should identify "Which variables should and should not be conditioned on?""
-
-2. What does conditioning on a variable mean in the context of a DAG and probabilistic modeling? We should explain that conditioning on a variable means including it as a covariate in the model.
-
-3. Check the DAG for:
-    - Chain (mediation)
-    - Fork (confounding)
-    - Collider structures
-4. Check for combined patterns:
-    - Fork + chain (confounded mediation)
-    - Collider with downstream conditioning
-    - Backdoor paths
-    - Frontdoor paths
-    - Selection bias (collider via sampling)
-
-    Identify:
-    - confounders → control for
-    - colliders → never control
-    - mediators → depends on question
+-   [sensemakr](https://carloscinelli.com/sensemakr/) — practical R/Stata implementation of Cinelli & Hazlett’s approach; useful if you want a computational reference rather than only theory.
