@@ -4,3 +4,4 @@ seaborn
 plotly
 pandas
 numpy
+jupyter-cache
