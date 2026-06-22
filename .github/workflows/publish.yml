@@ -22,6 +22,14 @@ jobs:
       - name: Setup Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
       - name: Render Quarto project
         run: quarto render
 
@@ -32,4 +40,3 @@ jobs:
           git add docs/
           git diff --staged --quiet || git commit -m "Build site from Quarto source"
           git push
-
