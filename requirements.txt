@@ -6,3 +6,5 @@ pandas
 numpy
 jupyter-cache
 plotnine
+pyarrow
+fastparquet
