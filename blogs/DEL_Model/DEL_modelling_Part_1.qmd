@@ -7,9 +7,9 @@ format:
 
 jupyter:
   kernelspec:
-    name: del_model_env
+    name: python3
     language: python
-    display_name: del_model_env
+    display_name: Python 3
 
 execute:
   echo: true
