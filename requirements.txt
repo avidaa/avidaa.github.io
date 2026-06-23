@@ -8,3 +8,5 @@ jupyter-cache
 plotnine
 pyarrow
 fastparquet
+s3fs
+kindel @ git+https://github.com/insitro/kindel.git
