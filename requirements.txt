@@ -9,3 +9,5 @@ plotnine
 pyarrow
 fastparquet
 s3fs
+torch
+pyro-ppl
