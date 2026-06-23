@@ -30,7 +30,6 @@ import matplotlib.pyplot as plt
 import plotnine as gg
 
 import s3fs  # needed for S3 access
-from kindel.utils.data import get_training_data
 
 ```
 
@@ -906,7 +905,16 @@ We load only a subset of the data to keep the example simple and fast to run. In
 ```{python}
 
 # data = pd.read_parquet("data/df_train_ddr1_split1_random.parquet")
-df_train, df_valid, df_test = get_training_data("ddr1", split_index=1)
+fs = s3fs.S3FileSystem(anon=True)
+
+# Load both files
+df_full = pd.read_parquet("s3://kin-del-2024/data/ddr1_1M.parquet", filesystem=fs)
+df_splits = pd.read_parquet("s3://kin-del-2024/data/splits/ddr1_random.parquet", filesystem=fs)
+
+# Filter by row position — split1 column, "train" rows
+train_mask = df_splits["split1"] == "train"
+df_train = df_full[train_mask.values]
+
 data = df_train
 data.head()
 ```
@@ -925,7 +933,7 @@ The columns are:
 - `seq_matrix_2`: Sequencing count for the negative control / matrix replicate 2.
 - `seq_matrix_3`: Sequencing count for the negative control / matrix replicate 3.
 - `seq_load`: **Pre‑selection** sequencing count (rough estimate of each molecule’s abundance in the library prior to selection).
-- `y`: Training label used in KinDEL’s benchmarks; in the released 1M training subsets this column is the dataset’s `target_enrichment` value (a Poisson‑enrichment score comparing target vs control/matrix across replicates).
+- `target_enrichment`: Target enrichment score (a Poisson‑enrichment score comparing target vs control/matrix across replicates).
 
 ### Basic Exploratory Data Analysis (EDA)
 
