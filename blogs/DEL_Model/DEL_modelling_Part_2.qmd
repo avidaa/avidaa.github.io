@@ -1798,12 +1798,25 @@ This is the collider intuition: once we know the shared outcome occurred, learni
 ::: {.callout-note icon="false" collapse="true"}
 ## Code for the collider example
 
-Let's simulate the same collider structure using the university admissions example. The important setup is that `Smart` and `Athletic` are separate traits in the full population. Here we draw both as continuous standard-normal variables and make them independent by construction:
+Let's simulate the same collider structure using the university admissions example:
 
 $$\text{Smart} \rightarrow \text{Admitted} \leftarrow \text{Athletic}$$
 
-Then we make `Admitted` a binary variable. A student is admitted if their combined smart-plus-athletic profile is high enough. This makes admission a shared outcome of both traits, so `Admitted` is a collider.
+The important setup is that `Smart` and `Athletic` are uncorrelated traits in the full population. Here we draw both as continuous standard-normal variables and make them independent by construction:
 
+```python
+smart = rng_collider.normal(0, 1, n_population)
+athletic = rng_collider.normal(0, 1, n_population)
+```
+
+Then we make `Admitted` a binary variable. A student is admitted if their combined smart and athletic scores are high enough. This makes admission a shared outcome of both traits, so `Admitted` is a collider:
+
+```python
+admission_score = smart + athletic
+admission_threshold = np.quantile(admission_score, 0.8)
+admitted = (admission_score >= admission_threshold).astype(int)
+```
+ Here is the full population data-generating process with `Admitted` as a collider:
 ```{python}
 # ── Full population data-generating process ───────────────────────────────
 rng_collider = np.random.default_rng(42)
@@ -1827,13 +1840,11 @@ population_df = pd.DataFrame({
 population_df.head()
 ```
 
-In the full population, `Smart` and `Athletic` are independent by construction. Knowing that someone has a high value of `Smart` tells us essentially nothing about their value of `Athletic`. The sample correlation should therefore be close to zero:
+In the full population, `Smart` and `Athletic` are independent by construction. Knowing that someone has a high value of `Smart` tells us essentially nothing about their value of `Athletic`. The sample correlation should therefore be close to zero.
 
-```{python}
-population_df[["Smart", "Athletic"]].corr()
-```
+##### Summary of the simulated data
 
-We can see the same thing visually. In the full population, the point cloud has no meaningful slope: high-smart students are not systematically more or less athletic than low-smart students.
+Let's plot the relationship between `Smart` and `Athletic` in the full population:
 
 ```{python}
 from plotnine import (
@@ -1847,6 +1858,11 @@ from plotnine import (
     element_text,
 )
 
+from plotnine import annotate
+
+# Calculate the correlation
+full_population_corr = population_df[["Smart", "Athletic"]].corr().iloc[0, 1]
+
 (
     ggplot(population_df, aes(x="Smart", y="Athletic"))
     + geom_point(alpha=0.35, size=1.2)
@@ -1856,6 +1872,15 @@ from plotnine import (
         subtitle="The two traits were generated independently, so the fitted line is approximately flat.",
         x="Smart",
         y="Athletic"
+    )
+    + annotate(
+        "text",
+        x=population_df["Smart"].min() + 0.5,
+        y=population_df["Athletic"].max() - 0.5,
+        label=f"corr = {full_population_corr:.2f}",
+        size=10,
+        ha='left',
+        va='top'
     )
     + theme_minimal()
     + theme(
@@ -1870,46 +1895,43 @@ Now suppose we only look at admitted students. This is equivalent to conditionin
 ```{python}
 # ── Selected sample: admitted students only ───────────────────────────────
 admitted_df = population_df.query("Admitted == 1").copy()
-
-admitted_df.head()
 ```
 
 Among admitted students, `Smart` and `Athletic` are no longer independent:
 
 ```{python}
-admitted_df[["Smart", "Athletic"]].corr()
-```
-
-The reason is selection. In the admitted group, a student with a lower value of `Smart` usually needs a higher value of `Athletic` to clear the admission threshold. Similarly, a less athletic admitted student usually needs to be smarter. The two traits start to trade off against each other inside the selected sample, even though no such trade-off exists in the full population.
-
-We can show this by comparing the full population with the admitted-only sample:
-
-```{python}
-from plotnine import facet_wrap
-
-plot_df = pd.concat([
-    population_df.assign(Dataset="Full population"),
-    admitted_df.assign(Dataset="Admitted students only"),
-])
+# Calculate the correlation
+admitted_population_corr = admitted_df[["Smart", "Athletic"]].corr().iloc[0, 1]
 
 (
-    ggplot(plot_df, aes(x="Smart", y="Athletic"))
+    ggplot(admitted_df, aes(x="Smart", y="Athletic"))
     + geom_point(alpha=0.35, size=1.2)
     + geom_smooth(method="lm", se=False, color="#bf616a")
-    + facet_wrap("~Dataset")
     + labs(
-        title="Conditioning on admission creates an association",
-        subtitle="There is no relationship in the full population, but a negative relationship appears after selecting admitted students.",
+        title="Smart and athletic are associated in the admitted students sample",
+        subtitle="The two traits are associated in the admitted students sample,\nbut were independent in the full population.",
         x="Smart",
         y="Athletic"
     )
+    + annotate(
+        "text",
+        x=admitted_df["Smart"].min() + 0.1,  # Top-left, padding from left edge
+        y=admitted_df["Athletic"].max() - 0.1,  # Slightly below top edge
+        label=f"corr = {admitted_population_corr:.2f}",
+        size=10,
+        color="black",
+        ha='left',
+        va='top'
+    )
     + theme_minimal()
     + theme(
-        figure_size=(8, 4),
+        figure_size=(6.5, 4.5),
         plot_title=element_text(weight="bold")
     )
 )
 ```
+
+The reason is selection. In the admitted group, a student with a lower value of `Smart` usually needs a higher value of `Athletic` to clear the admission threshold. Similarly, a less athletic admitted student usually needs to be smarter. The two traits start to trade off against each other inside the selected sample, even though no such trade-off exists in the full population.
 
 So the key point is:
 
@@ -1921,8 +1943,238 @@ $$
 \text{Smart} \not\!\perp\!\!\!\perp \text{Athletic} \mid \text{Admitted}$$
 
 after conditioning on admission.
+
+##### Analyze the data to see the associations
+
+So, should we condition on the collider? Usually, **no**. If the goal is to learn the relationship between the two causes, `Smart` and `Athletic`, in the population, conditioning on `Admitted` would create an association that is not causal.
+
+In the regression examples in this post, conditioning on a variable means including it as a covariate in the model. So here, conditioning on `Admitted` means adding `Admitted` to the linear predictor.
+
+We fit two Bayesian linear regressions: one unconditioned model and one regression-adjusted model that includes `Admitted`.
+
+**Model 1 - no conditioning on the collider**:
+
+$$\alpha \sim \mathcal{N}(0,\, 1)$$
+
+$$\beta_{\text{smart}} \sim \mathcal{N}(0,\, 1)$$
+
+$$\sigma \sim \text{HalfNormal}(1)$$
+
+$$\mu_i = \alpha + \beta_{\text{smart}} \cdot \text{Smart}_i$$
+
+$$\text{Athletic}_i \sim \mathcal{N}(\mu_i,\, \sigma)$$
+
+This model uses the full population. Since `Smart` and `Athletic` were generated independently, the posterior for $\beta_{\text{smart}}$ should be close to zero.
+
+**Model 2 - conditioning on the collider**:
+
+$$\alpha \sim \mathcal{N}(0,\, 1)$$
+
+$$\beta_{\text{smart}} \sim \mathcal{N}(0,\, 1)$$
+
+$$\beta_{\text{admitted}} \sim \mathcal{N}(0,\, 1)$$
+
+$$\sigma \sim \text{HalfNormal}(1)$$
+
+$$\mu_i = \alpha + \beta_{\text{smart}} \cdot \text{Smart}_i + \beta_{\text{admitted}} \cdot \text{Admitted}_i$$
+
+$$\text{Athletic}_i \sim \mathcal{N}(\mu_i,\, \sigma)$$
+
+This model uses the full population but includes the collider as a covariate. The coefficient $\beta_{\text{smart}}$ is now a conditional association: how `Athletic` changes with `Smart` among observations with the same value of `Admitted`, averaged across the admitted and not-admitted strata by the model.
+
+If the collider logic is correct, the posterior for $\beta_{\text{smart}}$ should move away from zero in the conditioned model, even though `Smart` has no causal effect on `Athletic`.
+
+```{python}
+smart_full_t = torch.tensor(population_df["Smart"].values, dtype=torch.float32)
+athletic_full_t = torch.tensor(population_df["Athletic"].values, dtype=torch.float32)
+admitted_full_t = torch.tensor(population_df["Admitted"].values, dtype=torch.float32)
+
+
+def smart_athletic_model(smart, athletic, admitted=None):
+    alpha = pyro.sample("alpha", dist.Normal(0.0, 1.0))
+    beta_smart = pyro.sample("beta_smart", dist.Normal(0.0, 1.0))
+    sigma = pyro.sample("sigma", dist.HalfNormal(1.0))
+
+    mu = alpha + beta_smart * smart
+    if admitted is not None:
+        beta_admitted = pyro.sample("beta_admitted", dist.Normal(0.0, 1.0))
+        mu = mu + beta_admitted * admitted
+
+    with pyro.plate("obs", len(athletic)):
+        pyro.sample("athletic", dist.Normal(mu, sigma), obs=athletic)
+
+
+def run_collider_mcmc(smart, athletic, admitted=None, num_samples=1000, warmup_steps=500):
+    pyro.clear_param_store()
+    mcmc = MCMC(
+        NUTS(smart_athletic_model),
+        num_samples=num_samples,
+        warmup_steps=warmup_steps,
+        disable_progbar=True
+    )
+    mcmc.run(smart, athletic, admitted)
+    return mcmc.get_samples()
+
+
+post_full_collider = run_collider_mcmc(smart_full_t, athletic_full_t)
+post_adjusted_collider = run_collider_mcmc(smart_full_t, athletic_full_t, admitted_full_t)
+```
+
+```{python}
+draws_collider = {
+    "Full population\n(no conditioning)": post_full_collider["beta_smart"].detach().numpy(),
+    "Full population\n(+ Admitted covariate)": post_adjusted_collider["beta_smart"].detach().numpy(),
+}
+
+plot_order_collider = list(draws_collider.keys())
+all_collider_vals = np.concatenate(list(draws_collider.values()))
+x_lo_c, x_hi_c = np.quantile(all_collider_vals, [0.005, 0.995])
+x_pad_c = 0.20 * (x_hi_c - x_lo_c)
+x_grid_c = np.linspace(x_lo_c - x_pad_c, x_hi_c + x_pad_c, 400)
+ridge_h_c = 0.72
+
+collider_rows, collider_int_rows, collider_summary_rows = [], [], []
+
+for i, name in enumerate(plot_order_collider):
+    y_base = len(plot_order_collider) - 1 - i
+    draws = draws_collider[name]
+    kde = gaussian_kde(draws)
+    dens = kde(x_grid_c)
+    dens_s = dens / dens.max() * ridge_h_c
+    lo, hi = np.quantile(draws, [0.025, 0.975])
+    median = np.median(draws)
+
+    for x, d in zip(x_grid_c, dens_s):
+        collider_rows.append({"label": name, "x": x, "y_base": y_base, "y": y_base + d})
+        if lo <= x <= hi:
+            collider_int_rows.append({"label": name, "x": x, "y_base": y_base, "y": y_base + d})
+
+    collider_summary_rows.append({
+        "label": name,
+        "y_base": y_base,
+        "median": median,
+        "y_top": y_base + np.interp(median, x_grid_c, dens_s),
+    })
+
+
+def build_polygon_collider(df, order, col="label"):
+    rows = []
+    for name in order:
+        sub = df[df[col] == name].sort_values("x")
+        if len(sub) == 0:
+            continue
+        yb = sub["y_base"].iloc[0]
+        rows.extend(sub.to_dict("records"))
+        rows += [
+            {col: name, "x": sub["x"].iloc[-1], "y_base": yb, "y": yb},
+            {col: name, "x": sub["x"].iloc[0], "y_base": yb, "y": yb},
+        ]
+    return pd.DataFrame(rows)
+
+
+collider_df = pd.DataFrame(collider_rows)
+collider_int_df = pd.DataFrame(collider_int_rows)
+collider_poly = build_polygon_collider(collider_df, plot_order_collider)
+collider_int_poly = build_polygon_collider(collider_int_df, plot_order_collider)
+collider_sum_df = pd.DataFrame(collider_summary_rows)
+
+p_collider = (
+    ggplot()
+    + geom_vline(xintercept=0, color="#d9d9d9", size=1.2)
+    + geom_polygon(
+        collider_poly,
+        aes(x="x", y="y", group="label"),
+        fill="#c8dce8",
+        alpha=0.75,
+        color=None
+    )
+    + geom_polygon(
+        collider_int_poly,
+        aes(x="x", y="y", group="label"),
+        fill="#8fb7cb",
+        alpha=0.70,
+        color=None
+    )
+    + geom_line(
+        collider_df,
+        aes(x="x", y="y", group="label"),
+        color="#002b63",
+        size=1.2
+    )
+    + geom_segment(
+        collider_sum_df.assign(x_start=x_grid_c.min(), x_end=x_grid_c.max()),
+        aes(x="x_start", xend="x_end", y="y_base", yend="y_base"),
+        color="#002b63",
+        size=1.0
+    )
+    + geom_segment(
+        collider_sum_df,
+        aes(x="median", xend="median", y="y_base", yend="y_top"),
+        color="#4b8aa6",
+        size=2.3
+    )
+    + scale_y_continuous(
+        breaks=collider_sum_df["y_base"].tolist(),
+        labels=collider_sum_df["label"].tolist(),
+        expand=(0.06, 0.25),
+    )
+    + scale_x_continuous(expand=(0.02, 0.02))
+    + coord_cartesian(ylim=(-0.55, len(plot_order_collider) - 0.15))
+    + labs(
+        title="Conditioning on a collider opens the path",
+        subtitle="blue tick = posterior median  ·  shaded = 95% interval",
+        x="Coefficient for Smart predicting Athletic",
+        y="",
+    )
+    + theme(
+        figure_size=(10.5, 6.8),
+        panel_background=element_rect(fill="white", color="white"),
+        plot_background=element_rect(fill="white", color="white"),
+        panel_grid_major=element_blank(),
+        panel_grid_minor=element_blank(),
+        axis_line_x=element_line(color="black", size=0.8),
+        axis_line_y=element_line(color="black", size=0.8),
+        axis_ticks_major=element_line(color="black", size=0.8),
+        axis_ticks_minor=element_blank(),
+        axis_text_x=element_text(size=12, family="serif", color="#333333"),
+        axis_text_y=element_text(size=11, family="serif", color="#333333", weight="bold"),
+        axis_title_x=element_text(size=12, family="serif", color="#333333", margin={"t": 10}),
+        plot_title=element_text(size=24, family="serif", color="black"),
+        plot_subtitle=element_text(size=17, family="serif", color="black"),
+    )
+)
+
+p_collider
+```
+
+The two posteriors answer different questions.
+
+In the **full population**, the posterior for $\beta_{\text{smart}}$ is close to zero. This is what we expect, because `Smart` and `Athletic` were generated independently. The path
+
+$$\text{Smart} \rightarrow \text{Admitted} \leftarrow \text{Athletic}$$
+
+is closed until we condition on `Admitted`.
+
+When we **include `Admitted` as a covariate**, the posterior for $\beta_{\text{smart}}$ moves away from zero. This is regression conditioning: the model asks whether `Smart` and `Athletic` are associated after holding admission status fixed. Since admission is a common effect of both traits, holding it fixed opens the collider path. The resulting association is not a causal effect of `Smart` on `Athletic`, or of `Athletic` on `Smart`. It is created by conditioning on their shared outcome.
+
+So the practical answer is:
+
+- If the estimand is the relationship between `Smart` and `Athletic` in the full population, **do not condition on `Admitted`**.
+- If the estimand is a descriptive association at fixed admission status, then including `Admitted` as a covariate is conditioning on the collider.
+
+[For a collider, conditioning is not a harmless adjustment. It changes a closed path into an open path and can manufacture an association between two variables that do not cause each other.]{.highlight-key-point}
+
+
 :::
 ::::
+
+The fourth and final structure is the **descendant** structure:
+
+![Descendant structure.](img/descendant_structure.png){#fig-descendant-structure width="50%"}
+
+
+
+
 
 ##### How do path structures guide conditioning decisions for [$s$]{style="color:#bf616a"}?
 
