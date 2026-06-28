@@ -1800,6 +1800,8 @@ This is the collider intuition: once we know the shared outcome occurred, learni
 
 Let's simulate the same collider structure using the university admissions example:
 
+![Collider example DAG.](img/collider_example.png){#fig-collider-example width="75%"}
+
 $$\text{Smart} \rightarrow \text{Admitted} \leftarrow \text{Athletic}$$
 
 The important setup is that `Smart` and `Athletic` are uncorrelated traits in the full population. Here we draw both as continuous standard-normal variables and make them independent by construction:
