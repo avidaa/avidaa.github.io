@@ -1776,7 +1776,7 @@ But once we condition on the collider, information can flow through it:
 
 $$X \not\!\perp\!\!\!\perp Y \mid Z$$
 
-This can create an association between $X$ and $Y$ even when neither causes the other. The association is not evidence of a causal relationship between the endpoints; it is a consequence of conditioning on a shared outcome. This is called **collider bias** or **selection bias**.
+This can create an association between $X$ and $Y$ even when neither causes the other. The association is not evidence of a causal relationship between the endpoints; it is a consequence of conditioning on a shared outcome. This is called **collider bias**; when the conditioning happens through sample inclusion, this is often called **selection bias**.
 
 [The practical rule is: do not condition on a collider, or on a variable downstream of a collider, unless the estimand specifically requires it and the induced bias is understood.]{.highlight-key-point}
 
@@ -2174,9 +2174,38 @@ The fourth and final structure is the **descendant** structure:
 
 ![Descendant structure.](img/descendant_structure.png){#fig-descendant-structure width="50%"}
 
+A descendant is any variable that lies downstream of another variable. In the structure here, $D$ is a descendant of the collider $Z$:
+
+$$X \rightarrow Z \leftarrow Y$$
+
+$$Z \rightarrow D$$
+
+Because $D$ is caused by $Z$, learning about $D$ gives us information about $Z$. So even if we do not condition directly on the collider $Z$, conditioning on its descendant $D$ can still open the otherwise closed path between $X$ and $Y$:
+
+$$X \not\!\perp\!\!\!\perp Y \mid D$$
 
 
+[Conditioning on a descendant of a collider can open the collider path indirectly. The problem is not only conditioning on the shared outcome itself, but also conditioning on variables that reveal information about that shared outcome.]{.highlight-key-point}
 
+::: {.callout-tip icon="false" collapse="true"}
+## Intuitive example of a descendant structure
+
+Return to the university admissions example. Suppose `Smart` and `Athletic` are independent traits in the applicant population, but both can help a student get admitted:
+
+$$\text{Smart} \rightarrow \text{Admitted} \leftarrow \text{Athletic}$$
+
+Now add one more variable: whether the student appears in the university's student database. A student appears in that database only after being admitted and enrolling. So database membership is downstream of admission:
+
+$$\text{Admitted} \rightarrow \text{In university database}$$
+
+`Admitted` is still the collider. `In university database` is not itself the collider; it is a downstream consequence of it. If we analyze only people in the database, we are using a variable that carries information about admission, so `Smart` and `Athletic` can still begin to explain away each other:
+
+
+$$\text{Smart} \not\!\perp\!\!\!\perp \text{Athletic} \mid \text{In university database}$$
+
+[Conditioning on a downstream variable can act like a noisy version of conditioning on the collider itself. The more informative the descendant is about the collider, the more it can induce the same selection-driven association.]{.highlight-key-point}
+
+:::
 
 ##### How do path structures guide conditioning decisions for [$s$]{style="color:#bf616a"}?
 
