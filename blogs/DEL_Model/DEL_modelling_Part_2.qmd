@@ -1430,7 +1430,7 @@ $$\text{True direct effect of Exercise (Exercise} \rightarrow \text{Blood Pressu
 $$\text{True mediated path (WeightLoss} \rightarrow \text{Blood Pressure | Exercise)} = -2 \text{ mmHg per unit}$$
 
 ```{python}
-# ── Data-generating process ───────────────────────────────────────────────
+# Data-generating process 
 rng_pipe   = np.random.default_rng(42)
 n_pipe     = 1000
 
@@ -1467,7 +1467,7 @@ pipe_plot_df = pd.DataFrame({
 
 COLORS = {"0": "#5e81ac", "1": "#bf616a"}
 
-# ── Panel 1: WeightLoss by Exercise (X → Z) ──────────────────────────────
+# Panel 1: WeightLoss by Exercise (X → Z) 
 p_xz = (
     ggplot(pipe_plot_df, aes(x="Exercise", y="WeightLoss", color="Exercise", fill="Exercise"))
     + geom_jitter(width=0.15, alpha=0.30, size=1.5)
@@ -1576,7 +1576,7 @@ In Model 2, conditioning on `WeightLoss` blocks the mediated path, so $\beta_{\t
 
 ```{python}
 
-# ── Model 1: total effect (no conditioning on WeightLoss) ─────────────────
+# Model 1: total effect (no conditioning on WeightLoss) 
 def total_effect_model(exercise, bp):
     alpha    = pyro.sample("alpha",   dist.Normal(120.0, 10.0))
     beta_ex  = pyro.sample("beta_ex", dist.Normal(0.0,   5.0))
@@ -1586,7 +1586,7 @@ def total_effect_model(exercise, bp):
         pyro.sample("bp", dist.Normal(mu, sigma), obs=bp)
 
 
-# ── Model 2: direct effect (conditioning on WeightLoss) ───────────────────
+# Model 2: direct effect (conditioning on WeightLoss) 
 def direct_effect_model(exercise, weight_loss, bp):
     alpha    = pyro.sample("alpha",   dist.Normal(120.0, 10.0))
     beta_ex  = pyro.sample("beta_ex", dist.Normal(0.0,   5.0))
@@ -1820,7 +1820,7 @@ admitted = (admission_score >= admission_threshold).astype(int)
 ```
  Here is the full population data-generating process with `Admitted` as a collider:
 ```{python}
-# ── Full population data-generating process ───────────────────────────────
+# Full population data-generating process 
 rng_collider = np.random.default_rng(42)
 
 n_population = 2000
@@ -1895,7 +1895,7 @@ full_population_corr = population_df[["Smart", "Athletic"]].corr().iloc[0, 1]
 Now suppose we only look at admitted students. This is equivalent to conditioning on the collider `Admitted`.
 
 ```{python}
-# ── Selected sample: admitted students only ───────────────────────────────
+# ── Selected sample: admitted students only 
 admitted_df = population_df.query("Admitted == 1").copy()
 ```
 
@@ -2204,6 +2204,61 @@ $$\text{Admitted} \rightarrow \text{In university database}$$
 $$\text{Smart} \not\!\perp\!\!\!\perp \text{Athletic} \mid \text{In university database}$$
 
 [Conditioning on a downstream variable can act like a noisy version of conditioning on the collider itself. The more informative the descendant is about the collider, the more it can induce the same selection-driven association.]{.highlight-key-point}
+
+::: {.callout-note icon="false" collapse="true"}
+## Code for the descendant example
+
+Let's simulate some data to illustrate the descendant example. We will create a simple dataset where `Smart` and `Athletic` are independent traits in the applicant population, but both can help a student get admitted. We will then add one more variable: whether the student appears in the university's student database. Database membership is downstream of admission, but it is noisy: some admitted students are missing because it takes time to add them to the system, and a small number of non-admitted applicants can appear because of administrative errors.
+
+![Descendant example DAG.](img/descendant_example.png){#fig-descendant-example width="75%"}
+
+```{python}
+# Descendant example: database membership as a noisy proxy for admission
+rng_descendant = np.random.default_rng(123)
+
+n_applicants = 5000
+
+# Controls how noisy the descendant is.
+# Higher values mean more admitted students are still missing from the database.
+database_delay_noise = 0.30
+
+# Optional administrative/data-entry noise.
+database_false_positive_rate = 0.01
+
+smart = rng_descendant.normal(0, 1, n_applicants)
+athletic = rng_descendant.normal(0, 1, n_applicants)
+
+# Admission is the collider: both traits can help a student clear the threshold.
+admission_score = smart + athletic
+admission_threshold = np.quantile(admission_score, 0.80)
+admitted = (admission_score >= admission_threshold).astype(int)
+
+# Database membership is a descendant of admission.
+# Because adding admitted students takes time, some admitted students are not
+# yet visible in the database. A small false-positive rate represents occasional
+# administrative errors.
+p_in_database = np.where(
+    admitted == 1,
+    1.0 - database_delay_noise,
+    database_false_positive_rate,
+)
+in_university_database = rng_descendant.binomial(1, p_in_database)
+
+descendant_df = pd.DataFrame({
+    "Smart": smart,
+    "Athletic": athletic,
+    "Admitted": admitted,
+    "InUniversityDatabase": in_university_database,
+})
+
+descendant_df.head()
+
+```
+
+#### Summary of the simulated data
+
+Let's plot the simulated data to see the associations between the variables.
+
 
 :::
 
