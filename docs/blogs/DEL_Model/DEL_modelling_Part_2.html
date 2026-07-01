@@ -189,6 +189,7 @@ window.Quarto = {
   <ul class="collapse">
   <li><a href="#state-the-causal-assumptions-dag-first" id="toc-state-the-causal-assumptions-dag-first" class="nav-link" data-scroll-target="#state-the-causal-assumptions-dag-first">State the causal assumptions (DAG first)</a></li>
   </ul></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References:</a></li>
   </ul>
 </nav>
     </div>
@@ -269,7 +270,7 @@ Compare candidate models using posterior predictive checks and, where useful, WA
 Once a model is both causally coherent and predictively adequate, use the posterior to interpret target-binding propensity, uncertainty, and causal contrasts justified by the DAG.</p></li>
 </ol>
 <section id="state-the-causal-assumptions-dag-first" class="level3">
-<h3 class="anchored">State the causal assumptions (DAG first)</h3>
+<h3 class="anchored" data-anchor-id="state-the-causal-assumptions-dag-first">State the causal assumptions (DAG first)</h3>
 <p>The first step in the Bayesian workflow is to make the causal assumptions explicit as a directed acyclic graph (DAG). In our DAG, <strong>an observation is represented as a square node</strong>, <strong>a latent variable (unobserved) as a circle</strong>, and <strong>causal relationships are represented as directed edges between nodes</strong>. We build the DAG incrementally, starting from what is measured and then introducing the latent quantities needed to explain it.</p>
 <p>For a single compound, the experiment yields three observed counts:</p>
 <ul>
@@ -341,7 +342,7 @@ A DAG does not guarantee valid inference. It only specifies the assumed causal s
 </div>
 </div>
 <section id="which-variables-should-and-should-not-be-conditioned-on" class="level4">
-<h4 class="anchored">Which variables should and should not be conditioned on?</h4>
+<h4 class="anchored" data-anchor-id="which-variables-should-and-should-not-be-conditioned-on">Which variables should and should not be conditioned on?</h4>
 <p>Our goal is to infer the target-binding propensity <span style="color:#bf616a"><span class="math inline">\(s\)</span></span>. To do this, we need to understand how information about <span style="color:#bf616a"><span class="math inline">\(s\)</span></span> flows through the DAG. This is where the concepts of <strong>path</strong>, <strong>open and closed paths</strong>, <strong>four elemental confounds</strong> (as described by McElreath - second edition of statistical rethinking, Figure 6.6) come in.</p>
 <section id="what-is-a-path-in-a-dag" class="level5">
 <h5 class="anchored" data-anchor-id="what-is-a-path-in-a-dag">What is a path in a DAG?</h5>
@@ -468,7 +469,7 @@ Figure&nbsp;5: Fork example DAG.
 </figcaption>
 </figure>
 </div>
-<div id="39656b99" class="cell" data-execution_count="1">
+<div id="f65ed839" class="cell" data-execution_count="1">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -571,7 +572,7 @@ Figure&nbsp;5: Fork example DAG.
 <h5 class="anchored" data-anchor-id="summary-of-the-simulated-data">Summary of the simulated data</h5>
 <p>Let’s plot the simulated data to see the associations between the variables.</p>
 <p>Starting with the raw association between Umbrella and GettingWet:</p>
-<div id="73e998bf" class="cell" data-execution_count="2">
+<div id="207b3a63" class="cell" data-execution_count="2">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
@@ -651,7 +652,7 @@ Figure&nbsp;5: Fork example DAG.
 </div>
 </div>
 <p>And, stratified association by Weather, that show what happens after blocking the backdoor path:</p>
-<div id="bec71f7e" class="cell" data-execution_count="3">
+<div id="ab010378" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>strat_counts <span class="op">=</span> (</span>
@@ -755,7 +756,7 @@ Figure&nbsp;6: Association between carrying an umbrella and getting wet.
 <p>The priors are weakly informative Normal(0, 2) distributions on each coefficient, which keep the logit-scale effects within a plausible range (<span class="math inline">\(\pm 4\)</span>) while placing no strong prior preference on direction:</p>
 <p><span class="math display">\[ \alpha \sim \text{Normal}(0, 2), \quad \beta_{\text{umbrella}} \sim \text{Normal}(0, 2), \quad \beta_{\text{weather}} \sim \text{Normal}(0, 2) \]</span></p>
 <p>Both models are fitted via NUTS (No-U-Turn Sampler) using Pyro. The key quantity of interest is <span class="math inline">\(\beta_{\text{umbrella}}\)</span>: comparing its posterior between the two models shows how much of the raw umbrella–wet association disappears once weather is held fixed.</p>
-<div id="afd0855b" class="cell" data-execution_count="4">
+<div id="e62c69fe" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
@@ -1226,7 +1227,7 @@ Figure&nbsp;9: One-sided sensitivity analysis: higher assumed hidden bias shifts
 </figcaption>
 </figure>
 </div>
-<div id="002234fa" class="cell" data-execution_count="5">
+<div id="563d1ba4" class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -1368,7 +1369,7 @@ Figure&nbsp;10: Sensitivity analysis for umbrella example
 <p>For each observed pair <span class="math inline">\((U_i, G_i)\)</span>, how likely is this observation if the hidden weather state was dry, and how likely is it if the hidden weather state was rainy? It then averages those two possibilities according to the estimated probability of each weather state.</p>
 <p>Because Weather is never observed, the model must infer it entirely from the joint pattern of Umbrella and GettingWet. That means the <strong>result depends strongly on the assumed model form, the priors, and the assumption that a binary latent Weather variable is a reasonable representation of the hidden common cause</strong>.</p>
 <p><span class="highlight-key-point">So the latent variable model gives us a more mechanistic version of the hidden-confounding story, but it is not assumption-free. The sensitivity analysis is weaker but more transparent; the latent variable model is more structural but more model-dependent.</span></p>
-<div id="de209ea6" class="cell" data-execution_count="6">
+<div id="87ce261a" class="cell" data-execution_count="6">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> latent_weather_model(umbrella, wet):</span>
@@ -1748,7 +1749,7 @@ findfont: Generic family 'serif' not found because none of the following familie
 <div class="callout-body-container callout-body">
 <p>The weak identification we saw above is not unique to latent-variable models. It belongs to a broader class of difficulties that arise whenever the data and model structure are not informative enough to pin down a parameter’s value. This can happen because of a modelling mistake, but it also occurs in perfectly correct models.</p>
 <p>A practical signal of weak identification is that the posterior looks a lot like the prior. If the data carry little information about a parameter, Bayesian updating has little to update, and the posterior will closely track whatever prior we started with. Comparing the two is therefore a useful diagnostic: a posterior that remains wide and prior-shaped is not a sign that something went wrong, it is the correct answer to the question we asked. But it is also an invitation to ask a sharper question, <strong>collect more data</strong>, or reconsider whether the parameter is estimable at all given the available evidence.</p>
-<div id="a85de179" class="cell" data-execution_count="7">
+<div id="18025ad6" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>rng_ident <span class="op">=</span> np.random.default_rng(<span class="dv">42</span>)</span>
@@ -2137,7 +2138,7 @@ Figure&nbsp;15: Pipe example DAG.
 <p><span class="math display">\[\text{True total effect of Exercise (Exercise} \rightarrow \text{Blood Pressure)} = 0.5 \times (-2) = -1 \text{ mmHg}\]</span></p>
 <p><span class="math display">\[\text{True direct effect of Exercise (Exercise} \rightarrow \text{Blood Pressure | WeightLoss)} = 0\]</span></p>
 <p><span class="math display">\[\text{True mediated path (WeightLoss} \rightarrow \text{Blood Pressure | Exercise)} = -2 \text{ mmHg per unit}\]</span></p>
-<div id="718623cc" class="cell" data-execution_count="8">
+<div id="32117f97" class="cell" data-execution_count="8">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Data-generating process </span></span>
@@ -2212,7 +2213,7 @@ Figure&nbsp;15: Pipe example DAG.
 <section id="summary-of-the-simulated-data-1" class="level5">
 <h5 class="anchored" data-anchor-id="summary-of-the-simulated-data-1">Summary of the simulated data</h5>
 <p>Let’s plot the simulated data to see the associations between the variables.</p>
-<div id="15babe9e" class="cell" data-execution_count="9">
+<div id="eb79b126" class="cell" data-execution_count="9">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> plotnine <span class="im">import</span> geom_jitter, geom_boxplot, geom_smooth, scale_color_manual, scale_fill_manual, theme_minimal, geom_point</span>
@@ -2321,7 +2322,7 @@ Figure&nbsp;15: Pipe example DAG.
 <p><span class="math display">\[\text{BP}_i \sim \mathcal{N}(\mu_i,\, \sigma)\]</span></p>
 <p>In Model 1, <span class="math inline">\(\beta_{\text{ex}}\)</span> captures the <strong>total effect</strong> of exercise: that is, everything that reaches blood pressure through any path, including through weight loss.</p>
 <p>In Model 2, conditioning on <code>WeightLoss</code> blocks the mediated path, so <span class="math inline">\(\beta_{\text{ex}}\)</span> estimates only the <strong>direct effect</strong> that bypasses the mediator, and <span class="math inline">\(\beta_{\text{wl}}\)</span> isolates the weight-loss-to-blood-pressure relationship.</p>
-<div id="4ca6b4cc" class="cell" data-execution_count="10">
+<div id="cf5c8189" class="cell" data-execution_count="10">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Model 1: total effect (no conditioning on WeightLoss) </span></span>
@@ -2357,7 +2358,7 @@ Figure&nbsp;15: Pipe example DAG.
 <span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>post_direct_pipe <span class="op">=</span> run_pipe_mcmc(direct_effect_model, ex_t, wl_t, bp_t)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="d4a2c1a6" class="cell" data-execution_count="11">
+<div id="5cf58986" class="cell" data-execution_count="11">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>draws_pipe <span class="op">=</span> {</span>
@@ -2710,7 +2711,7 @@ Figure&nbsp;17: Collider example DAG.
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>admission_threshold <span class="op">=</span> np.quantile(admission_score, <span class="fl">0.8</span>)</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>admitted <span class="op">=</span> (admission_score <span class="op">&gt;=</span> admission_threshold).astype(<span class="bu">int</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Here is the full population data-generating process with <code>Admitted</code> as a collider:</p>
-<div id="e377a214" class="cell" data-execution_count="12">
+<div id="e05fddd9" class="cell" data-execution_count="12">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Full population data-generating process </span></span>
@@ -2788,7 +2789,7 @@ Figure&nbsp;17: Collider example DAG.
 <section id="summary-of-the-simulated-data-2" class="level5">
 <h5 class="anchored" data-anchor-id="summary-of-the-simulated-data-2">Summary of the simulated data</h5>
 <p>Let’s plot the relationship between <code>Smart</code> and <code>Athletic</code> in the full population:</p>
-<div id="9d7504f0" class="cell" data-execution_count="13">
+<div id="94f270a2" class="cell" data-execution_count="13">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> plotnine <span class="im">import</span> (</span>
@@ -2842,7 +2843,7 @@ Figure&nbsp;17: Collider example DAG.
 </div>
 </div>
 <p>Now suppose we only look at admitted students. This is equivalent to conditioning on the collider <code>Admitted</code>.</p>
-<div id="619b94de" class="cell" data-execution_count="14">
+<div id="71ab5fb7" class="cell" data-execution_count="14">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ── Selected sample: admitted students only </span></span>
@@ -2850,7 +2851,7 @@ Figure&nbsp;17: Collider example DAG.
 </details>
 </div>
 <p>Among admitted students, <code>Smart</code> and <code>Athletic</code> are no longer independent:</p>
-<div id="4c8903eb" class="cell" data-execution_count="15">
+<div id="eab3f2b3" class="cell" data-execution_count="15">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate the correlation</span></span>
@@ -2920,7 +2921,7 @@ Figure&nbsp;17: Collider example DAG.
 <p><span class="math display">\[\text{Athletic}_i \sim \mathcal{N}(\mu_i,\, \sigma)\]</span></p>
 <p>This model uses the full population but includes the collider as a covariate. The coefficient <span class="math inline">\(\beta_{\text{smart}}\)</span> is now a conditional association: how <code>Athletic</code> changes with <code>Smart</code> among observations with the same value of <code>Admitted</code>, averaged across the admitted and not-admitted strata by the model.</p>
 <p>If the collider logic is correct, the posterior for <span class="math inline">\(\beta_{\text{smart}}\)</span> should move away from zero in the conditioned model, even though <code>Smart</code> has no causal effect on <code>Athletic</code>.</p>
-<div id="3b8b0dce" class="cell" data-execution_count="16">
+<div id="9645c07e" class="cell" data-execution_count="16">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>smart_full_t <span class="op">=</span> torch.tensor(population_df[<span class="st">"Smart"</span>].values, dtype<span class="op">=</span>torch.float32)</span>
@@ -2958,7 +2959,7 @@ Figure&nbsp;17: Collider example DAG.
 <span id="cb22-33"><a href="#cb22-33" aria-hidden="true" tabindex="-1"></a>post_adjusted_collider <span class="op">=</span> run_collider_mcmc(smart_full_t, athletic_full_t, admitted_full_t)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="02305c98" class="cell" data-execution_count="17">
+<div id="e2f35c1d" class="cell" data-execution_count="17">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>draws_collider <span class="op">=</span> {</span>
@@ -3259,7 +3260,7 @@ Figure&nbsp;19: Descendant example DAG.
 </figcaption>
 </figure>
 </div>
-<div id="b3c85487" class="cell" data-execution_count="18">
+<div id="af9c822b" class="cell" data-execution_count="18">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Descendant example: database membership as a noisy proxy for admission</span></span>
@@ -3365,6 +3366,10 @@ Figure&nbsp;19: Descendant example DAG.
 </div>
 </div>
 </div>
+</div>
+</div>
+</div>
+</section>
 <section id="how-do-path-structures-guide-conditioning-decisions-for-s" class="level5">
 <h5 class="anchored" data-anchor-id="how-do-path-structures-guide-conditioning-decisions-for-s">How do path structures guide conditioning decisions for <span style="color:#bf616a"><span class="math inline">\(s\)</span></span>?</h5>
 <p>Here, one important role of the DAG is to help us decide which variables it makes sense to condition on, and which ones we should avoid conditioning on, when estimating the target-binding propensity <span style="color:#bf616a"><span class="math inline">\(s\)</span></span>. To do this, we follow the recipe suggested by McElreath in Chapter 6 of the second edition of <em>Statistical Rethinking</em>:</p>
@@ -3378,6 +3383,9 @@ Figure&nbsp;19: Descendant example DAG.
 <p>For the DEL model, this means we should not ask only whether a variable is predictive of <span style="color:#d08770"><span class="math inline">\(C_t\)</span></span>. We should ask what role it plays in the DAG. A variable can be predictive because it is a cause, a mediator, a confounder, or a collider. These cases imply different modelling choices.</p>
 <p><span class="highlight-key-point">The DAG turns variable selection into a causal question: condition on variables that block unwanted backdoor paths, avoid conditioning on colliders, and condition on mediators only when the target estimand is a direct effect.</span></p>
 </section>
+</section>
+</section>
+</section>
 <section id="references" class="level2">
 <h2 class="anchored" data-anchor-id="references">References:</h2>
 <ul>
@@ -3388,13 +3396,6 @@ Figure&nbsp;19: Descendant example DAG.
 </ul>
 
 
-</section>
-</div>
-</div>
-</div>
-</section>
-</section>
-</section>
 </section>
 
 </main> <!-- /main -->
