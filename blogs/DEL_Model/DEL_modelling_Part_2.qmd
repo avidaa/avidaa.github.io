@@ -2262,6 +2262,8 @@ Let's plot the simulated data to see the associations between the variables.
 
 :::
 
+:::
+
 ##### How do path structures guide conditioning decisions for [$s$]{style="color:#bf616a"}?
 
 Here, one important role of the DAG is to help us decide which variables it makes sense to condition on, and which ones we should avoid conditioning on, when estimating the target-binding propensity [$s$]{style="color:#bf616a"}. To do this, we follow the recipe suggested by McElreath in Chapter 6 of the second edition of *Statistical Rethinking*:
