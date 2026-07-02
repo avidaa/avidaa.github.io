@@ -2257,7 +2257,105 @@ descendant_df.head()
 
 #### Summary of the simulated data
 
-Let's plot the simulated data to see the associations between the variables.
+The `InUniversityDatabase` variable is a noisy proxy for the `Admitted` variable:
+
+```{python}
+descendant_df[["Admitted", "InUniversityDatabase"]].corr().iloc[0, 1]
+```
+
+It is not itself the collider, but it is a downstream consequence of it. Let's plot the simulated data to see the associations between `Smart` and `Athletic` in the full population, and when we condition on the `Admitted` variable, and when we condition on the `InUniversityDatabase` variable:
+
+
+```{python}
+from plotnine import (
+    ggplot,
+    aes,
+    geom_point,
+    geom_smooth,
+    geom_text,
+    facet_wrap,
+    labs,
+    theme_minimal,
+    theme,
+    element_text,
+)
+
+plot_full_df = descendant_df.assign(
+    Sample="Full applicant population"
+)
+
+plot_admitted_df = descendant_df.query("Admitted == 1").assign(
+    Sample="Condition on Admitted"
+)
+
+plot_database_df = descendant_df.query("InUniversityDatabase == 1").assign(
+    Sample="Condition on Student Database"
+)
+
+descendant_plot_df = pd.concat(
+    [plot_full_df, plot_admitted_df, plot_database_df],
+    ignore_index=True,
+)
+
+sample_order = [
+    "Full applicant population",
+    "Condition on Admitted",
+    "Condition on Student Database",
+]
+
+descendant_plot_df["Sample"] = pd.Categorical(
+    descendant_plot_df["Sample"],
+    categories=sample_order,
+    ordered=True,
+)
+
+descendant_corr_df = (
+    descendant_plot_df
+    .groupby("Sample", observed=True)
+    .apply(
+        lambda df: pd.Series({
+            "corr": df[["Smart", "Athletic"]].corr().iloc[0, 1],
+            "x": df["Smart"].min() + 0.25,
+            "y": df["Athletic"].max() - 0.25,
+        })
+    )
+    .reset_index()
+)
+
+descendant_corr_df["label"] = descendant_corr_df["corr"].map(
+    lambda corr: f"corr = {corr:.2f}"
+)
+
+(
+    ggplot(descendant_plot_df, aes(x="Smart", y="Athletic"))
+    + geom_point(alpha=0.25, size=0.8)
+    + geom_smooth(method="lm", se=False, color="#bf616a")
+    + geom_text(
+        descendant_corr_df,
+        aes(x="x", y="y", label="label"),
+        inherit_aes=False,
+        ha="left",
+        va="top",
+        size=9,
+    )
+    + facet_wrap("~Sample", nrow=1)
+    + labs(
+        title="Conditioning on a descendant partially opens the collider path",
+        subtitle=(
+            "Smart and Athletic are independent in the full population, "
+            "but become associated after conditioning on Admitted or its noisy descendant."
+        ),
+        x="Smart",
+        y="Athletic",
+    )
+    + theme_minimal()
+    + theme(
+        figure_size=(12, 4.2),
+        plot_title=element_text(weight="bold"),
+    )
+)
+```
+
 
 
 :::
