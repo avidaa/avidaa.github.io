@@ -469,7 +469,7 @@ Figure&nbsp;5: Fork example DAG.
 </figcaption>
 </figure>
 </div>
-<div id="f65ed839" class="cell" data-execution_count="1">
+<div id="dd2ba0f8" class="cell" data-execution_count="1">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -572,7 +572,7 @@ Figure&nbsp;5: Fork example DAG.
 <h5 class="anchored" data-anchor-id="summary-of-the-simulated-data">Summary of the simulated data</h5>
 <p>Let’s plot the simulated data to see the associations between the variables.</p>
 <p>Starting with the raw association between Umbrella and GettingWet:</p>
-<div id="207b3a63" class="cell" data-execution_count="2">
+<div id="0dacfc2f" class="cell" data-execution_count="2">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
@@ -652,7 +652,7 @@ Figure&nbsp;5: Fork example DAG.
 </div>
 </div>
 <p>And, stratified association by Weather, that show what happens after blocking the backdoor path:</p>
-<div id="ab010378" class="cell" data-execution_count="3">
+<div id="740d0e1f" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>strat_counts <span class="op">=</span> (</span>
@@ -756,7 +756,7 @@ Figure&nbsp;6: Association between carrying an umbrella and getting wet.
 <p>The priors are weakly informative Normal(0, 2) distributions on each coefficient, which keep the logit-scale effects within a plausible range (<span class="math inline">\(\pm 4\)</span>) while placing no strong prior preference on direction:</p>
 <p><span class="math display">\[ \alpha \sim \text{Normal}(0, 2), \quad \beta_{\text{umbrella}} \sim \text{Normal}(0, 2), \quad \beta_{\text{weather}} \sim \text{Normal}(0, 2) \]</span></p>
 <p>Both models are fitted via NUTS (No-U-Turn Sampler) using Pyro. The key quantity of interest is <span class="math inline">\(\beta_{\text{umbrella}}\)</span>: comparing its posterior between the two models shows how much of the raw umbrella–wet association disappears once weather is held fixed.</p>
-<div id="e62c69fe" class="cell" data-execution_count="4">
+<div id="84b25703" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
@@ -1227,7 +1227,7 @@ Figure&nbsp;9: One-sided sensitivity analysis: higher assumed hidden bias shifts
 </figcaption>
 </figure>
 </div>
-<div id="563d1ba4" class="cell" data-execution_count="5">
+<div id="e7b1824a" class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -1369,7 +1369,7 @@ Figure&nbsp;10: Sensitivity analysis for umbrella example
 <p>For each observed pair <span class="math inline">\((U_i, G_i)\)</span>, how likely is this observation if the hidden weather state was dry, and how likely is it if the hidden weather state was rainy? It then averages those two possibilities according to the estimated probability of each weather state.</p>
 <p>Because Weather is never observed, the model must infer it entirely from the joint pattern of Umbrella and GettingWet. That means the <strong>result depends strongly on the assumed model form, the priors, and the assumption that a binary latent Weather variable is a reasonable representation of the hidden common cause</strong>.</p>
 <p><span class="highlight-key-point">So the latent variable model gives us a more mechanistic version of the hidden-confounding story, but it is not assumption-free. The sensitivity analysis is weaker but more transparent; the latent variable model is more structural but more model-dependent.</span></p>
-<div id="87ce261a" class="cell" data-execution_count="6">
+<div id="4cac675d" class="cell" data-execution_count="6">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> latent_weather_model(umbrella, wet):</span>
@@ -1749,7 +1749,7 @@ findfont: Generic family 'serif' not found because none of the following familie
 <div class="callout-body-container callout-body">
 <p>The weak identification we saw above is not unique to latent-variable models. It belongs to a broader class of difficulties that arise whenever the data and model structure are not informative enough to pin down a parameter’s value. This can happen because of a modelling mistake, but it also occurs in perfectly correct models.</p>
 <p>A practical signal of weak identification is that the posterior looks a lot like the prior. If the data carry little information about a parameter, Bayesian updating has little to update, and the posterior will closely track whatever prior we started with. Comparing the two is therefore a useful diagnostic: a posterior that remains wide and prior-shaped is not a sign that something went wrong, it is the correct answer to the question we asked. But it is also an invitation to ask a sharper question, <strong>collect more data</strong>, or reconsider whether the parameter is estimable at all given the available evidence.</p>
-<div id="18025ad6" class="cell" data-execution_count="7">
+<div id="b2e93155" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>rng_ident <span class="op">=</span> np.random.default_rng(<span class="dv">42</span>)</span>
@@ -2138,7 +2138,7 @@ Figure&nbsp;15: Pipe example DAG.
 <p><span class="math display">\[\text{True total effect of Exercise (Exercise} \rightarrow \text{Blood Pressure)} = 0.5 \times (-2) = -1 \text{ mmHg}\]</span></p>
 <p><span class="math display">\[\text{True direct effect of Exercise (Exercise} \rightarrow \text{Blood Pressure | WeightLoss)} = 0\]</span></p>
 <p><span class="math display">\[\text{True mediated path (WeightLoss} \rightarrow \text{Blood Pressure | Exercise)} = -2 \text{ mmHg per unit}\]</span></p>
-<div id="32117f97" class="cell" data-execution_count="8">
+<div id="47a53375" class="cell" data-execution_count="8">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Data-generating process </span></span>
@@ -2213,7 +2213,7 @@ Figure&nbsp;15: Pipe example DAG.
 <section id="summary-of-the-simulated-data-1" class="level5">
 <h5 class="anchored" data-anchor-id="summary-of-the-simulated-data-1">Summary of the simulated data</h5>
 <p>Let’s plot the simulated data to see the associations between the variables.</p>
-<div id="eb79b126" class="cell" data-execution_count="9">
+<div id="4207a151" class="cell" data-execution_count="9">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> plotnine <span class="im">import</span> geom_jitter, geom_boxplot, geom_smooth, scale_color_manual, scale_fill_manual, theme_minimal, geom_point</span>
@@ -2322,7 +2322,7 @@ Figure&nbsp;15: Pipe example DAG.
 <p><span class="math display">\[\text{BP}_i \sim \mathcal{N}(\mu_i,\, \sigma)\]</span></p>
 <p>In Model 1, <span class="math inline">\(\beta_{\text{ex}}\)</span> captures the <strong>total effect</strong> of exercise: that is, everything that reaches blood pressure through any path, including through weight loss.</p>
 <p>In Model 2, conditioning on <code>WeightLoss</code> blocks the mediated path, so <span class="math inline">\(\beta_{\text{ex}}\)</span> estimates only the <strong>direct effect</strong> that bypasses the mediator, and <span class="math inline">\(\beta_{\text{wl}}\)</span> isolates the weight-loss-to-blood-pressure relationship.</p>
-<div id="cf5c8189" class="cell" data-execution_count="10">
+<div id="8664aaee" class="cell" data-execution_count="10">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Model 1: total effect (no conditioning on WeightLoss) </span></span>
@@ -2358,7 +2358,7 @@ Figure&nbsp;15: Pipe example DAG.
 <span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>post_direct_pipe <span class="op">=</span> run_pipe_mcmc(direct_effect_model, ex_t, wl_t, bp_t)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="5cf58986" class="cell" data-execution_count="11">
+<div id="41675e4a" class="cell" data-execution_count="11">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>draws_pipe <span class="op">=</span> {</span>
@@ -2711,7 +2711,7 @@ Figure&nbsp;17: Collider example DAG.
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>admission_threshold <span class="op">=</span> np.quantile(admission_score, <span class="fl">0.8</span>)</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>admitted <span class="op">=</span> (admission_score <span class="op">&gt;=</span> admission_threshold).astype(<span class="bu">int</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Here is the full population data-generating process with <code>Admitted</code> as a collider:</p>
-<div id="e05fddd9" class="cell" data-execution_count="12">
+<div id="85ccfacc" class="cell" data-execution_count="12">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Full population data-generating process </span></span>
@@ -2789,7 +2789,7 @@ Figure&nbsp;17: Collider example DAG.
 <section id="summary-of-the-simulated-data-2" class="level5">
 <h5 class="anchored" data-anchor-id="summary-of-the-simulated-data-2">Summary of the simulated data</h5>
 <p>Let’s plot the relationship between <code>Smart</code> and <code>Athletic</code> in the full population:</p>
-<div id="94f270a2" class="cell" data-execution_count="13">
+<div id="2dbf85a7" class="cell" data-execution_count="13">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> plotnine <span class="im">import</span> (</span>
@@ -2843,7 +2843,7 @@ Figure&nbsp;17: Collider example DAG.
 </div>
 </div>
 <p>Now suppose we only look at admitted students. This is equivalent to conditioning on the collider <code>Admitted</code>.</p>
-<div id="71ab5fb7" class="cell" data-execution_count="14">
+<div id="4c097dea" class="cell" data-execution_count="14">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ── Selected sample: admitted students only </span></span>
@@ -2851,7 +2851,7 @@ Figure&nbsp;17: Collider example DAG.
 </details>
 </div>
 <p>Among admitted students, <code>Smart</code> and <code>Athletic</code> are no longer independent:</p>
-<div id="eab3f2b3" class="cell" data-execution_count="15">
+<div id="134a66e0" class="cell" data-execution_count="15">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate the correlation</span></span>
@@ -2921,7 +2921,7 @@ Figure&nbsp;17: Collider example DAG.
 <p><span class="math display">\[\text{Athletic}_i \sim \mathcal{N}(\mu_i,\, \sigma)\]</span></p>
 <p>This model uses the full population but includes the collider as a covariate. The coefficient <span class="math inline">\(\beta_{\text{smart}}\)</span> is now a conditional association: how <code>Athletic</code> changes with <code>Smart</code> among observations with the same value of <code>Admitted</code>, averaged across the admitted and not-admitted strata by the model.</p>
 <p>If the collider logic is correct, the posterior for <span class="math inline">\(\beta_{\text{smart}}\)</span> should move away from zero in the conditioned model, even though <code>Smart</code> has no causal effect on <code>Athletic</code>.</p>
-<div id="9645c07e" class="cell" data-execution_count="16">
+<div id="d65ef2c1" class="cell" data-execution_count="16">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>smart_full_t <span class="op">=</span> torch.tensor(population_df[<span class="st">"Smart"</span>].values, dtype<span class="op">=</span>torch.float32)</span>
@@ -2959,7 +2959,7 @@ Figure&nbsp;17: Collider example DAG.
 <span id="cb22-33"><a href="#cb22-33" aria-hidden="true" tabindex="-1"></a>post_adjusted_collider <span class="op">=</span> run_collider_mcmc(smart_full_t, athletic_full_t, admitted_full_t)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="e2f35c1d" class="cell" data-execution_count="17">
+<div id="aae65d88" class="cell" data-execution_count="17">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>draws_collider <span class="op">=</span> {</span>
@@ -3260,7 +3260,7 @@ Figure&nbsp;19: Descendant example DAG.
 </figcaption>
 </figure>
 </div>
-<div id="af9c822b" class="cell" data-execution_count="18">
+<div id="ce2ac1ee" class="cell" data-execution_count="18">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Descendant example: database membership as a noisy proxy for admission</span></span>
@@ -3361,7 +3361,116 @@ Figure&nbsp;19: Descendant example DAG.
 </div>
 <section id="summary-of-the-simulated-data-3" class="level4">
 <h4 class="anchored" data-anchor-id="summary-of-the-simulated-data-3">Summary of the simulated data</h4>
-<p>Let’s plot the simulated data to see the associations between the variables.</p>
+<p>The <code>InUniversityDatabase</code> variable is a noisy proxy for the <code>Admitted</code> variable:</p>
+<div id="67b59979" class="cell" data-execution_count="19">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>descendant_df[[<span class="st">"Admitted"</span>, <span class="st">"InUniversityDatabase"</span>]].corr().iloc[<span class="dv">0</span>, <span class="dv">1</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="19">
+<pre><code>np.float64(0.7876968623335775)</code></pre>
+</div>
+</div>
+<p>It is not itself the collider, but it is a downstream consequence of it. Let’s plot the simulated data to see the associations between <code>Smart</code> and <code>Athletic</code> in the full population, and when we condition on the <code>Admitted</code> variable, and when we condition on the <code>InUniversityDatabase</code> variable:</p>
+<div id="7ad01f0a" class="cell" data-execution_count="20">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> plotnine <span class="im">import</span> (</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>    ggplot,</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    aes,</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    geom_point,</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>    geom_smooth,</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>    geom_text,</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>    facet_wrap,</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>    labs,</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>    theme_minimal,</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>    theme,</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>    element_text,</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>plot_full_df <span class="op">=</span> descendant_df.assign(</span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>    Sample<span class="op">=</span><span class="st">"Full applicant population"</span></span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>plot_admitted_df <span class="op">=</span> descendant_df.query(<span class="st">"Admitted == 1"</span>).assign(</span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a>    Sample<span class="op">=</span><span class="st">"Condition on Admitted"</span></span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a>plot_database_df <span class="op">=</span> descendant_df.query(<span class="st">"InUniversityDatabase == 1"</span>).assign(</span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a>    Sample<span class="op">=</span><span class="st">"Condition on Student Database"</span></span>
+<span id="cb28-24"><a href="#cb28-24" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb28-25"><a href="#cb28-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-26"><a href="#cb28-26" aria-hidden="true" tabindex="-1"></a>descendant_plot_df <span class="op">=</span> pd.concat(</span>
+<span id="cb28-27"><a href="#cb28-27" aria-hidden="true" tabindex="-1"></a>    [plot_full_df, plot_admitted_df, plot_database_df],</span>
+<span id="cb28-28"><a href="#cb28-28" aria-hidden="true" tabindex="-1"></a>    ignore_index<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb28-29"><a href="#cb28-29" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb28-30"><a href="#cb28-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-31"><a href="#cb28-31" aria-hidden="true" tabindex="-1"></a>sample_order <span class="op">=</span> [</span>
+<span id="cb28-32"><a href="#cb28-32" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Full applicant population"</span>,</span>
+<span id="cb28-33"><a href="#cb28-33" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Condition on Admitted"</span>,</span>
+<span id="cb28-34"><a href="#cb28-34" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Condition on Student Database"</span>,</span>
+<span id="cb28-35"><a href="#cb28-35" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb28-36"><a href="#cb28-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-37"><a href="#cb28-37" aria-hidden="true" tabindex="-1"></a>descendant_plot_df[<span class="st">"Sample"</span>] <span class="op">=</span> pd.Categorical(</span>
+<span id="cb28-38"><a href="#cb28-38" aria-hidden="true" tabindex="-1"></a>    descendant_plot_df[<span class="st">"Sample"</span>],</span>
+<span id="cb28-39"><a href="#cb28-39" aria-hidden="true" tabindex="-1"></a>    categories<span class="op">=</span>sample_order,</span>
+<span id="cb28-40"><a href="#cb28-40" aria-hidden="true" tabindex="-1"></a>    ordered<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb28-41"><a href="#cb28-41" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb28-42"><a href="#cb28-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-43"><a href="#cb28-43" aria-hidden="true" tabindex="-1"></a>descendant_corr_df <span class="op">=</span> (</span>
+<span id="cb28-44"><a href="#cb28-44" aria-hidden="true" tabindex="-1"></a>    descendant_plot_df</span>
+<span id="cb28-45"><a href="#cb28-45" aria-hidden="true" tabindex="-1"></a>    .groupby(<span class="st">"Sample"</span>, observed<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb28-46"><a href="#cb28-46" aria-hidden="true" tabindex="-1"></a>    .<span class="bu">apply</span>(</span>
+<span id="cb28-47"><a href="#cb28-47" aria-hidden="true" tabindex="-1"></a>        <span class="kw">lambda</span> df: pd.Series({</span>
+<span id="cb28-48"><a href="#cb28-48" aria-hidden="true" tabindex="-1"></a>            <span class="st">"corr"</span>: df[[<span class="st">"Smart"</span>, <span class="st">"Athletic"</span>]].corr().iloc[<span class="dv">0</span>, <span class="dv">1</span>],</span>
+<span id="cb28-49"><a href="#cb28-49" aria-hidden="true" tabindex="-1"></a>            <span class="st">"x"</span>: df[<span class="st">"Smart"</span>].<span class="bu">min</span>() <span class="op">+</span> <span class="fl">0.25</span>,</span>
+<span id="cb28-50"><a href="#cb28-50" aria-hidden="true" tabindex="-1"></a>            <span class="st">"y"</span>: df[<span class="st">"Athletic"</span>].<span class="bu">max</span>() <span class="op">-</span> <span class="fl">0.25</span>,</span>
+<span id="cb28-51"><a href="#cb28-51" aria-hidden="true" tabindex="-1"></a>        })</span>
+<span id="cb28-52"><a href="#cb28-52" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb28-53"><a href="#cb28-53" aria-hidden="true" tabindex="-1"></a>    .reset_index()</span>
+<span id="cb28-54"><a href="#cb28-54" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb28-55"><a href="#cb28-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-56"><a href="#cb28-56" aria-hidden="true" tabindex="-1"></a>descendant_corr_df[<span class="st">"label"</span>] <span class="op">=</span> descendant_corr_df[<span class="st">"corr"</span>].<span class="bu">map</span>(</span>
+<span id="cb28-57"><a href="#cb28-57" aria-hidden="true" tabindex="-1"></a>    <span class="kw">lambda</span> corr: <span class="ss">f"corr = </span><span class="sc">{</span>corr<span class="sc">:.2f}</span><span class="ss">"</span></span>
+<span id="cb28-58"><a href="#cb28-58" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb28-59"><a href="#cb28-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-60"><a href="#cb28-60" aria-hidden="true" tabindex="-1"></a>(</span>
+<span id="cb28-61"><a href="#cb28-61" aria-hidden="true" tabindex="-1"></a>    ggplot(descendant_plot_df, aes(x<span class="op">=</span><span class="st">"Smart"</span>, y<span class="op">=</span><span class="st">"Athletic"</span>))</span>
+<span id="cb28-62"><a href="#cb28-62" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_point(alpha<span class="op">=</span><span class="fl">0.25</span>, size<span class="op">=</span><span class="fl">0.8</span>)</span>
+<span id="cb28-63"><a href="#cb28-63" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_smooth(method<span class="op">=</span><span class="st">"lm"</span>, se<span class="op">=</span><span class="va">False</span>, color<span class="op">=</span><span class="st">"#bf616a"</span>)</span>
+<span id="cb28-64"><a href="#cb28-64" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> geom_text(</span>
+<span id="cb28-65"><a href="#cb28-65" aria-hidden="true" tabindex="-1"></a>        descendant_corr_df,</span>
+<span id="cb28-66"><a href="#cb28-66" aria-hidden="true" tabindex="-1"></a>        aes(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>, label<span class="op">=</span><span class="st">"label"</span>),</span>
+<span id="cb28-67"><a href="#cb28-67" aria-hidden="true" tabindex="-1"></a>        inherit_aes<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb28-68"><a href="#cb28-68" aria-hidden="true" tabindex="-1"></a>        ha<span class="op">=</span><span class="st">"left"</span>,</span>
+<span id="cb28-69"><a href="#cb28-69" aria-hidden="true" tabindex="-1"></a>        va<span class="op">=</span><span class="st">"top"</span>,</span>
+<span id="cb28-70"><a href="#cb28-70" aria-hidden="true" tabindex="-1"></a>        size<span class="op">=</span><span class="dv">9</span>,</span>
+<span id="cb28-71"><a href="#cb28-71" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb28-72"><a href="#cb28-72" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> facet_wrap(<span class="st">"~Sample"</span>, nrow<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb28-73"><a href="#cb28-73" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> labs(</span>
+<span id="cb28-74"><a href="#cb28-74" aria-hidden="true" tabindex="-1"></a>        title<span class="op">=</span><span class="st">"Conditioning on a descendant partially opens the collider path"</span>,</span>
+<span id="cb28-75"><a href="#cb28-75" aria-hidden="true" tabindex="-1"></a>        subtitle<span class="op">=</span>(</span>
+<span id="cb28-76"><a href="#cb28-76" aria-hidden="true" tabindex="-1"></a>            <span class="st">"Smart and Athletic are independent in the full population, "</span></span>
+<span id="cb28-77"><a href="#cb28-77" aria-hidden="true" tabindex="-1"></a>            <span class="st">"but become associated after conditioning on Admitted or its noisy descendant."</span></span>
+<span id="cb28-78"><a href="#cb28-78" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<span id="cb28-79"><a href="#cb28-79" aria-hidden="true" tabindex="-1"></a>        x<span class="op">=</span><span class="st">"Smart"</span>,</span>
+<span id="cb28-80"><a href="#cb28-80" aria-hidden="true" tabindex="-1"></a>        y<span class="op">=</span><span class="st">"Athletic"</span>,</span>
+<span id="cb28-81"><a href="#cb28-81" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb28-82"><a href="#cb28-82" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> theme_minimal()</span>
+<span id="cb28-83"><a href="#cb28-83" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> theme(</span>
+<span id="cb28-84"><a href="#cb28-84" aria-hidden="true" tabindex="-1"></a>        figure_size<span class="op">=</span>(<span class="dv">12</span>, <span class="fl">4.2</span>),</span>
+<span id="cb28-85"><a href="#cb28-85" aria-hidden="true" tabindex="-1"></a>        plot_title<span class="op">=</span>element_text(weight<span class="op">=</span><span class="st">"bold"</span>),</span>
+<span id="cb28-86"><a href="#cb28-86" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb28-87"><a href="#cb28-87" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="20">
+<div>
+<figure class="figure">
+<p><img src="DEL_modelling_Part_2_files/figure-html/cell-21-output-1.png" width="1152" height="403" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
 </section>
 </div>
 </div>
