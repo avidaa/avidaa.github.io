@@ -1,6 +1,12 @@
 project:
   type: website
-  output-dir: docs
+  output-dir: _site
+  render:
+    - index.qmd
+    - blogs.qmd
+    - blogs/VAE_derivation/VAE_derivation.qmd
+    - blogs/DEL_Model/DEL_modelling_Part_1.qmd
+    - blogs/DEL_Model/DEL_modelling_Part_2.qmd
   
 website:
   navbar:
