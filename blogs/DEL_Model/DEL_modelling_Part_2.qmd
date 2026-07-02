@@ -2388,4 +2388,4 @@ For the DEL model, this means we should not ask only whether a variable is predi
 
 - [Cinelli & Hazlett (2020), “Making Sense of Sensitivity”](https://academic.oup.com/jrsssb/article/82/1/39/7056023?guestAccessKey=) — especially useful for regression-style intuition. Their “robustness value” asks how strong omitted confounding would need to be to overturn a conclusion.
 
-- [sensemakr](https://carloscinelli.com/sensemakr/) — practical R/Stata implementation of Cinelli & Hazlett’s approach; useful if you want a computational reference rather than only theory.
+- [sensemakr](https://carloscinelli.com/sensemakr/) — practical R/Stata implementation of Cinelli & Hazlett’s approach; useful if you want a computational reference rather than only theory
