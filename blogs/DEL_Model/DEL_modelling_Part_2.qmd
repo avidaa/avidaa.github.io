@@ -2359,6 +2359,248 @@ descendant_corr_df["label"] = descendant_corr_df["corr"].map(
 
 #### Analyze the data to see the associations
 
+The descendant example asks a slightly different question from the collider example. We already know that conditioning directly on `Admitted` opens the collider path:
+
+$$\text{Smart} \rightarrow \text{Admitted} \leftarrow \text{Athletic}$$
+
+Now we want to know what happens if we do not condition on `Admitted` itself, but instead condition on a variable downstream of it:
+
+$$\text{Admitted} \rightarrow \text{InUniversityDatabase}$$
+
+Because `InUniversityDatabase` carries information about `Admitted`, conditioning on it can also create an association between `Smart` and `Athletic`.
+
+To illustrate this, we fit three Bayesian linear regressions:
+
+**Model 1 - no conditioning**:
+
+$$\alpha \sim \mathcal{N}(0,\, 1)$$
+
+$$\beta_{\text{smart}} \sim \mathcal{N}(0,\, 1)$$
+
+$$\sigma \sim \text{HalfNormal}(1)$$
+
+$$\mu_i = \alpha + \beta_{\text{smart}} \cdot \text{Smart}_i$$
+
+$$\text{Athletic}_i \sim \mathcal{N}(\mu_i,\, \sigma)$$
+
+This model estimates the raw association between `Smart` and `Athletic` in the full applicant population. Since the two traits were generated independently, $\beta_{\text{smart}}$ should be close to zero.
+
+**Model 2 - conditioning on the collider**:
+
+$$\alpha \sim \mathcal{N}(0,\, 1)$$
+
+$$\beta_{\text{smart}} \sim \mathcal{N}(0,\, 1)$$
+
+$$\beta_{\text{admitted}} \sim \mathcal{N}(0,\, 1)$$
+
+$$\sigma \sim \text{HalfNormal}(1)$$
+
+$$\mu_i = \alpha + \beta_{\text{smart}} \cdot \text{Smart}_i + \beta_{\text{admitted}} \cdot \text{Admitted}_i$$
+
+$$\text{Athletic}_i \sim \mathcal{N}(\mu_i,\, \sigma)$$
+
+This model conditions directly on `Admitted`, the collider.
+
+**Model 3 - conditioning on the descendant**:
+
+$$\alpha \sim \mathcal{N}(0,\, 1)$$
+
+$$\beta_{\text{smart}} \sim \mathcal{N}(0,\, 1)$$
+
+$$\beta_{\text{database}} \sim \mathcal{N}(0,\, 1)$$
+
+$$\sigma \sim \text{HalfNormal}(1)$$
+
+$$\mu_i = \alpha + \beta_{\text{smart}} \cdot \text{Smart}_i + \beta_{\text{database}} \cdot \text{InUniversityDatabase}_i$$
+
+$$\text{Athletic}_i \sim \mathcal{N}(\mu_i,\, \sigma)$$
+
+This model does not condition on the collider directly. Instead, it conditions on `InUniversityDatabase`, a noisy descendant of the collider. If the descendant is informative about admission, the posterior for $\beta_{\text{smart}}$ should move away from zero, but usually less strongly than when conditioning directly on `Admitted`.
+
+```{python}
+smart_desc_t = torch.tensor(descendant_df["Smart"].values, dtype=torch.float32)
+athletic_desc_t = torch.tensor(descendant_df["Athletic"].values, dtype=torch.float32)
+admitted_desc_t = torch.tensor(descendant_df["Admitted"].values, dtype=torch.float32)
+database_desc_t = torch.tensor(descendant_df["InUniversityDatabase"].values, dtype=torch.float32)
+
+
+def descendant_association_model(smart, athletic, condition_var=None):
+    alpha = pyro.sample("alpha", dist.Normal(0.0, 1.0))
+    beta_smart = pyro.sample("beta_smart", dist.Normal(0.0, 1.0))
+    sigma = pyro.sample("sigma", dist.HalfNormal(1.0))
+
+    mu = alpha + beta_smart * smart
+    if condition_var is not None:
+        beta_condition = pyro.sample("beta_condition", dist.Normal(0.0, 1.0))
+        mu = mu + beta_condition * condition_var
+
+    with pyro.plate("obs", len(athletic)):
+        pyro.sample("athletic", dist.Normal(mu, sigma), obs=athletic)
+
+
+def run_descendant_mcmc(smart, athletic, condition_var=None, num_samples=1000, warmup_steps=500):
+    pyro.clear_param_store()
+    mcmc = MCMC(
+        NUTS(descendant_association_model),
+        num_samples=num_samples,
+        warmup_steps=warmup_steps,
+        disable_progbar=True
+    )
+    mcmc.run(smart, athletic, condition_var)
+    return mcmc.get_samples()
+
+
+post_desc_unconditioned = run_descendant_mcmc(smart_desc_t, athletic_desc_t)
+post_desc_admitted = run_descendant_mcmc(smart_desc_t, athletic_desc_t, admitted_desc_t)
+post_desc_database = run_descendant_mcmc(smart_desc_t, athletic_desc_t, database_desc_t)
+```
+
+```{python}
+draws_descendant = {
+    "Full population\n(no conditioning)": post_desc_unconditioned["beta_smart"].detach().numpy(),
+    "Full population\n(+ Admitted covariate)": post_desc_admitted["beta_smart"].detach().numpy(),
+    "Full population\n(+ Database covariate)": post_desc_database["beta_smart"].detach().numpy(),
+}
+
+plot_order_descendant = list(draws_descendant.keys())
+all_descendant_vals = np.concatenate(list(draws_descendant.values()))
+x_lo_d, x_hi_d = np.quantile(all_descendant_vals, [0.005, 0.995])
+x_pad_d = 0.20 * (x_hi_d - x_lo_d)
+x_grid_d = np.linspace(x_lo_d - x_pad_d, x_hi_d + x_pad_d, 400)
+ridge_h_d = 0.72
+
+descendant_rows, descendant_int_rows, descendant_summary_rows = [], [], []
+
+for i, name in enumerate(plot_order_descendant):
+    y_base = len(plot_order_descendant) - 1 - i
+    draws = draws_descendant[name]
+    kde = gaussian_kde(draws)
+    dens = kde(x_grid_d)
+    dens_s = dens / dens.max() * ridge_h_d
+    lo, hi = np.quantile(draws, [0.025, 0.975])
+    median = np.median(draws)
+
+    for x, d in zip(x_grid_d, dens_s):
+        descendant_rows.append({"label": name, "x": x, "y_base": y_base, "y": y_base + d})
+        if lo <= x <= hi:
+            descendant_int_rows.append({"label": name, "x": x, "y_base": y_base, "y": y_base + d})
+
+    descendant_summary_rows.append({
+        "label": name,
+        "y_base": y_base,
+        "median": median,
+        "y_top": y_base + np.interp(median, x_grid_d, dens_s),
+    })
+
+
+def build_polygon_descendant(df, order, col="label"):
+    rows = []
+    for name in order:
+        sub = df[df[col] == name].sort_values("x")
+        if len(sub) == 0:
+            continue
+        yb = sub["y_base"].iloc[0]
+        rows.extend(sub.to_dict("records"))
+        rows += [
+            {col: name, "x": sub["x"].iloc[-1], "y_base": yb, "y": yb},
+            {col: name, "x": sub["x"].iloc[0], "y_base": yb, "y": yb},
+        ]
+    return pd.DataFrame(rows)
+
+
+descendant_df_ridge = pd.DataFrame(descendant_rows)
+descendant_int_df_ridge = pd.DataFrame(descendant_int_rows)
+descendant_poly = build_polygon_descendant(descendant_df_ridge, plot_order_descendant)
+descendant_int_poly = build_polygon_descendant(descendant_int_df_ridge, plot_order_descendant)
+descendant_sum_df = pd.DataFrame(descendant_summary_rows)
+
+p_descendant = (
+    ggplot()
+    + geom_vline(xintercept=0, color="#d9d9d9", size=1.2)
+    + geom_polygon(
+        descendant_poly,
+        aes(x="x", y="y", group="label"),
+        fill="#c8dce8",
+        alpha=0.75,
+        color=None
+    )
+    + geom_polygon(
+        descendant_int_poly,
+        aes(x="x", y="y", group="label"),
+        fill="#8fb7cb",
+        alpha=0.70,
+        color=None
+    )
+    + geom_line(
+        descendant_df_ridge,
+        aes(x="x", y="y", group="label"),
+        color="#002b63",
+        size=1.2
+    )
+    + geom_segment(
+        descendant_sum_df.assign(x_start=x_grid_d.min(), x_end=x_grid_d.max()),
+        aes(x="x_start", xend="x_end", y="y_base", yend="y_base"),
+        color="#002b63",
+        size=1.0
+    )
+    + geom_segment(
+        descendant_sum_df,
+        aes(x="median", xend="median", y="y_base", yend="y_top"),
+        color="#4b8aa6",
+        size=2.3
+    )
+    + scale_y_continuous(
+        breaks=descendant_sum_df["y_base"].tolist(),
+        labels=descendant_sum_df["label"].tolist(),
+        expand=(0.06, 0.25),
+    )
+    + scale_x_continuous(expand=(0.02, 0.02))
+    + coord_cartesian(ylim=(-0.55, len(plot_order_descendant) - 0.15))
+    + labs(
+        title="Conditioning on a descendant can open the collider path",
+        subtitle="blue tick = posterior median  ·  shaded = 95% interval",
+        x="Coefficient for Smart predicting Athletic",
+        y="",
+    )
+    + theme(
+        figure_size=(10.5, 6.8),
+        panel_background=element_rect(fill="white", color="white"),
+        plot_background=element_rect(fill="white", color="white"),
+        panel_grid_major=element_blank(),
+        panel_grid_minor=element_blank(),
+        axis_line_x=element_line(color="black", size=0.8),
+        axis_line_y=element_line(color="black", size=0.8),
+        axis_ticks_major=element_line(color="black", size=0.8),
+        axis_ticks_minor=element_blank(),
+        axis_text_x=element_text(size=12, family="serif", color="#333333"),
+        axis_text_y=element_text(size=11, family="serif", color="#333333", weight="bold"),
+        axis_title_x=element_text(size=12, family="serif", color="#333333", margin={"t": 10}),
+        plot_title=element_text(size=24, family="serif", color="black"),
+        plot_subtitle=element_text(size=17, family="serif", color="black"),
+    )
+)
+
+p_descendant
+```
+
+The three posteriors show how the association changes as we condition on different variables.
+
+In the **full population**, the posterior for $\beta_{\text{smart}}$ is close to zero. This is the baseline result: `Smart` and `Athletic` were generated independently, so knowing a student's value of `Smart` tells us essentially nothing about their value of `Athletic`.
+
+When we **include `Admitted` as a covariate**, the posterior for $\beta_{\text{smart}}$ moves away from zero. This is the same collider effect as before. The model is now estimating the association between `Smart` and `Athletic` after holding fixed a shared outcome of both traits.
+
+When we **include `InUniversityDatabase` as a covariate**, the posterior also moves away from zero. This is the descendant effect. The model has not conditioned on the collider itself, but it has conditioned on a variable that contains information about the collider. Because database membership is downstream of admission, it partially reveals admission status, and that is enough to partially open the path between `Smart` and `Athletic`.
+
+The strength of this induced association depends on how informative the descendant is. If `InUniversityDatabase` were a perfect copy of `Admitted`, conditioning on it would behave almost exactly like conditioning on `Admitted`. If it were pure noise and carried no information about admission, conditioning on it would not open the path.
+
+So the practical answer to the question of on which variables to condition is:
+
+- If the estimand is the relationship between `Smart` and `Athletic` in the full applicant population, **do not condition on `Admitted`**.
+- Also avoid conditioning on variables downstream of `Admitted`, such as `InUniversityDatabase`, unless the estimand specifically requires it.
+- A descendant of a collider can be dangerous because it can look like an ordinary observed covariate while still carrying information about the collider.
+
+[Conditioning on a descendant of a collider is a weaker, noisier version of conditioning on the collider itself. It can still manufacture an association between variables that were independent in the population.]{.highlight-key-point}
+
 
 
 :::
