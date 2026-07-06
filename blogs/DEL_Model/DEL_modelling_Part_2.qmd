@@ -87,11 +87,13 @@ For a single compound, the experiment yields three observed counts:
 
 These are shown as the only nodes in the initial DAG:
 
-![DAG showing observed counts for one compound.](img/observed_counts_only.png){#fig-dag-ct-only width="75%"}
+![Observed counts for one compound.](img/observed_counts_only.png){#fig-dag-ct-only width="75%"}
 
-The library counts [$C_l$]{style="color:#b48ead"} are measured before any selection. The matrix counts [$C_m$]{style="color:#5e81ac"} are measured after the library is exposed to the experimental matrix, so they are influenced by input abundance. The target counts [$C_t$]{style="color:#d08770"} are measured after the library is exposed to both the matrix and the target, so they are influenced by input abundance and matrix background.
+The library counts [$C_l$]{style="color:#b48ead"} are measured before any selection. The matrix counts, [$C_m$]{style="color:#5e81ac"}, and the target counts, [$C_t$]{style="color:#d08770"}, are measured after the library is exposed to the experimental matrix, so they are influenced by input abundance.
 
-![Relationship between observed counts.](img/observed_counts_relationship.png){#fig-observed-counts-relationship width="50%"}
+![Relationship between observed counts.](img/observed_counts_relationships.png){#fig-observed-counts-relationship width="50%"}
+
+
 
 So far the DAG captures the relationship between observed counts for one compound only. However, DEL experiments involve large numbers of compounds. To model this, we introduce a plate that replicates the structure for each compound $i$:
 
@@ -2600,8 +2602,6 @@ So the practical answer to the question of on which variables to condition is:
 - A descendant of a collider can be dangerous because it can look like an ordinary observed covariate while still carrying information about the collider.
 
 [Conditioning on a descendant of a collider is a weaker, noisier version of conditioning on the collider itself. It can still manufacture an association between variables that were independent in the population.]{.highlight-key-point}
-
-
 
 :::
 

@@ -23,5 +23,13 @@ venv/
 # Local blog work excluded from this site
 blogs/ODE_Gen_AI/
 
+# Generated files for DEL Part 2 local renders
+blogs/DEL_Model/DEL_modelling_Part_2_files/
+
+# Most DEL image outputs are generated. Keep only source diagrams that are
+# directly maintained for the post.
+blogs/DEL_Model/img/*.png
+!blogs/DEL_Model/img/observed_counts_only.png
+!blogs/DEL_Model/img/observed_counts_relationships.png
 
 **/*.quarto_ipynb
