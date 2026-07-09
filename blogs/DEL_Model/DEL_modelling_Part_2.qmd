@@ -89,13 +89,17 @@ These are shown as the only nodes in the initial DAG:
 
 ![Observed counts for one compound.](img/observed_counts_only.png){#fig-dag-ct-only width="75%"}
 
-The library counts [$C_l$]{style="color:#b48ead"} are measured before any selection. The matrix counts, [$C_m$]{style="color:#5e81ac"}, and the target counts, [$C_t$]{style="color:#d08770"}, are measured after the library is exposed to the experimental matrix, so they are influenced by input abundance.
+The first latent cause of the observed counts is the input abundance, [$a$]{style="color:#a3be8c"}. This is the abundance of a compound in the input library. It is a latent variable because it is not directly observed, but it is needed to explain the observed counts in the library, [$C_l$]{style="color:#b48ead"}, [$C_m$]{style="color:#5e81ac"}, and [$C_t$]{style="color:#d08770"}.
 
-![Relationship between observed counts.](img/observed_counts_relationships.png){#fig-observed-counts-relationship width="50%"}
+![DAG showing input abundance for one compound.](img/dag_with_input_abundance.png){#fig-dag-with-input-abundance width="75%"}
 
+The second latent cause of the observed counts is the matrix background, [$b$]{style="color:#88c0d0"}. This is the background counts in the matrix. It is a latent variable because it is not directly observed, but it is needed to explain the observed counts in the matrix, [$C_m$]{style="color:#5e81ac"} and [$C_t$]{style="color:#d08770"}.
 
+![DAG showing matrix background for one compound.](img/dag_with_matrix_background.png){#fig-dag-with-matrix-background width="75%"}
 
-So far the DAG captures the relationship between observed counts for one compound only. However, DEL experiments involve large numbers of compounds. To model this, we introduce a plate that replicates the structure for each compound $i$:
+The third latent cause of the observed counts is the target-specific enrichment, [$s$]{style="color:#bf616a"}. This is the enrichment of the target in the reaction mixture. It is a latent variable because it is not directly observed, but it is needed to explain the observed counts in the target, [$C_t$]{style="color:#d08770"}.
+
+![DAG showing target-specific enrichment for one compound.](img/dag_with_target_specific_enrichment.png){#fig-dag-with-target-specific-enrichment width="75%"}
 
 ```{=html}
 <!-- 
