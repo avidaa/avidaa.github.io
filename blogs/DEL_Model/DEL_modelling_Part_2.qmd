@@ -109,6 +109,8 @@ DEL counts are also measured with replicate-level technical variation. Sequencin
 
 ![DAG showing observed counts, rates, latent factors, and replicate effects.](img/dag_with_latent_factors_and_replicates.png){#fig-dag-with-latent-factors-and-replicates width="75%"}
 
+However, drawing a DAG does not by itself guarantee valid inference. The DAG makes the assumed causal structure explicit, but we still need to ask whether the target quantity is identifiable, whether we have conditioned on the right variables, and whether the statistical model is consistent with the data-generating assumptions encoded in the graph.
+
 ::: {.callout-note icon="false" collapse="true"}
 # What does valid inference mean in the context of a DAG?
 
