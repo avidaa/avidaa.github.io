@@ -89,36 +89,25 @@ These are shown as the only nodes in the initial DAG:
 
 ![Observed counts for one compound.](img/observed_counts_only.png){#fig-dag-ct-only width="75%"}
 
-The first latent cause of the observed counts is the input abundance, [$a$]{style="color:#a3be8c"}. This is the abundance of a compound in the input library. It is a latent variable because it is not directly observed, but it is needed to explain the observed counts in the library, [$C_l$]{style="color:#b48ead"}, [$C_m$]{style="color:#5e81ac"}, and [$C_t$]{style="color:#d08770"}.
+The observed counts are not generated in isolation. They share latent causes that represent biological and technical processes we do not observe directly. The first is input abundance, [$a$]{style="color:#a3be8c"}. How much of a compound is present in the starting library. A compound that begins at higher abundance should tend to have higher library counts, [$C_l$]{style="color:#b48ead"}, and that abundance can also carry forward into the matrix and target measurements, [$C_m$]{style="color:#5e81ac"} and [$C_t$]{style="color:#d08770"}.
 
 ![DAG showing input abundance for one compound.](img/dag_with_input_abundance.png){#fig-dag-with-input-abundance width="75%"}
 
-The second latent cause of the observed counts is the matrix background, [$b$]{style="color:#88c0d0"}. This is the background counts in the matrix. It is a latent variable because it is not directly observed, but it is needed to explain the observed counts in the matrix, [$C_m$]{style="color:#5e81ac"} and [$C_t$]{style="color:#d08770"}.
+The second latent cause is matrix background, [$b$]{style="color:#88c0d0"}. This captures non-target-specific retention or amplification after exposure to the experimental matrix. It affects the matrix counts, [$C_m$]{style="color:#5e81ac"}, and can also carry into the target counts, [$C_t$]{style="color:#d08770"}, because target measurements include both target-specific signal and background processes shared with the matrix condition.
 
 ![DAG showing matrix background for one compound.](img/dag_with_matrix_background.png){#fig-dag-with-matrix-background width="75%"}
 
-The third latent cause of the observed counts is the target-specific enrichment, [$s$]{style="color:#bf616a"}. This is the enrichment of the target in the reaction mixture. It is a latent variable because it is not directly observed, but it is needed to explain the observed counts in the target, [$C_t$]{style="color:#d08770"}.
+The third latent cause is target-specific enrichment, [$s$]{style="color:#bf616a"}. This is the part of the target count that is specific to binding or enrichment in the target condition. Unlike input abundance and matrix background, it should act directly on the target counts, [$C_t$]{style="color:#d08770"}, because it represents signal that is present only when the target is included.
 
 ![DAG showing target-specific enrichment for one compound.](img/dag_with_target_specific_enrichment.png){#fig-dag-with-target-specific-enrichment width="75%"}
 
-```{=html}
-<!-- 
+So far, the DAG describes the generative structure for a single compound. A DEL experiment contains many compounds, so we introduce a compound plate indexed by $i$. Inside this plate, each compound has its own latent input abundance [$a_i$]{style="color:#a3be8c"}, matrix background [$b_i$]{style="color:#88c0d0"}, and target-specific enrichment [$s_i$]{style="color:#bf616a"}, which generate that compound's observed counts [$C_{l,i}$]{style="color:#b48ead"}, [$C_{m,i}$]{style="color:#5e81ac"}, and [$C_{t,i}$]{style="color:#d08770"}.
 
-![DAG showing observed counts for multiple compounds.](img/dag_with_plate.png){#fig-dag-with-plate width="60%"}
+![DAG showing observed counts for multiple compounds.](img/dag_with_plate.png){#fig-dag-with-plate width="85%"}
 
-
-So far the DAG captures the main sources of variation in observed counts for one comopound only. However, DEL experiments involve large numbers of compounds. To model this, we introduce a plate that replicates the structure for each compound $i$:
-
-![DAG showing observed counts, rates, and latent factors for multiple compounds.](img/dag_with_latent_factors_with_plate.png){#fig-dag-with-latent-factors-with-plate width="60%"}
-
-Here, the plate indicates that each compound $i$ has its own set of observed counts ([$C_{m,i}$]{style="color:#5e81ac"}, [$C_{t,i}$]{style="color:#d08770"}, [$C_{l,i}$]{style="color:#b48ead"}), rates ([$\lambda_{m,i}$]{style="color:#5e81ac"}, [$\lambda_{t,i}$]{style="color:#d08770"}, [$\lambda_{l,i}$]{style="color:#b48ead"}), and latent factors ([$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}). The causal structure within the plate is the same for every compound, but the parameters can vary across compounds.
-
-Another source of variation is technical noise at the replicate level: differences in sequencing depth, library preparation efficiency, and other batch effects mean that repeated measurements of the same compound are not identical. We extend the DAG with a second plate, indexed by replicate. This plate contains replicate-specific parameters [$\gamma_{m,r}$]{style="color:#5e81ac"} and [$\gamma_{t,r}$]{style="color:#d08770"} acting on the matrix and target rates, respectively. The compound plate and the replicate plate overlap on the observed counts, so each [$C_{m,i,r}$]{style="color:#5e81ac"} and [$C_{t,i,r}$]{style="color:#d08770"} is influenced by both its compound-level latent factors ([$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}) and its replicate-level effects ([$\gamma_{m,r}$]{style="color:#5e81ac"}, [$\gamma_{t,r}$]{style="color:#d08770"}).
+DEL counts are also measured with replicate-level technical variation. Sequencing depth, library preparation efficiency, and batch effects can differ across replicates, so repeated measurements of the same compound are not identical. We represent this with a second plate indexed by replicate $r$. The replicate effects [$\gamma_{m,r}$]{style="color:#5e81ac"} and [$\gamma_{t,r}$]{style="color:#d08770"} act on the matrix and target measurements, respectively. Thus each observed matrix count [$C_{m,i,r}$]{style="color:#5e81ac"} and target count [$C_{t,i,r}$]{style="color:#d08770"} depends on both compound-level latent quantities ([$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}) and replicate-level technical effects ([$\gamma_{m,r}$]{style="color:#5e81ac"}, [$\gamma_{t,r}$]{style="color:#d08770"}).
 
 ![DAG showing observed counts, rates, latent factors, and replicate effects.](img/dag_with_latent_factors_and_replicates.png){#fig-dag-with-latent-factors-and-replicates width="75%"}
-
-A DAG does not guarantee valid inference. It only specifies the assumed causal structure and conditional independencies. Inference can still fail if we condition on variables that distort the causal pathways implied by the graph. Therefore, the next step in the workflow is to analyze the DAG to determine which variables should and should not be conditioned on when making inferences about the target-binding propensity [$s$]{style="color:#bf616a"}. -->
-```
 
 ::: {.callout-note icon="false" collapse="true"}
 # What does valid inference mean in the context of a DAG?
