@@ -48,83 +48,105 @@ This is the key modeling idea for the rest of the post: observed counts are trea
 
 ## A Bayesian workflow for modelling DEL counts
 
-A DAG does not uniquely determine a statistical model. It tells us which causal relationships we are assuming, which paths should be blocked or left open, and which variables should or should not be conditioned on. But it does not choose the likelihood, link function, priors, hierarchy, or dispersion model. Those choices define the actual probabilistic model.
+A DAG makes the assumed causal structure explicit, but it does not uniquely determine a statistical model. It does not choose the likelihood, link function, priors, hierarchical structure, or dispersion model. These choices must be specified separately and then checked against both the scientific assumptions and the observed data.
 
 For DEL counts, the workflow is:
 
-1.  **State the causal assumptions (DAG first).**\
-    Decide which processes generate the counts: input abundance, matrix background, target-specific enrichment, and replicate-level technical variation. Use the DAG to identify confounders, mediators, and colliders before writing a model.
+1.  **Define the scientific question and estimand.**\
+    Specify what we want to learn. For example, the target-binding propensity of each compound, and distinguish that latent quantity from the observed sequencing counts. Also define the observational units, replicate structure, and measurements available for inference.
 
-2.  **Write the generative model.**\
-    Translate the DAG into a likelihood, link function, priors, and deterministic relationships between latent quantities and observed counts. Several models can be compatible with the same DAG, for example Negative Binomial versus Poisson-lognormal counts, different pooling structures, or different dispersion assumptions.
+2.  **State the causal and measurement assumptions (DAG first).**\
+    Decide which processes generate the counts: input abundance, matrix background, target-specific enrichment, and replicate-level technical variation. Use the DAG to identify common causes, mediators, colliders, and assumed independencies before writing the statistical model.
 
-3.  **Simulate from the assumed data-generating process.**\
-    Before fitting the model to real data, simulate synthetic DEL counts from the model. This is where we check whether the assumed process can produce data that look like plausible DEL data. The simulation should include the same components we claim are present in the experiment: library abundance, matrix background, target enrichment, count noise, and replicate effects.
+3.  **Write the generative model and priors.**\
+    Translate the DAG into a likelihood, link function, priors, and relationships between latent quantities and observed counts. Several models may be compatible with the same DAG. For example, Negative Binomial and Poisson-lognormal likelihoods or different pooling and dispersion structures.
 
-    This step answers a different question from model fitting: *if this model were true, what kind of data would it generate?* If the simulated counts are obviously unrealistic, the model is not ready to be fit.
+4.  **Run prior predictive checks.**\
+    Draw parameter values from the priors and simulate DEL counts before fitting the model. The simulated data should exhibit plausible count ranges, sparsity, dispersion, tail behaviour, matrix-target relationships, and replicate variation. Implausible simulations indicate that the model or priors need revision.
 
-4.  **Fit the model to observed data.**\
-    Estimate the posterior distribution for the latent quantities and parameters. For large DEL datasets this may require scalable inference, while smaller examples can use MCMC.
+5.  **Fit the model to the observed data.**\
+    Estimate the posterior distribution of the latent quantities and parameters using an inference method appropriate for the model and dataset.
 
-5.  **Check the fitted model.**\
-    Use posterior summaries and posterior predictive checks to ask whether the fitted model reproduces the observed data. Important checks include count dispersion, tail behaviour, replicate-to-replicate variation, and matrix-target relationships.
+6.  **Check the computation.**\
+    Because the full DEL dataset will require variational inference, check that the evidence lower bound (ELBO) stabilises and that optimisation succeeds without numerical errors. Repeat the fit from several initialisations, confirm recovery of known parameters in simulated data, and compare posterior means and uncertainties with MCMC on a smaller representative subset. Pay particular attention to underestimated posterior variances and missed correlations, which are common limitations of variational approximations.
 
-6.  **Compare and revise.**\
-    Compare candidate models using posterior predictive checks and, where useful, WAIC, LOO, or stacking. Good prediction is not enough on its own: the model also has to preserve the causal interpretation implied by the DAG.
+7.  **Run posterior predictive checks.**\
+    Simulate replicated datasets from the posterior and ask whether the fitted model reproduces important features of the observed counts. A model can fit some summaries well while still missing dispersion, zero frequencies, tail behaviour, or dependence across conditions and replicates.
 
-7.  **Interpret the target-binding signal.**\
-    Once a model is both causally coherent and predictively adequate, use the posterior to interpret target-binding propensity, uncertainty, and causal contrasts justified by the DAG.
+8.  **Compare, revise, and assess sensitivity.**\
+    Revise models that fail computational or predictive checks. When several adequate models remain, compare them using scientifically relevant predictive checks and, where useful, LOO, WAIC, or stacking. Examine sensitivity to priors and structural assumptions rather than relying on a single specification.
 
-### State the causal assumptions (DAG first)
+9.  **Interpret and report the target-binding signal.**\
+    Once the model is computationally reliable and predictively adequate, report the posterior target-binding propensity and its uncertainty. Interpret causal contrasts only when they are supported by the estimand, DAG, and identification assumptions.
 
-The first step in the Bayesian workflow is to make the causal assumptions explicit as a directed acyclic graph (DAG). In our DAG, **an observation is represented as a square node**, **a latent variable (unobserved) as a circle**, and **causal relationships are represented as directed edges between nodes**. We build the DAG incrementally, starting from what is measured and then introducing the latent quantities needed to explain it.
+[Posterior predictive checks assess whether a fitted model can reproduce relevant features of the data; they do not, by themselves, validate the causal assumptions encoded in the DAG.]{.highlight-key-point}
 
-For a single compound, the experiment yields three observed counts:
+### Define the scientific question and estimand
 
-- Matrix counts, [$C_m$]{style="color:#5e81ac"},
-- Target counts, [$C_t$]{style="color:#d08770"},
-- Library counts (pre-selection), [$C_l$]{style="color:#b48ead"}.
+The scientific question is: **for each compound, how much of its target count reflects target-specific enrichment rather than starting abundance, non-specific matrix retention, or replicate-level technical variation?** We also want to quantify how uncertain that conclusion is.
 
-These are shown as the only nodes in the initial DAG:
+The unit of inference is compound $i$. For each compound, we observe a pre-selection library count [$C_{l,i}$]{style="color:#b48ead"} and replicate-level matrix and target counts, [$C_{m,i,r}$]{style="color:#5e81ac"} and [$C_{t,i,r}$]{style="color:#d08770"}. These counts are noisy measurements generated by several overlapping latent processes; none is itself a direct measurement of binding.
+
+The primary estimand is the compound-specific latent target-binding propensity [$s_i$]{style="color:#bf616a"}. We define [$s_i$]{style="color:#bf616a"} as the contribution to the expected target count that remains after separating the effects of input abundance [$a_i$]{style="color:#a3be8c"}, matrix background [$b_i$]{style="color:#88c0d0"}, and target-replicate variation [$\gamma_{t,r}$]{style="color:#d08770"}. Its precise numerical scale, additive, multiplicative, or log-scale, will be determined when the link function and generative model are specified.
+
+In Bayesian terms, the inferential target is the joint posterior distribution
+
+$$
+p\left(s_i \mid \mathbf{C}_l,\mathbf{C}_m,\mathbf{C}_t\right),
+$$
+
+from which we can report a posterior estimate and credible interval for each compound, as well as posterior probabilities or rankings defined by scientifically meaningful thresholds. The remaining latent quantities and dispersion parameters are necessary for the model, but they are secondary to the scientific target [$s_i$]{style="color:#bf616a"}.
+
+[The estimand is not a raw target-to-library or target-to-matrix count ratio. It is a model-based latent quantity whose interpretation depends on the assumed data-generating process and on whether the available counts can distinguish target-specific enrichment from abundance, background, and technical variation.]{.highlight-key-point}
+
+### State the causal and measurement assumptions (DAG first)
+
+Having defined [$s_i$]{style="color:#bf616a"} as the estimand, the next step is to state how the observed counts are assumed to arise. We use a directed acyclic graph (DAG) to separate measured outcomes from the latent biological and technical processes that generate them. Square nodes represent observed counts, circles represent latent quantities, and arrows represent assumed causal influence. The absence of an arrow is also an assumption: it states that no direct effect is included in the current causal description.
+
+For a single compound, the observed data are:
+
+- The pre-selection library count, [$C_l$]{style="color:#b48ead"},
+- The matrix-control count, [$C_m$]{style="color:#5e81ac"}, and
+- The target-selection count, [$C_t$]{style="color:#d08770"}.
+
+We begin with these measurements alone:
 
 ![Observed counts for one compound.](img/observed_counts_only.png){#fig-dag-ct-only width="75%"}
 
-The observed counts are not generated in isolation. They share latent causes that represent biological and technical processes we do not observe directly. The first is input abundance, [$a$]{style="color:#a3be8c"}. How much of a compound is present in the starting library. A compound that begins at higher abundance should tend to have higher library counts, [$C_l$]{style="color:#b48ead"}, and that abundance can also carry forward into the matrix and target measurements, [$C_m$]{style="color:#5e81ac"} and [$C_t$]{style="color:#d08770"}.
+The first latent process is input abundance, [$a$]{style="color:#a3be8c"}: the amount of the compound present before selection. Greater input abundance should increase the expected library count and carry forward into both the matrix and target measurements. We therefore draw arrows from [$a$]{style="color:#a3be8c"} to all three counts.
 
 ![DAG showing input abundance for one compound.](img/dag_with_input_abundance.png){#fig-dag-with-input-abundance width="75%"}
 
-The second latent cause is matrix background, [$b$]{style="color:#88c0d0"}. This captures non-target-specific retention or amplification after exposure to the experimental matrix. It affects the matrix counts, [$C_m$]{style="color:#5e81ac"}, and can also carry into the target counts, [$C_t$]{style="color:#d08770"}, because target measurements include both target-specific signal and background processes shared with the matrix condition.
+The second latent process is matrix background, [$b$]{style="color:#88c0d0"}, which represents non-target-specific retention or amplification. It affects both [$C_m$]{style="color:#5e81ac"} and [$C_t$]{style="color:#d08770"} because the target condition is assumed to contain background processes also present in the matrix control. It does not affect the pre-selection library count.
 
 ![DAG showing matrix background for one compound.](img/dag_with_matrix_background.png){#fig-dag-with-matrix-background width="75%"}
 
-The third latent cause is target-specific enrichment, [$s$]{style="color:#bf616a"}. This is the part of the target count that is specific to binding or enrichment in the target condition. Unlike input abundance and matrix background, it should act directly on the target counts, [$C_t$]{style="color:#d08770"}, because it represents signal that is present only when the target is included.
+The third latent process is target-specific enrichment, [$s$]{style="color:#bf616a"}. By definition, this signal is present only in the target condition, so it has a direct arrow to [$C_t$]{style="color:#d08770"} but not to [$C_l$]{style="color:#b48ead"} or [$C_m$]{style="color:#5e81ac"}.
 
 ![DAG showing target-specific enrichment for one compound.](img/dag_with_target_specific_enrichment.png){#fig-dag-with-target-specific-enrichment width="75%"}
 
-So far, the DAG describes the generative structure for a single compound. A DEL experiment contains many compounds, so we introduce a compound plate indexed by $i$. Inside this plate, each compound has its own latent input abundance [$a_i$]{style="color:#a3be8c"}, matrix background [$b_i$]{style="color:#88c0d0"}, and target-specific enrichment [$s_i$]{style="color:#bf616a"}, which generate that compound's observed counts [$C_{l,i}$]{style="color:#b48ead"}, [$C_{m,i}$]{style="color:#5e81ac"}, and [$C_{t,i}$]{style="color:#d08770"}.
+To extend this structure to the full library, we introduce a plate indexed by compound $i$. Each compound has its own input abundance [$a_i$]{style="color:#a3be8c"}, matrix background [$b_i$]{style="color:#88c0d0"}, and target-specific enrichment [$s_i$]{style="color:#bf616a"}.
 
 ![DAG showing observed counts for multiple compounds.](img/dag_with_plate.png){#fig-dag-with-plate width="85%"}
 
-DEL counts are also measured with replicate-level technical variation. Sequencing depth, library preparation efficiency, and batch effects can differ across replicates, so repeated measurements of the same compound are not identical. We represent this with a second plate indexed by replicate $r$. The replicate effects [$\gamma_{m,r}$]{style="color:#5e81ac"} and [$\gamma_{t,r}$]{style="color:#d08770"} act on the matrix and target measurements, respectively. Thus each observed matrix count [$C_{m,i,r}$]{style="color:#5e81ac"} and target count [$C_{t,i,r}$]{style="color:#d08770"} depends on both compound-level latent quantities ([$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}) and replicate-level technical effects ([$\gamma_{m,r}$]{style="color:#5e81ac"}, [$\gamma_{t,r}$]{style="color:#d08770"}).
+Matrix and target counts are also subject to replicate-level variation from sequencing depth, preparation efficiency, and batch effects. A second plate indexed by replicate $r$ introduces condition-specific effects [$\gamma_{m,r}$]{style="color:#5e81ac"} and [$\gamma_{t,r}$]{style="color:#d08770"}. Under the completed DAG, the assumed direct causes of each measurement are therefore:
+
+- [$C_{l,i}$]{style="color:#b48ead"}: input abundance [$a_i$]{style="color:#a3be8c"};
+- [$C_{m,i,r}$]{style="color:#5e81ac"}: input abundance [$a_i$]{style="color:#a3be8c"}, matrix background [$b_i$]{style="color:#88c0d0"}, and matrix-replicate variation [$\gamma_{m,r}$]{style="color:#5e81ac"};
+- [$C_{t,i,r}$]{style="color:#d08770"}: input abundance [$a_i$]{style="color:#a3be8c"}, matrix background [$b_i$]{style="color:#88c0d0"}, target-specific enrichment [$s_i$]{style="color:#bf616a"}, and target-replicate variation [$\gamma_{t,r}$]{style="color:#d08770"}.
 
 ![DAG showing observed counts, rates, latent factors, and replicate effects.](img/dag_with_latent_factors_and_replicates.png){#fig-dag-with-latent-factors-and-replicates width="75%"}
 
-However, drawing a DAG does not by itself guarantee valid inference. The DAG makes the assumed causal structure explicit, but we still need to ask whether the target quantity is identifiable, whether we have conditioned on the right variables, and whether the statistical model is consistent with the data-generating assumptions encoded in the graph.
+The completed DAG exposes the central inferential challenge: [$C_{t,i,r}$]{style="color:#d08770"} is generated by several latent processes, but only one of them, [$s_i$]{style="color:#bf616a"}, is the estimand. Drawing the graph does not establish that these contributions can be separated from the available measurements. Before translating the DAG into a likelihood, link function, priors, and dispersion model, we therefore need to clarify what successful or valid inference about [$s_i$]{style="color:#bf616a"} requires.
 
 ::: {.callout-note icon="false" collapse="true"}
 # What does valid inference mean in the context of a DAG?
 
-**Valid inference** means using the observed counts to learn about the latent target-binding propensity [$s_i$]{style="color:#bf616a"} without confusing it with variation arising through other pathways in the DAG. The statistical model must therefore account for other causes of the observed target counts, including:
+For this analysis, valid inference means recovering [$s_i$]{style="color:#bf616a"} without attributing to it variation generated by [$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, [$\gamma_{m,r}$]{style="color:#5e81ac"}, or [$\gamma_{t,r}$]{style="color:#d08770"}. The DAG identifies these competing causes, but it does not prove that the data contain enough information to separate them.
 
-- Input abundance [$a$]{style="color:#a3be8c"},
-- Matrix background [$b$]{style="color:#88c0d0"},
-- Replicate-level variation [$\gamma_m$]{style="color:#5e81ac"} and [$\gamma_t$]{style="color:#d08770"}.
+Identification must come from the measurement structure. For example, the library count informing [$a_i$]{style="color:#a3be8c"}, the matrix replicates informing [$b_i$]{style="color:#88c0d0"}, and repeated observations informing the replicate effects, together with appropriate likelihood and prior assumptions.
 
-It must also avoid conditioning choices that introduce bias—for example, conditioning on a **collider** or failing to block an open **backdoor path**.
-
-Inference is **invalid** when the model attributes to [$s_i$]{style="color:#bf616a"} variation that is actually caused by another pathway, or when [$s_i$]{style="color:#bf616a"} cannot be identified from the observed data under the assumed model.
-
-[A DAG clarifies which conditioning choices may introduce bias, but it does not guarantee valid inference. Validity also requires an identifiable target and a likelihood that adequately represents the assumed data-generating process.]{.highlight-key-point}
+[A coherent DAG is necessary but not sufficient. Valid inference also requires an identifiable parameterisation, a suitable count likelihood, defensible priors, reliable computation, and adequate prior and posterior predictive behaviour.]{.highlight-key-point}
 :::
 
 #### Which variables should and should not be conditioned on?
@@ -164,7 +186,11 @@ McElreath shows that these changes in path status are governed by a small set of
 
 ##### What are the recurring path structures and how they can open or close a path?
 
-There are mainly four elemental path structures that determine how conditioning affects the flow of information in a DAG.
+Four elemental path structures determine how conditioning affects the flow of information in a DAG. As McElreath explains:
+
+> “No matter how complicated a causal DAG appears, it is always built out of these four types of relations.”
+>
+> — McElreath, Richard. *Statistical Rethinking: A Bayesian Course with Examples in R and STAN* (Chapman & Hall/CRC Texts in Statistical Science), p. 185, “Function.” Kindle edition.
 
 The first is the **fork**, or **confounding**, structure:
 
@@ -2596,23 +2622,35 @@ So the practical answer to the question of on which variables to condition is:
 
 :::
 
-##### How do path structures guide conditioning decisions for [$s$]{style="color:#bf616a"}?
+##### Identifying the four path structures in the DEL DAG
 
-Here, one important role of the DAG is to help us decide which variables it makes sense to condition on, and which ones we should avoid conditioning on, when estimating the target-binding propensity [$s$]{style="color:#bf616a"}. To do this, we follow the recipe suggested by McElreath in Chapter 6 of the second edition of *Statistical Rethinking*:
+Before writing the statistical model, we can use the four elemental path structures to describe the causal assumptions in @fig-dag-with-latent-factors-and-replicates.
 
-In the statistical model, **conditioning on a variable** usually means including it as an observed predictor or covariate. In the DAG, the same choice has a causal interpretation: it can block some paths and open others. So the question is not only whether a variable improves prediction, but whether conditioning on it changes the causal path we are trying to learn from.
+1.  **Forks (common causes).** Input abundance [$a_i$]{style="color:#a3be8c"} is a common cause of the library, matrix, and target counts, producing the forks
 
-1.  List all paths connecting [$s$]{style="color:#bf616a"} and [$C_t$]{style="color:#d08770"}.
+    -   [$C_{l,i}$]{style="color:#b48ead"} ← [$a_i$]{style="color:#a3be8c"} → [$C_{m,i,r}$]{style="color:#5e81ac"},
+    -   [$C_{l,i}$]{style="color:#b48ead"} ← [$a_i$]{style="color:#a3be8c"} → [$C_{t,i,r}$]{style="color:#d08770"}, and
+    -   [$C_{m,i,r}$]{style="color:#5e81ac"} ← [$a_i$]{style="color:#a3be8c"} → [$C_{t,i,r}$]{style="color:#d08770"}.
 
-2.  Classify each path as open or closed. Conditioning on a non-collider blocks a path, while conditioning on a collider, or on one of its descendants, opens a path that would otherwise be closed.
+    Matrix background [$b_i$]{style="color:#88c0d0"} creates another fork:
 
-3.  Identify whether any open path is a backdoor path. A backdoor path has an arrow entering [$s$]{style="color:#bf616a"} and can carry confounding rather than the target-binding signal we want.
+    -   [$C_{m,i,r}$]{style="color:#5e81ac"} ← [$b_i$]{style="color:#88c0d0"} → [$C_{t,i,r}$]{style="color:#d08770"}.
 
-4.  Decide which variables should be conditioned on. Common causes usually need to be adjusted for, mediators depend on whether we want total or direct effects, and colliders should usually be left unconditioned.
+    These shared causes can induce associations among the observed counts. They are not, however, confounders of the path [$s_i$]{style="color:#bf616a"} → [$C_{t,i,r}$]{style="color:#d08770"}, because neither [$a_i$]{style="color:#a3be8c"} nor [$b_i$]{style="color:#88c0d0"} causes [$s_i$]{style="color:#bf616a"}.
 
-For the DEL model, this means we should not ask only whether a variable is predictive of [$C_t$]{style="color:#d08770"}. We should ask what role it plays in the DAG. A variable can be predictive because it is a cause, a mediator, a confounder, or a collider. These cases imply different modelling choices.
+2.  **Pipes (mediation).** No mediation structure appears in this DAG. Every latent process acts directly on an observed count, and no node lies on a directed causal path between another cause and its count. The DAG therefore contains no mediator to condition on.
 
-[The DAG turns variable selection into a causal question: condition on variables that block unwanted backdoor paths, avoid conditioning on colliders, and condition on mediators only when the target estimand is a direct effect.]{.highlight-key-point}
+3.  **Colliders (common effects).** The target count [$C_{t,i,r}$]{style="color:#d08770"} is a shared effect of [$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}, and [$\gamma_{t,r}$]{style="color:#d08770"}. It is therefore a collider for every pair of these causes. For example,
+
+    -   [$s_i$]{style="color:#bf616a"} → [$C_{t,i,r}$]{style="color:#d08770"} ← [$a_i$]{style="color:#a3be8c"}.
+
+    Similarly, the matrix count [$C_{m,i,r}$]{style="color:#5e81ac"} is a collider for [$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, and [$\gamma_{m,r}$]{style="color:#5e81ac"}. Conditioning on, or selecting observations by, either count can induce associations among its otherwise independent causes.
+
+4.  **Descendants of colliders.** The observed counts are descendants of their latent causes, but neither collider, $C_{m,i,r}$]{style="color:#5e81ac"} nor [$C_{t,i,r}$]{style="color:#d08770"}, has a downstream node in this DAG. Consequently, the specific descendant-of-a-collider structure described earlier is absent.
+
+[The DAG contains common causes and colliders, but no mediators or descendants of colliders. This supports a generative model in which input abundance, matrix background, target-specific enrichment, and replicate effects enter as distinct causes of the observed counts, rather than treating the counts as interchangeable adjustment variables.]{.highlight-key-point}
+
+### Write the generative model and priors
 
 ## References:
 
