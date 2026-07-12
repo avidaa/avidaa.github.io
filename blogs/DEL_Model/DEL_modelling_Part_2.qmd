@@ -89,7 +89,7 @@ The unit of inference is compound $i$. For each compound, we observe a pre-selec
 
 The primary estimand is the compound-specific latent target-binding propensity [$s_i$]{style="color:#bf616a"}. We define [$s_i$]{style="color:#bf616a"} as the contribution to the expected target count that remains after separating the effects of input abundance [$a_i$]{style="color:#a3be8c"}, matrix background [$b_i$]{style="color:#88c0d0"}, and target-replicate variation [$\gamma_{t,r}$]{style="color:#d08770"}. Its precise numerical scale, additive, multiplicative, or log-scale, will be determined when the link function and generative model are specified.
 
-In Bayesian terms, the inferential target is the joint posterior distribution
+In Bayesian terms, the inferential target is the joint posterior distribution:
 
 $$
 p\left(s_i \mid \mathbf{C}_l,\mathbf{C}_m,\mathbf{C}_t\right),
@@ -2646,11 +2646,190 @@ Before writing the statistical model, we can use the four elemental path structu
 
     Similarly, the matrix count [$C_{m,i,r}$]{style="color:#5e81ac"} is a collider for [$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, and [$\gamma_{m,r}$]{style="color:#5e81ac"}. Conditioning on, or selecting observations by, either count can induce associations among its otherwise independent causes.
 
-4.  **Descendants of colliders.** The observed counts are descendants of their latent causes, but neither collider, $C_{m,i,r}$]{style="color:#5e81ac"} nor [$C_{t,i,r}$]{style="color:#d08770"}, has a downstream node in this DAG. Consequently, the specific descendant-of-a-collider structure described earlier is absent.
+4.  **Descendants of colliders.** The observed counts are descendants of their latent causes, but neither collider, [$C_{m,i,r}$]{style="color:#5e81ac"} nor [$C_{t,i,r}$]{style="color:#d08770"}, has a downstream node in this DAG. Consequently, the specific descendant-of-a-collider structure described earlier is absent.
 
 [The DAG contains common causes and colliders, but no mediators or descendants of colliders. This supports a generative model in which input abundance, matrix background, target-specific enrichment, and replicate effects enter as distinct causes of the observed counts, rather than treating the counts as interchangeable adjustment variables.]{.highlight-key-point}
 
 ### Write the generative model and priors
+
+The DAG tells us which quantities should contribute to each count, but we still need to choose how those contributions combine. We begin with a hierarchical Negative Binomial model. This is a useful first model because DEL counts are non-negative, sparse, and overdispersed, while the hierarchy allows information to be shared across compounds without forcing them to have the same abundance, background retention, or target enrichment.
+
+Let $K_l$, $K_{m,r}$, and $K_{t,r}$ denote the total usable reads in the library, matrix ($r$th replicate), and target ($r$th replicate), and let $N$ be the number of compounds. We use
+
+$$
+E_l = \frac{K_l}{N}, \qquad
+E_{m,r} = \frac{K_{m,r}}{N}, \qquad
+E_{t,r} = \frac{K_{t,r}}{N}
+$$
+
+as known sequencing-exposure offsets. **Each is the count expected for one compound if reads were distributed uniformly in that sample**. Using these offsets removes differences in sequencing depth from the latent compound effects; it does not assume that the compounds are actually equally abundant.
+
+#### Likelihood and link function
+
+The likelihood describes how the latent biological and technical processes become noisy observed counts. For compound $i$ and replicate $r$, we specify
+
+$$
+\begin{aligned}
+C_{l,i} &\sim \operatorname{NegBinomial}_2(\mu_{l,i}, \phi_l), \\
+C_{m,i,r} &\sim \operatorname{NegBinomial}_2(\mu_{m,i,r}, \phi_m), \\
+C_{t,i,r} &\sim \operatorname{NegBinomial}_2(\mu_{t,i,r}, \phi_t),
+\end{aligned}
+$$
+
+Each line says that the observed count is a noisy realisation around an expected count $\mu$. One way to think about this is that $\mu$ is the model's recipe for repeated versions of the experiment, whereas $C$ is the particular result obtained on one occasion. Repeating the same experiment does not have to produce exactly $\mu$ reads, but the results should be distributed around it.
+
+The subscript in $\operatorname{NegBinomial}_2$ identifies the **NB2 parameterisation** of the Negative Binomial family; it does not denote a different distribution. The notation follows [Cameron and Trivedi (1986)](https://doi.org/10.1002/jae.3950010104). In NB2, the extra-Poisson variance grows quadratically with the mean:
+
+$$
+\mathbb{E}[C \mid \mu,\phi] = \mu,
+\qquad
+\operatorname{Var}(C \mid \mu,\phi) = \mu + \frac{\mu^2}{\phi}.
+$$
+
+This differs from NB1, where the additional variance grows linearly with the mean. The distinction matters for sequencing data because high-abundance compounds can be much more variable in absolute terms than low-abundance compounds. For example, if $\mu=10$ and $\phi=5$, NB2 gives
+
+$$
+\operatorname{Var}(C)=10+\frac{10^2}{5}=30,
+$$
+
+rather than the variance of $10$ implied by a Poisson model. Smaller values of $\phi$ correspond to greater overdispersion, while $\phi \rightarrow \infty$ approaches the Poisson variance. We use separate parameters $\phi_l$, $\phi_m$, and $\phi_t$ because the library, matrix, and target experiments may have different amounts of residual variation.
+
+The next step is to specify the expected counts. Since an expected count must be positive, it would be awkward to model $\mu$ directly with an ordinary additive equation: some combinations of effects could produce a negative value. A **log link** solves this problem by modelling $\log\mu$, which can take any real value, while guaranteeing that $\mu=\exp(\log\mu)$ remains positive:
+
+$$
+\begin{aligned}
+\log \mu_{l,i}
+    &= \log E_l + \alpha_l + \textcolor{#a3be8c}{a_i}, \\
+\log \mu_{m,i,r}
+    &= \log E_{m,r} + \alpha_m + \textcolor{#a3be8c}{a_i} + \textcolor{#88c0d0}{b_i} + \gamma_{m,r}, \\
+\log \mu_{t,i,r}
+    &= \log E_{t,r} + \alpha_t + \textcolor{#a3be8c}{a_i} + \textcolor{#88c0d0}{b_i} + \textcolor{#bf616a}{s_i} + \gamma_{t,r}.
+\end{aligned}
+$$
+
+On the log scale, the terms are added. Exponentiating the equations reveals their more intuitive count-scale interpretation:
+
+$$
+\begin{aligned}
+\mu_{l,i}
+    &= E_l \times e^{\alpha_l} \times e^{a_i}, \\
+\mu_{m,i,r}
+    &= E_{m,r} \times e^{\alpha_m} \times e^{a_i} \times e^{b_i} \times e^{\gamma_{m,r}}, \\
+\mu_{t,i,r}
+    &= E_{t,r} \times e^{\alpha_t} \times e^{a_i} \times e^{b_i} \times e^{s_i} \times e^{\gamma_{t,r}}.
+\end{aligned}
+$$
+
+The model can therefore be imagined as a sequence of multiplicative adjustment knobs. We start with the sequencing exposure $E$ and then turn each relevant knob up or down. An effect of zero on the log scale is a multiplier of $e^0=1$, so it leaves the expected count unchanged. A positive effect increases the count and a negative effect decreases it. For example, an effect of $\log 2$ doubles the expected count, while an effect of $\log(1/2)$ halves it.
+
+This factorisation is the statistical translation of the DAG:
+
+- The input-abundance multiplier $e^{a_i}$ appears in all three equations because [$a_i$]{style="color:#a3be8c"} affects every condition.
+- The matrix-background multiplier $e^{b_i}$ appears in the matrix and target equations because [$b_i$]{style="color:#88c0d0"} affects both post-selection conditions.
+- The target-specific multiplier $e^{s_i}$ appears only in the target equation because [$s_i$]{style="color:#bf616a"} represents enrichment specific to the target.
+- The replicate multipliers $e^{\gamma_{m,r}}$ and $e^{\gamma_{t,r}}$ allow otherwise comparable experiments to have different recovery efficiencies.
+
+The terms $\log E_l$, $\log E_{m,r}$, and $\log E_{t,r}$ are sequencing-depth offsets. They account for the fact that a sample with more total reads should produce larger counts for every compound; for example, doubling $E$ doubles the expected count when all other terms are fixed. After this depth effect has been included, the condition intercepts $\alpha_l$, $\alpha_m$, and $\alpha_t$ capture remaining condition-wide differences in average recovery between the library, matrix, and target experiments. The replicate effects $\gamma_{m,r}$ and $\gamma_{t,r}$ then capture sample-specific departures from the matrix and target baselines.
+
+As a worked example, suppose a target replicate has $E_{t,r}=20$ reads per compound and the relevant multipliers are
+
+$$
+e^{\alpha_t}=1.1, \qquad
+e^{a_i}=1.5, \qquad
+e^{b_i}=2, \qquad
+e^{s_i}=3, \qquad
+e^{\gamma_{t,r}}=0.9.
+$$
+
+The expected target count is then
+
+$$
+\mu_{t,i,r}
+=20\times1.1\times1.5\times2\times3\times0.9
+=178.2.
+$$
+
+Without target-specific enrichment, $s_i=0$ and therefore $e^{s_i}=1$, giving an expected count of $59.4$. In this example, the target-specific term triples the expected target count after the model has already accounted for sequencing depth, input abundance, matrix background, condition-wide recovery, and replicate variation. The observed count need not equal either value exactly: the Negative Binomial likelihood represents the remaining sampling and experimental noise around the expectation.
+
+More generally, $e^{s_i}$ is the compound's target-specific fold change relative to the typical compound, conditional on the other terms in the model. Equivalently, increasing $s_i$ by one multiplies the expected target count by $e \approx 2.72$.
+
+#### Identifiable parameterisation
+
+The intercepts and latent effects would not be separately identified if an arbitrary constant could be moved from one to the other. We therefore define the compound effects and replicate effects as deviations around zero:
+
+$$
+\sum_{i=1}^{N} a_i =
+\sum_{i=1}^{N} b_i =
+\sum_{i=1}^{N} s_i = 0,
+\qquad
+\sum_{r=1}^{R_m} \gamma_{m,r} =
+\sum_{r=1}^{R_t} \gamma_{t,r} = 0.
+$$
+
+In computation, these constraints can be imposed with centred raw parameters. For example,
+
+$$
+a_i = \sigma_a(z_{a,i}-\bar z_a),
+\qquad z_{a,i} \sim \operatorname{Normal}(0,1),
+$$
+
+with analogous definitions for $b_i$, $s_i$, $\gamma_{m,r}$, and $\gamma_{t,r}$. This non-centred hierarchical parameterisation also tends to be more stable when some compounds have little information.
+
+The zero-sum definition makes an important point about the estimand explicit: $s_i=0$ means **typical target-specific enrichment within this experiment**, not a physical guarantee of no binding. Positive values indicate more target-specific enrichment than the library average, and negative values indicate less. Identifying an absolute no-binding state would require additional information, such as known non-binders, a calibrated negative-control distribution, or a mixture model with an explicitly defined null component.
+
+#### Priors
+
+We use weakly informative priors on the log scale:
+
+$$
+\begin{aligned}
+\alpha_l,\alpha_m,\alpha_t
+    &\sim \operatorname{Normal}(0,1), \\
+\sigma_a
+    &\sim \operatorname{HalfNormal}(0,0.75), \\
+\sigma_b
+    &\sim \operatorname{HalfNormal}(0,0.75), \\
+\sigma_s
+    &\sim \operatorname{HalfNormal}(0,0.50), \\
+\sigma_{\gamma_m},\sigma_{\gamma_t}
+    &\sim \operatorname{HalfNormal}(0,0.25).
+\end{aligned}
+$$
+
+The latent effects are then generated by
+
+$$
+\begin{aligned}
+z_{a,i},z_{b,i},z_{s,i} &\sim \operatorname{Normal}(0,1), \\
+z_{\gamma_m,r},z_{\gamma_t,r} &\sim \operatorname{Normal}(0,1),
+\end{aligned}
+$$
+
+followed by the centred transformations described above. These priors regularise noisy compound-level estimates towards the population average while still allowing the data to identify large effects. The somewhat tighter prior for $\sigma_s$ reflects the expectation that most compounds do not have extreme target-specific enrichment. It is not intended to rule out strong binders: a log effect of $1$ already corresponds to a $2.7$-fold change, and the hierarchical scale can increase when the full collection of compounds supports greater heterogeneity.
+
+For dispersion, it is easier to place priors on the asymptotic extra-Poisson coefficient of variation,
+
+$$
+\kappa_c = \frac{1}{\sqrt{\phi_c}},
+\qquad c \in \{l,m,t\},
+$$
+
+because $\kappa_c$ is directly interpretable: for large $\mu$, the Negative Binomial coefficient of variation approaches $\kappa_c$. We use
+
+$$
+\kappa_l,\kappa_m,\kappa_t
+\sim \operatorname{HalfNormal}(0,0.50),
+\qquad
+\phi_c = \kappa_c^{-2}.
+$$
+
+This prior includes values close to the Poisson limit while allowing substantial overdispersion. It is preferable to an arbitrary diffuse prior directly on $\phi$, whose practical implications are difficult to see.
+
+These numerical scales are starting assumptions, not facts learned from the observed counts. Their consequences must be evaluated by simulating complete library, matrix, and target datasets from the prior predictive distribution. In particular, we should check whether the model produces plausible zero frequencies, upper tails, replicate correlations, and target-to-matrix fold changes. If it does not, the priors should be revised before fitting the observed data.
+
+The model also makes several substantive assumptions that should later be tested by sensitivity analysis: background transfers from matrix to target with the same log-scale contribution $b_i$; counts are conditionally independent once the latent effects are known; and a single Negative Binomial dispersion is shared by all compounds within a condition. More flexible versions could estimate a matrix-to-target loading, use a sparse or heavy-tailed prior for $s_i$, or replace the Negative Binomial likelihood with a Poisson-lognormal model. Those extensions should be motivated by failed predictive checks rather than added automatically.
+
+[The target signal is the posterior distribution of a log fold-change, not a corrected count. The model infers it by jointly explaining all observed counts while propagating uncertainty in input abundance, matrix background, replicate effects, and overdispersion.]{.highlight-key-point}
 
 ## References:
 
