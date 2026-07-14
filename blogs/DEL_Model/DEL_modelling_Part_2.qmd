@@ -2768,6 +2768,22 @@ Suppose $\phi=5$:
 
 The one-SD ranges above are only descriptive summaries; Negative Binomial counts are discrete and can be asymmetric, especially when $\mu$ is small.
 
+This connects directly to [Why does sampling noise dominate at low proportions?](DEL_modelling_Part_1.qmd#why-does-sampling-noise-dominate-at-low-proportions) in Part 1. There, under a Poisson sampling model with $\mu=Np$, the relative sampling noise is:
+
+$$
+\operatorname{CV}(C)=\frac{1}{\sqrt{\mu}}.
+$$
+
+The NB2 model retains this sampling-noise contribution but adds extra-Poisson variation:
+
+$$
+\operatorname{CV}(C)
+    =\sqrt{\underbrace{\frac{1}{\mu}}_{\text{sampling noise}}
+          +\underbrace{\frac{1}{\phi}}_{\text{extra-Poisson variation}}}.
+$$
+
+At low expected counts, $1/\mu$ is large and sampling noise dominates, reproducing the behaviour described in Part 1. As abundance increases, $1/\mu$ becomes smaller, but the $1/\phi$ term remains. NB2 therefore extends the Part 1 argument: low-abundance compounds are especially noisy relative to their expected counts, **while biological or technical overdispersion can preserve substantial relative variation even at high abundance.**
+
 :::
 
 Smaller values of $\phi$ correspond to greater overdispersion, while $\phi \rightarrow \infty$ approaches the Poisson variance. We use separate parameters $\phi_l$, $\phi_m$, and $\phi_t$ because the library, matrix, and target experiments may have different amounts of residual variation.

@@ -1191,7 +1191,7 @@ replicate_corr_plot.save("img/Replicates_Correlations.png", verbose=False)
 In @fig-replicate-scatter, stronger clustering along the red $y=x$ line indicates better agreement between replicate pairs. Agreement is generally clearer for matrix replicates and for higher-abundance molecules. The broad spread at very low proportions is expected in sparse DEL data, where sampling noise dominates; this reduces apparent concordance for low-abundance molecules without necessarily indicating experimental failure.
 
 ::: {.callout-note icon="false" collapse="true"}
-## Why does sampling noise dominate at low proportions?
+## Why does sampling noise dominate at low proportions? {#why-does-sampling-noise-dominate-at-low-proportions}
 
 Sequencing is a sampling process. Each molecule $i$ has some true (but unknown) proportion $p_i$ in the library. Under the rare-event / large-depth regime, when we sequence a total of $N$ reads, the observed count $n_i$ for molecule $i$ is approximately Poisson-distributed (see the [Why under these conditions, the binomial distribution converges to a Poisson distribution?]{.box-ref-highlight} box in the Multinomial / Dirichlet-Multinomial section for more details):
 
