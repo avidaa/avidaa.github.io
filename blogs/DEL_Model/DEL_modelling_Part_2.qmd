@@ -2768,7 +2768,7 @@ Suppose $\phi=5$:
 
 The one-SD ranges above are only descriptive summaries; Negative Binomial counts are discrete and can be asymmetric, especially when $\mu$ is small.
 
-This connects directly to [Why does sampling noise dominate at low proportions?](DEL_modelling_Part_1.qmd#why-does-sampling-noise-dominate-at-low-proportions) in Part 1. There, under a Poisson sampling model with $\mu=Np$, the relative sampling noise is:
+This connects directly to [Why does sampling noise dominate at low proportions?](DEL_modelling_Part_1.qmd#why-does-sampling-noise-dominate-at-low-proportions){.box-ref-highlight} in Part 1. There, under a Poisson sampling model with $\mu=Np$, the relative sampling noise is:
 
 $$
 \operatorname{CV}(C)=\frac{1}{\sqrt{\mu}}.
