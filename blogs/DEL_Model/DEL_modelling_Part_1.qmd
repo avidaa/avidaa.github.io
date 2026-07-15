@@ -128,26 +128,53 @@ References:
 - [Partial Product Aware Machine Learning on DNA-Encoded Libraries](https://arxiv.org/abs/2205.08020)
 - [Discovery of TNF inhibitors from a DNA-encoded chemical library based on diels-alder cycloaddition](https://pubmed.ncbi.nlm.nih.gov/19875081/) - Figure 3.
 
-::: {.callout-note icon="false" collapse="true"}
+::: {#when-is-negative-binomial-appropriate .callout-note icon="false" collapse="true"}
 ## When is Negative Binomial appropriate?
 
-Use NB when you see **variance increasing faster than the mean**, typically well-captured by $\mu + \phi\mu^2$. This is often the default for DEL counts because amplification introduces extra variability.
+Use a Negative Binomial model when the variance increases faster than the mean. In the NB2 parameterisation used throughout this blog, the mean and variance are
 
-If you model *paired* pre-/post-selection counts, NB is often used for each condition with shared/related dispersion:
+$$
+\mathbb{E}[X_i\mid\mu_i,\phi]=\mu_i,
+\qquad
+\operatorname{Var}(X_i\mid\mu_i,\phi)
+    =\mu_i+\frac{\mu_i^2}{\phi}.
+$$
 
-$$X_i^\text{pre} \sim \text{NB}(\mu_i^\text{pre}, \phi)$$
+Here, $\phi>0$ is an **inverse-dispersion parameter**. Smaller values of $\phi$ imply more extra-Poisson variation, whereas larger values imply less. As $\phi\rightarrow\infty$, the variance approaches the Poisson variance, $\operatorname{Var}(X_i)=\mu_i$.
 
-$$X_i^\text{post} \sim \text{NB}(\mu_i^\text{post}, \phi)$$
+The dispersion parameter is not intrinsically biological or technical. It describes residual count variation that remains after the mean model has accounted for known structure. In DEL data, that residual variation may arise from PCR amplification, sequencing, selection variability, unmodelled compound heterogeneity, or misspecification of the mean model. Interpreting $\phi$ as purely technical is therefore an additional scientific assumption, not a property of the Negative Binomial distribution.
 
-The dispersion parameter $\phi$ represents **technical variability**, not biological variability.
+For paired pre- and post-selection counts, there are several modelling choices:
 
-Because the PCR workflow, sequencing platform, and library chemistry are broadly shared across pre- and post-selection samples, assuming similar dispersion is often reasonable as a first approximation.
+1.  **Use one shared inverse-dispersion parameter.**
 
-$$\phi^\text{pre} \approx \phi^\text{post} = \phi$$
+    $$
+    X_i^\text{pre}\sim\operatorname{NB2}(\mu_i^\text{pre},\phi),
+    \qquad
+    X_i^\text{post}\sim\operatorname{NB2}(\mu_i^\text{post},\phi).
+    $$
 
-Or, use a common prior for the dispersion parameter:
+    This pools information across conditions and is more statistically efficient, but it assumes that both conditions have the same residual mean–variance relationship.
 
-$$\phi^\text{pre}, \phi^\text{post} \sim \text{common prior}$$
+2.  **Estimate a separate parameter for each condition.**
+
+    $$
+    X_i^\text{pre}\sim\operatorname{NB2}(\mu_i^\text{pre},\phi_\text{pre}),
+    \qquad
+    X_i^\text{post}\sim\operatorname{NB2}(\mu_i^\text{post},\phi_\text{post}).
+    $$
+
+    This allows the conditions to have different residual variability, but introduces more parameters and requires enough information to estimate them reliably.
+
+3.  **Use hierarchical or shared-prior dispersion parameters.**
+
+    $$
+    \phi_\text{pre},\phi_\text{post}\sim\text{common population distribution}.
+    $$
+
+    This partially pools the condition-specific estimates and provides a compromise between complete sharing and complete separation.
+
+Because the conditions share parts of the PCR, sequencing, and library workflow, a common or partially pooled dispersion model can be a reasonable starting point. Separate parameters are justified when prior knowledge or predictive checks indicate condition-specific residual variation.
 :::
 
 ##### Zero-Inflated Models

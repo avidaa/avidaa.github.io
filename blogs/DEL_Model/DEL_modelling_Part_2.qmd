@@ -196,13 +196,13 @@ McElreath shows that these changes in path status are governed by a small set of
 
 [This is why simply removing correlated predictors is not a causal solution. As McElreath puts it, “Pairwise correlations are not the problem.” What matters is why variables are correlated and what conditioning on them does. A high correlation may arise because two variables share a common cause, because one mediates the effect of the other, or because both are downstream of some selection process. These situations require different modelling choices.]{.highlight-key-point}
 
-##### What are the recurring path structures and how they can open or close a path?
+##### What are the recurring relations in DAGs and how they can open or close a path?
 
-Four elemental path structures determine how conditioning affects the flow of information in a DAG. As McElreath explains:
+Four elemental relations determine how conditioning affects the flow of information in a DAG. As McElreath explains:
 
 > “No matter how complicated a causal DAG appears, it is always built out of these four types of relations.”
 >
-> — McElreath, Richard. *Statistical Rethinking: A Bayesian Course with Examples in R and STAN* (Chapman & Hall/CRC Texts in Statistical Science), p. 185, “Function.” Kindle edition.
+> — McElreath, Richard. *Statistical Rethinking: A Bayesian Course with Examples in R and STAN* (Chapman & Hall/CRC Texts in Statistical Science), p. 185.
 
 The first is the **fork**, or **confounding**, structure:
 
@@ -2782,13 +2782,17 @@ $$
           +\underbrace{\frac{1}{\phi}}_{\text{extra-Poisson variation}}}.
 $$
 
-At low expected counts, $1/\mu$ is large and sampling noise dominates, reproducing the behaviour described in Part 1. As abundance increases, $1/\mu$ becomes smaller, but the $1/\phi$ term remains. NB2 therefore extends the Part 1 argument: low-abundance compounds are especially noisy relative to their expected counts, **while biological or technical overdispersion can preserve substantial relative variation even at high abundance.**
+At low expected counts, $1/\mu$ is large and sampling noise dominates, reproducing the behaviour described in Part 1. As abundance increases, $1/\mu$ becomes smaller, but the $1/\phi$ term remains. NB2 therefore extends the Part 1 argument: low-abundance compounds are especially noisy relative to their expected counts, **while residual extra-Poisson variation can preserve substantial relative variation even at high abundance.**
 
 :::
 
-The parameter $\phi>0$ is the NB2 **inverse-dispersion parameter**: it controls how much extra variability remains beyond the Poisson sampling variance. Because the additional variance is $\mu^2/\phi$, smaller values of $\phi$ produce greater overdispersion and wider count distributions, whereas larger values produce less overdispersion and tighter distributions around $\mu$. As $\phi\rightarrow\infty$, the extra term approaches zero and the variance approaches the Poisson variance, $\operatorname{Var}(C)=\mu$. 
+The parameter $\phi>0$ is the NB2 **inverse-dispersion parameter** introduced in [When is Negative Binomial appropriate?](DEL_modelling_Part_1.qmd#when-is-negative-binomial-appropriate){.box-ref-highlight} in Part 1. It controls how much variability remains beyond the Poisson sampling variance after the mean model has accounted for the specified biological and technical effects. Because the additional variance is $\mu^2/\phi$, smaller values of $\phi$ produce greater overdispersion and wider count distributions, whereas larger values produce less overdispersion and tighter distributions around $\mu$. As $\phi\rightarrow\infty$, the extra term approaches zero and the variance approaches the Poisson variance, $\operatorname{Var}(C)=\mu$.
 
-We use separate parameters $\phi_l$, $\phi_m$, and $\phi_t$ because the library, matrix, and target experiments may have different amounts of residual variation. **The biological and technical processes are not expected to be the same for every compound in every condition.** 
+Part 1 described three possible modelling choices: a single shared $\phi$, separate condition-specific parameters, or condition-specific parameters linked through a hierarchical prior. Here we begin with separate parameters $\phi_l$, $\phi_m$, and $\phi_t$. This choice assumes one common dispersion level across compounds within each condition, while allowing the library, matrix, and target experiments to have different residual mean–variance relationships. It is more flexible than a shared $\phi$, but it estimates more parameters and may be less precise.
+
+A shared $\phi$ would pool information more strongly and would be preferable if the three conditions have similar residual variability. A hierarchical prior would provide an intermediate option by partially pooling the three estimates. Prior predictive checks, posterior predictive checks, and the stability of the fitted dispersion estimates should be used to decide whether the additional flexibility of separate parameters is supported by the data.
+
+[The dispersion parameters describe variation left unexplained by the mean model; they are not intrinsically biological or technical. Their interpretation depends on which biological and technical processes have already been represented explicitly in the model.]{.highlight-key-point}
 
 The next step is to specify the expected counts. Since an expected count must be positive, it would be awkward to model $\mu$ directly with an ordinary additive equation: some combinations of effects could produce a negative value. A **log link** solves this problem by modelling $\log\mu$, which can take any real value, while guaranteeing that $\mu=\exp(\log\mu)$ remains positive:
 
