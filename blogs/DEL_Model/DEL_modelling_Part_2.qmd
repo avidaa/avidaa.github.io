@@ -2676,7 +2676,7 @@ $$
 
 as known sequencing-exposure offsets. **Each is the count expected for one compound if reads were distributed uniformly in that sample**. Using these offsets removes differences in sequencing depth from the latent compound effects; it does not assume that the compounds are actually equally abundant.
 
-#### Likelihood and link function
+##### Likelihood function
 
 The likelihood describes how the latent biological and technical processes become noisy observed counts. For compound $i$ and replicate $r$, we specify:
 
@@ -2794,6 +2794,8 @@ A shared $\phi$ would pool information more strongly and would be preferable if 
 
 [The dispersion parameters describe variation left unexplained by the mean model; they are not intrinsically biological or technical. Their interpretation depends on which biological and technical processes have already been represented explicitly in the model.]{.highlight-key-point}
 
+##### Link function
+
 The next step is to specify the expected counts. Since an expected count must be positive, it would be awkward to model $\mu$ directly with an ordinary additive equation: some combinations of effects could produce a negative value. A **log link** solves this problem by modelling $\log\mu$, which can take any real value, while guaranteeing that $\mu=\exp(\log\mu)$ remains positive:
 
 $$
@@ -2853,7 +2855,7 @@ Without target-specific enrichment, $s_i=0$ and therefore $e^{s_i}=1$, giving an
 
 More generally, $e^{s_i}$ is the compound's target-specific fold change relative to the typical compound, conditional on the other terms in the model. Equivalently, increasing $s_i$ by one multiplies the expected target count by $e \approx 2.72$.
 
-#### Identifiable parameterisation
+##### Identifiable parameterisation
 
 The intercepts and latent effects would not be separately identified if an arbitrary constant could be moved from one to the other. We therefore define the compound effects and replicate effects as deviations around zero:
 
@@ -2877,7 +2879,7 @@ with analogous definitions for $b_i$, $s_i$, $\gamma_{m,r}$, and $\gamma_{t,r}$.
 
 The zero-sum definition makes an important point about the estimand explicit: $s_i=0$ means **typical target-specific enrichment within this experiment**, not a physical guarantee of no binding. Positive values indicate more target-specific enrichment than the library average, and negative values indicate less. Identifying an absolute no-binding state would require additional information, such as known non-binders, a calibrated negative-control distribution, or a mixture model with an explicitly defined null component.
 
-#### Priors
+##### Priors
 
 We use weakly informative priors on the log scale:
 
