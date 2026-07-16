@@ -131,14 +131,12 @@ References:
 ::: {#when-is-negative-binomial-appropriate .callout-note icon="false" collapse="true"}
 ## When is Negative Binomial appropriate?
 
-Use a Negative Binomial model when the variance increases faster than the mean. In the NB2 parameterisation used throughout this blog, the mean and variance are
+Use a Negative Binomial model when the variance increases faster than the mean. In the NB2 parameterisation [Cameron and Trivedi (1986)](https://doi.org/10.1002/jae.3950010104), the mean and variance are:
 
-$$
-\mathbb{E}[X_i\mid\mu_i,\phi]=\mu_i,
+$$\mathbb{E}[X_i\mid\mu_i,\phi]=\mu_i,
 \qquad
 \operatorname{Var}(X_i\mid\mu_i,\phi)
-    =\mu_i+\frac{\mu_i^2}{\phi}.
-$$
+    =\mu_i+\frac{\mu_i^2}{\phi}.$$
 
 Here, $\phi>0$ is an **inverse-dispersion parameter**. Smaller values of $\phi$ imply more extra-Poisson variation, whereas larger values imply less. As $\phi\rightarrow\infty$, the variance approaches the Poisson variance, $\operatorname{Var}(X_i)=\mu_i$.
 
@@ -148,29 +146,23 @@ For paired pre- and post-selection counts, there are several modelling choices:
 
 1.  **Use one shared inverse-dispersion parameter.**
 
-    $$
-    X_i^\text{pre}\sim\operatorname{NB2}(\mu_i^\text{pre},\phi),
+    $$X_i^\text{pre}\sim\operatorname{NB2}(\mu_i^\text{pre},\phi),
     \qquad
-    X_i^\text{post}\sim\operatorname{NB2}(\mu_i^\text{post},\phi).
-    $$
+    X_i^\text{post}\sim\operatorname{NB2}(\mu_i^\text{post},\phi).$$
 
     This pools information across conditions and is more statistically efficient, but it assumes that both conditions have the same residual mean–variance relationship.
 
 2.  **Estimate a separate parameter for each condition.**
 
-    $$
-    X_i^\text{pre}\sim\operatorname{NB2}(\mu_i^\text{pre},\phi_\text{pre}),
+    $$X_i^\text{pre}\sim\operatorname{NB2}(\mu_i^\text{pre},\phi_\text{pre}),
     \qquad
-    X_i^\text{post}\sim\operatorname{NB2}(\mu_i^\text{post},\phi_\text{post}).
-    $$
+    X_i^\text{post}\sim\operatorname{NB2}(\mu_i^\text{post},\phi_\text{post}).$$
 
     This allows the conditions to have different residual variability, but introduces more parameters and requires enough information to estimate them reliably.
 
 3.  **Use hierarchical or shared-prior dispersion parameters.**
 
-    $$
-    \phi_\text{pre},\phi_\text{post}\sim\text{common population distribution}.
-    $$
+    $$\phi_\text{pre},\phi_\text{post}\sim\text{common population distribution}.$$
 
     This partially pools the condition-specific estimates and provides a compromise between complete sharing and complete separation.
 
@@ -975,10 +967,11 @@ p = (
     + gg.geom_jitter(width=0.05, height=0, size=0.1)
     + gg.labs(x='Condition', y='Sequencing Count', title='Distribution of Sequencing Counts by Condition')
 )
-p.save("img/kindel_eda_seq_counts.png")
+# p.save("img/kindel_eda_seq_counts.png")
+p
 ```
 
-![Distribution of counts by condition for the KinDEL DDR1 `split1_random` training subset.](img/kindel_eda_seq_counts.png){#fig-seq-counts}
+<!-- ![Distribution of counts by condition for the KinDEL DDR1 `split1_random` training subset.](img/kindel_eda_seq_counts.png){#fig-seq-counts} -->
 
 #### Matrix binders {#matrix-binders}
 
