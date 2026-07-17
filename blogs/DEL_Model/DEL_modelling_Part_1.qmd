@@ -1009,7 +1009,7 @@ The shape tells us:
 
 ```{python}
 # Plot ECDF faceted by condition, and add vertical line at the 85% quantile for each
-#| output: false
+
 seq_conditions = [
     'seq_target_1', 'seq_target_2', 'seq_target_3',
     'seq_matrix_1', 'seq_matrix_2', 'seq_matrix_3'
@@ -1075,7 +1075,8 @@ ecdf_plot = (
     + gg.theme(strip_text=gg.element_text(size=11))
 )
 
-ecdf_plot.save("img/kindel_ecdf_by_condition.png")
+# ecdf_plot.save("img/kindel_ecdf_by_condition.png")
+print(ecdf_plot)
 ```
 
 ![Cumulative distribution function (CDF) of the sequencing counts for all conditions with the 85th percentile marked.](img/kindel_ecdf_by_condition.png){#fig-ecdf-counts}
@@ -1095,7 +1096,6 @@ The appearance of discrete horizontal bands in the plot reflects repeated, ident
 We next plot the frequency of each sequencing count value ($\leq 20$) for all conditions. This directly shows why the bands appear: thousands of molecules share the same low integer count.
 
 ```{python}
-#| output: false
 
 # Using the already-melted data_ecdf from earlier
 count_of_counts = (
@@ -1122,7 +1122,8 @@ frequency_of_counts_plot = (
     + gg.theme(axis_text_x=gg.element_text(size=8, rotation=90), figure_size=(15, 4))
 )
 
-frequency_of_counts_plot.save("img/kindel_frequency_of_counts.png")
+# frequency_of_counts_plot.save("img/kindel_frequency_of_counts.png")
+print(frequency_of_counts_plot)
 ```
 
 ![Frequency of each sequencing count value ($\leq 20$) for all conditions.](img/kindel_frequency_of_counts.png){#fig-count-frequency}
