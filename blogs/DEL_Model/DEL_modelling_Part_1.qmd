@@ -959,7 +959,6 @@ The columns are:
 We begin with a simple view of sequencing counts by condition.
 
 ```{python}
-#| output: false
 data_seq_counts = data.melt(id_vars=['molecule_hash'], value_vars=['seq_target_1', 'seq_target_2', 'seq_target_3', 'seq_matrix_1', 'seq_matrix_2', 'seq_matrix_3', 'seq_load'], value_name='seq_count', var_name='condition')
 
 p = (
