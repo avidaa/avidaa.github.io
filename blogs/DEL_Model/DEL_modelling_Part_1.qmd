@@ -1076,10 +1076,10 @@ ecdf_plot = (
 )
 
 # ecdf_plot.save("img/kindel_ecdf_by_condition.png")
-print(ecdf_plot)
+ecdf_plot.show()
 ```
 
-![Cumulative distribution function (CDF) of the sequencing counts for all conditions with the 85th percentile marked.](img/kindel_ecdf_by_condition.png){#fig-ecdf-counts}
+<!-- ![Cumulative distribution function (CDF) of the sequencing counts for all conditions with the 85th percentile marked.](img/kindel_ecdf_by_condition.png){#fig-ecdf-counts} -->
 
 The ECDF indicates that most molecules have very low sequencing counts, and the patterns differ between the matrix and target selections. This difference reflects the distinct biological and technical contexts of each selection method.
 

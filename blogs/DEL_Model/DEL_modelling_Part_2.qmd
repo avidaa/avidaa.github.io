@@ -2822,16 +2822,7 @@ $$
 \end{aligned}
 $$
 
-The model can therefore be imagined as a sequence of multiplicative adjustment knobs. We start with the sequencing exposure $E$ and then turn each relevant knob up or down. An effect of zero on the log scale is a multiplier of $e^0=1$, so it leaves the expected count unchanged. A positive effect increases the count and a negative effect decreases it. For example, an effect of $\log 2$ doubles the expected count, while an effect of $\log(1/2)$ halves it.
-
-This factorisation is the statistical translation of the DAG:
-
-- The input-abundance multiplier $e^{a_i}$ appears in all three equations because [$a_i$]{style="color:#a3be8c"} affects every condition.
-- The matrix-background multiplier $e^{b_i}$ appears in the matrix and target equations because [$b_i$]{style="color:#88c0d0"} affects both post-selection conditions.
-- The target-specific multiplier $e^{s_i}$ appears only in the target equation because [$s_i$]{style="color:#bf616a"} represents enrichment specific to the target.
-- The replicate multipliers $e^{\gamma_{m,r}}$ and $e^{\gamma_{t,r}}$ allow otherwise comparable experiments to have different recovery efficiencies.
-
-The terms $\log E_l$, $\log E_{m,r}$, and $\log E_{t,r}$ are sequencing-depth offsets. They account for the fact that a sample with more total reads should produce larger counts for every compound; for example, doubling $E$ doubles the expected count when all other terms are fixed. After this depth effect has been included, the condition intercepts $\alpha_l$, $\alpha_m$, and $\alpha_t$ capture remaining condition-wide differences in average recovery between the library, matrix, and target experiments. The replicate effects $\gamma_{m,r}$ and $\gamma_{t,r}$ then capture sample-specific departures from the matrix and target baselines.
+The model can therefore be imagined as a sequence of multiplicative adjustment knobs. We start with the sequencing exposure $E$ and then turn each relevant knob up or down. The terms $\log E_l$, $\log E_{m,r}$, and $\log E_{t,r}$ are sequencing-depth offsets. They account for the fact that a sample with more total reads should produce larger counts for every compound; for example, doubling $E$ doubles the expected count when all other terms are fixed. After this depth effect has been included, the condition intercepts $\alpha_l$, $\alpha_m$, and $\alpha_t$ capture remaining condition-wide differences in average recovery between the library, matrix, and target experiments. The replicate effects $\gamma_{m,r}$ and $\gamma_{t,r}$ then capture sample-specific departures from the matrix and target baselines.
 
 As a worked example, suppose a target replicate has $E_{t,r}=20$ reads per compound and the relevant multipliers are
 
@@ -2854,6 +2845,33 @@ $$
 Without target-specific enrichment, $s_i=0$ and therefore $e^{s_i}=1$, giving an expected count of $59.4$. In this example, the target-specific term triples the expected target count after the model has already accounted for sequencing depth, input abundance, matrix background, condition-wide recovery, and replicate variation. The observed count need not equal either value exactly: the Negative Binomial likelihood represents the remaining sampling and experimental noise around the expectation.
 
 More generally, $e^{s_i}$ is the compound's target-specific fold change relative to the typical compound, conditional on the other terms in the model. Equivalently, increasing $s_i$ by one multiplies the expected target count by $e \approx 2.72$.
+
+##### Implications for the DAG
+
+The three mean equations do not add, remove, open, or close paths in the DAG. They specify the functional form of the arrows already shown in @fig-dag-with-latent-factors-and-replicates. The log link says that the parental effects combine additively on the log-mean scale, or multiplicatively on the expected-count scale; it does not change the causal structure.
+
+If the expected counts were drawn explicitly as deterministic nodes, the relevant arrows would be
+
+$$
+\begin{aligned}
+a_i &\longrightarrow \mu_{l,i}
+    \longrightarrow C_{l,i},\\
+(a_i,b_i,\gamma_{m,r}) &\longrightarrow \mu_{m,i,r}
+    \longrightarrow C_{m,i,r},\\
+(a_i,b_i,s_i,\gamma_{t,r}) &\longrightarrow \mu_{t,i,r}
+    \longrightarrow C_{t,i,r}.
+\end{aligned}
+$$
+
+The displayed DAG omits the $\mu$ nodes for simplicity and connects each cause directly to its count. Introducing these deterministic intermediate nodes would only subdivide the existing arrows; it would not introduce a new biological or technical process.
+
+The phrase “conditional on the other terms in the model” means that $e^{s_i}$ is interpreted by holding the other components of $\mu_{t,i,r}$ fixed. It does **not** mean that we have selected observations or added an observed collider as an adjustment variable. Consequently, writing $a_i$, $b_i$, $s_i$, and $\gamma_{t,r}$ on the right-hand side of the target equation does not itself open or close a DAG path.
+
+There is nevertheless an important inferential consequence. The matrix and target counts are common effects of several latent causes. Once those counts are observed, their possible causes become dependent in the posterior through **explaining away**. For example, for a fixed target count, a larger inferred matrix-background contribution can support a smaller inferred target-specific contribution. This posterior dependence is expected and is not, by itself, collider bias from an inappropriate adjustment.
+
+The joint measurement structure helps resolve these competing explanations: [$C_{l,i}$]{style="color:#b48ead"} informs [$a_i$]{style="color:#a3be8c"}, [$C_{m,i,r}$]{style="color:#5e81ac"} informs [$b_i$]{style="color:#88c0d0"} and the matrix replicate effects, and [$C_{t,i,r}$]{style="color:#d08770"} then informs [$s_i$]{style="color:#bf616a"} after those shared contributions are represented. Omitting a genuine parent from the mean model would not merely “leave a path open”; it would misspecify the data-generating process and could cause its variation to be absorbed by [$s_i$]{style="color:#bf616a"} or by the dispersion term.
+
+[The log-link equations parameterise the arrows in the DAG; they do not change which paths exist. Path opening or closing is caused by conditioning or selection, whereas these equations jointly model the counts as outcomes of their assumed latent causes.]{.highlight-key-point}
 
 ##### Identifiable parameterisation
 
