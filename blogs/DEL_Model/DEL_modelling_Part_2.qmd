@@ -2796,20 +2796,40 @@ A shared $\phi$ would pool information more strongly and would be preferable if 
 
 ##### Link function
 
-The next step is to specify the expected counts. Since an expected count must be positive, it would be awkward to model $\mu$ directly with an ordinary additive equation: some combinations of effects could produce a negative value. A **log link** solves this problem by modelling $\log\mu$, which can take any real value, while guaranteeing that $\mu=\exp(\log\mu)$ remains positive:
+The next step is to specify the expected counts. We first define a linear predictor, $\eta$, for each condition. Each predictor contains a known log-exposure offset and an additive combination of the relevant model parameters:
 
 $$
 \begin{aligned}
-\log \mu_{l,i}
+\eta_{l,i}
     &= \log E_l + \alpha_l + \textcolor{#a3be8c}{a_i}, \\
-\log \mu_{m,i,r}
+\eta_{m,i,r}
     &= \log E_{m,r} + \alpha_m + \textcolor{#a3be8c}{a_i} + \textcolor{#88c0d0}{b_i} + \gamma_{m,r}, \\
-\log \mu_{t,i,r}
+\eta_{t,i,r}
     &= \log E_{t,r} + \alpha_t + \textcolor{#a3be8c}{a_i} + \textcolor{#88c0d0}{b_i} + \textcolor{#bf616a}{s_i} + \gamma_{t,r}.
 \end{aligned}
 $$
 
-On the log scale, the terms are added. Exponentiating the equations reveals their more intuitive count-scale interpretation:
+The **log link** relates each positive expected count to its real-valued linear predictor:
+
+$$
+\begin{aligned}
+\log \mu_{l,i} &= \eta_{l,i}, \\
+\log \mu_{m,i,r} &= \eta_{m,i,r}, \\
+\log \mu_{t,i,r} &= \eta_{t,i,r}.
+\end{aligned}
+$$
+
+Equivalently, applying the inverse-link function to each linear predictor gives
+
+$$
+\begin{aligned}
+\mu_{l,i} &= \exp(\eta_{l,i}), \\
+\mu_{m,i,r} &= \exp(\eta_{m,i,r}), \\
+\mu_{t,i,r} &= \exp(\eta_{t,i,r}).
+\end{aligned}
+$$
+
+The exponential inverse link guarantees that every expected count is positive. Substituting the definitions of the linear predictors reveals the count-scale interpretation:
 
 $$
 \begin{aligned}
