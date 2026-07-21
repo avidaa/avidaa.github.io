@@ -2688,6 +2688,10 @@ C_{t,i,r} &\sim \operatorname{NegBinomial}_2(\mu_{t,i,r}, \phi_t),
 \end{aligned}
 $$
 
+The complete probabilistic model is summarised in @fig-probabilistic-del-model.
+
+![Probabilistic model connecting latent effects, expected counts, dispersion parameters, and observed DEL counts.](img/probabilisitc_dag.png){#fig-probabilistic-del-model width="100%"}
+
 Each line says that **the observed count is a noisy realisation around an expected count $\mu$**. One way to think about this is that $\mu$ is the model's recipe for repeated versions of the experiment, whereas $C$ is the particular result obtained on one occasion. **Repeating the same experiment does not have to produce exactly $\mu$ reads, but the results should be distributed around it**.
 
 The subscript in $\operatorname{NegBinomial}_2$ identifies the **NB2 parameterisation** of the Negative Binomial family; it does not denote a different distribution. The notation follows [Cameron and Trivedi (1986)](https://doi.org/10.1002/jae.3950010104). In NB2, the extra-Poisson variance grows quadratically with the mean:
@@ -2809,7 +2813,7 @@ $$
 \end{aligned}
 $$
 
-The **log link** relates each positive expected count to its real-valued linear predictor:
+These sums are unconstrained: depending on the parameter values, each $\eta$ can be negative, zero, or positive. We therefore cannot use $\eta$ directly as the expected count, because a Negative Binomial mean must be positive. Instead, the **log link** defines the linear predictor on the log-mean scale:
 
 $$
 \begin{aligned}
@@ -2819,7 +2823,7 @@ $$
 \end{aligned}
 $$
 
-Equivalently, applying the inverse-link function to each linear predictor gives
+Thus, each $\eta$ represents the logarithm of an expected count. To recover the expected count on its original scale, we apply the exponential inverse-link function:
 
 $$
 \begin{aligned}
@@ -2829,7 +2833,7 @@ $$
 \end{aligned}
 $$
 
-The exponential inverse link guarantees that every expected count is positive. Substituting the definitions of the linear predictors reveals the count-scale interpretation:
+Because $\exp(\eta)>0$ for every real value of $\eta$, this transformation guarantees that each $\mu$ is positive, as required for the expected value of a non-negative count. Substituting the definitions of the linear predictors reveals the count-scale interpretation:
 
 $$
 \begin{aligned}
@@ -2872,32 +2876,19 @@ Thus, $e^{s_i}$ is the target-specific fold change relative to the reference lev
 
 These calculations concern the expected count $\mu_{t,i,r}$, not the observed count itself. The realised count can be higher or lower because the Negative Binomial likelihood represents residual sampling and experimental variation around that expectation.
 
-##### Implications for the DAG
+##### How the probabilistic model complements the causal DAG
 
-The three mean equations do not add, remove, open, or close paths in the DAG. They specify the functional form of the arrows already shown in @fig-dag-with-latent-factors-and-replicates. The log link says that the parental effects combine additively on the log-mean scale, or multiplicatively on the expected-count scale; it does not change the causal structure.
+![The probabilistic diagram complements the causal DAG.](img/probabilisitc_dag_complement_causal_dag.png){#fig-causal-dag-and-probabilistic-diagram width="100%"}
 
-If the expected counts were drawn explicitly as deterministic nodes, the relevant arrows would be
+The causal DAG in @fig-dag-with-latent-factors-and-replicates and the probabilistic diagram in @fig-probabilistic-del-model serve different purposes. The causal DAG records the assumed biological and technical relationships among input abundance, matrix background, target-specific enrichment, replicate effects, and observed counts. It omits the expected counts $\mu$ because they are deterministic calculations rather than additional causal processes.
 
-$$
-\begin{aligned}
-a_i &\longrightarrow \mu_{l,i}
-    \longrightarrow C_{l,i},\\
-(a_i,b_i,\gamma_{m,r}) &\longrightarrow \mu_{m,i,r}
-    \longrightarrow C_{m,i,r},\\
-(a_i,b_i,s_i,\gamma_{t,r}) &\longrightarrow \mu_{t,i,r}
-    \longrightarrow C_{t,i,r}.
-\end{aligned}
-$$
+The probabilistic diagram makes the statistical implementation explicit. It shows how the latent effects, sequencing exposures, and condition baselines combine to determine each $\mu$; how each dispersion parameter $\phi$ controls residual variation; and how the Negative Binomial observation model connects the expected count to the realised count. This separation between the **mean model** and the **observation model** makes it easier to verify that every term in the equations has been assigned the intended role.
 
-The displayed DAG omits the $\mu$ nodes for simplicity and connects each cause directly to its count. Introducing these deterministic intermediate nodes would only subdivide the existing arrows; it would not introduce a new biological or technical process.
+The diagram is also an implementation checklist. It reveals which parameters are shared across conditions, which are condition- or replicate-specific, and which observed counts inform each latent quantity. For example, [$a_i$]{style="color:#a3be8c"} contributes to all three expected counts, [$b_i$]{style="color:#88c0d0"} contributes only to matrix and target counts, and [$s_i$]{style="color:#bf616a"} contributes only to the target count.
 
-The phrase “conditional on the other terms in the model” means that $e^{s_i}$ is interpreted by holding the other components of $\mu_{t,i,r}$ fixed. It does **not** mean that we have selected observations or added an observed collider as an adjustment variable. Consequently, writing $a_i$, $b_i$, $s_i$, and $\gamma_{t,r}$ on the right-hand side of the target equation does not itself open or close a DAG path.
+Adding $\mu$ to the probabilistic diagram does not alter the causal paths in Figure 7. It only expands each causal relationship into a deterministic mean calculation followed by a stochastic observation model. Questions about colliders and path conditioning therefore belong to the causal DAG, whereas questions about the link function, dispersion, and likelihood are clearer in the probabilistic diagram.
 
-There is nevertheless an important inferential consequence. The matrix and target counts are common effects of several latent causes. Once those counts are observed, their possible causes become dependent in the posterior through **explaining away**. For example, for a fixed target count, a larger inferred matrix-background contribution can support a smaller inferred target-specific contribution. This posterior dependence is expected and is not, by itself, collider bias from an inappropriate adjustment.
-
-The joint measurement structure helps resolve these competing explanations: [$C_{l,i}$]{style="color:#b48ead"} informs [$a_i$]{style="color:#a3be8c"}, [$C_{m,i,r}$]{style="color:#5e81ac"} informs [$b_i$]{style="color:#88c0d0"} and the matrix replicate effects, and [$C_{t,i,r}$]{style="color:#d08770"} then informs [$s_i$]{style="color:#bf616a"} after those shared contributions are represented. Omitting a genuine parent from the mean model would not merely “leave a path open”; it would misspecify the data-generating process and could cause its variation to be absorbed by [$s_i$]{style="color:#bf616a"} or by the dispersion term.
-
-[The log-link equations parameterise the arrows in the DAG; they do not change which paths exist. Path opening or closing is caused by conditioning or selection, whereas these equations jointly model the counts as outcomes of their assumed latent causes.]{.highlight-key-point}
+[The causal DAG explains which processes are assumed to generate the counts; the probabilistic diagram explains how those assumptions are translated into expected counts and probability distributions.]{.highlight-key-point}
 
 ##### Identifiable parameterisation
 
