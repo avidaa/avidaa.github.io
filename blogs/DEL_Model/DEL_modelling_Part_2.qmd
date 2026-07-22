@@ -2688,10 +2688,6 @@ C_{t,i,r} &\sim \operatorname{NegBinomial}_2(\mu_{t,i,r}, \phi_t),
 \end{aligned}
 $$
 
-The complete probabilistic model is summarised in @fig-probabilistic-del-model.
-
-![Probabilistic model connecting latent effects, expected counts, dispersion parameters, and observed DEL counts.](img/probabilisitc_dag.png){#fig-probabilistic-del-model width="100%"}
-
 Each line says that **the observed count is a noisy realisation around an expected count $\mu$**. One way to think about this is that $\mu$ is the model's recipe for repeated versions of the experiment, whereas $C$ is the particular result obtained on one occasion. **Repeating the same experiment does not have to produce exactly $\mu$ reads, but the results should be distributed around it**.
 
 The subscript in $\operatorname{NegBinomial}_2$ identifies the **NB2 parameterisation** of the Negative Binomial family; it does not denote a different distribution. The notation follows [Cameron and Trivedi (1986)](https://doi.org/10.1002/jae.3950010104). In NB2, the extra-Poisson variance grows quadratically with the mean:
@@ -2876,23 +2872,30 @@ Thus, $e^{s_i}$ is the target-specific fold change relative to the reference lev
 
 These calculations concern the expected count $\mu_{t,i,r}$, not the observed count itself. The realised count can be higher or lower because the Negative Binomial likelihood represents residual sampling and experimental variation around that expectation.
 
-##### How the probabilistic model complements the causal DAG
+##### Identifiability: location constraints and recovery checks
 
-![The probabilistic diagram complements the causal DAG.](img/probabilisitc_dag_complement_causal_dag.png){#fig-causal-dag-and-probabilistic-diagram width="100%"}
+The condition intercepts $\alpha_l$, $\alpha_m$, and $\alpha_t$ and the effects $a_i$, $b_i$, $s_i$, $\gamma_{m,r}$, and $\gamma_{t,r}$ all enter the linear predictors additively. Without constraints, an arbitrary constant can be moved between these terms without changing any expected count.
 
-The causal DAG in @fig-dag-with-latent-factors-and-replicates and the probabilistic diagram in @fig-probabilistic-del-model serve different purposes. The causal DAG records the assumed biological and technical relationships among input abundance, matrix background, target-specific enrichment, replicate effects, and observed counts. It omits the expected counts $\mu$ because they are deterministic calculations rather than additional causal processes.
+For example, for any constant $c$, define
 
-The probabilistic diagram makes the statistical implementation explicit. It shows how the latent effects, sequencing exposures, and condition baselines combine to determine each $\mu$; how each dispersion parameter $\phi$ controls residual variation; and how the Negative Binomial observation model connects the expected count to the realised count. This separation between the **mean model** and the **observation model** makes it easier to verify that every term in the equations has been assigned the intended role.
+$$
+a_i^\prime=a_i+c,\qquad
+\alpha_l^\prime=\alpha_l-c,\qquad
+\alpha_m^\prime=\alpha_m-c,\qquad
+\alpha_t^\prime=\alpha_t-c.
+$$
 
-The diagram is also an implementation checklist. It reveals which parameters are shared across conditions, which are condition- or replicate-specific, and which observed counts inform each latent quantity. For example, [$a_i$]{style="color:#a3be8c"} contributes to all three expected counts, [$b_i$]{style="color:#88c0d0"} contributes only to matrix and target counts, and [$s_i$]{style="color:#bf616a"} contributes only to the target count.
+The constants cancel in every linear predictor. For the library condition,
 
-Adding $\mu$ to the probabilistic diagram does not alter the causal paths in Figure 7. It only expands each causal relationship into a deterministic mean calculation followed by a stochastic observation model. Questions about colliders and path conditioning therefore belong to the causal DAG, whereas questions about the link function, dispersion, and likelihood are clearer in the probabilistic diagram.
+$$
+\eta_{l,i}^\prime
+    =\log E_l+(\alpha_l-c)+(a_i+c)
+    =\eta_{l,i},
+$$
 
-[The causal DAG explains which processes are assumed to generate the counts; the probabilistic diagram explains how those assumptions are translated into expected counts and probability distributions.]{.highlight-key-point}
+and the same cancellation occurs in the matrix and target conditions. Thus, setting $c=1$, for example, increases every $a_i$ by one and decreases every condition intercept by one while leaving all values of $\mu$ and the likelihood unchanged. The data cannot distinguish these parameterisations.
 
-##### Identifiable parameterisation
-
-The intercepts and latent effects would not be separately identified if an arbitrary constant could be moved from one to the other. We therefore define the compound effects and replicate effects as deviations around zero:
+Similar ambiguities occur between $b_i$ and the matrix and target intercepts, between $s_i$ and the target intercept, and between each set of replicate effects and its condition intercept. We remove these additive ambiguities by defining the compound and replicate effects as deviations around zero:
 
 $$
 \sum_{i=1}^{N} a_i =
@@ -2903,16 +2906,42 @@ $$
 \sum_{r=1}^{R_t} \gamma_{t,r} = 0.
 $$
 
-In computation, these constraints can be imposed with centred raw parameters. For example,
+This definition also clarifies the estimand. The value $s_i=0$ represents **typical target-specific enrichment within this experiment**, not a physical guarantee of no binding. Positive values indicate more target-specific enrichment than the library average, and negative values indicate less. An absolute no-binding reference would require additional information, such as known non-binders, a calibrated negative-control distribution, or an explicit null component.
+
+These zero-sum constraints solve the additive location ambiguity, but they do not establish that the data can distinguish [$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, and [$s_i$]{style="color:#bf616a"}. That broader identification depends on the measurement structure: library counts must contain enough information about input abundance, matrix counts must add information about background retention, and target counts must contain enough remaining information to estimate target-specific enrichment. Replicates must likewise be informative enough to separate replicate effects from condition-wide effects.
+
+###### Checking parameter recovery by simulation
+
+We can assess practical identification before fitting the real data:
+
+1.  Choose known values for the compound effects, replicate effects, intercepts, and dispersion parameters.
+2.  Simulate library, matrix, and target counts from the complete generative model.
+3.  Fit the model to those simulated counts without supplying the true parameter values.
+4.  Compare the posterior estimates with the known generating values.
+
+For [$s_i$]{style="color:#bf616a"}, useful diagnostics include bias in the posterior means, correlation between true and estimated effects, credible-interval coverage, posterior uncertainty, and recovery of compound rankings. The exercise should be repeated across realistic sequencing depths, dispersion levels, numbers of replicates, and effect sizes.
+
+The experimental design can also be deliberately weakened. Removing library counts tests whether [$a_i$]{style="color:#a3be8c"} can still be separated from downstream effects; removing matrix counts tests whether [$b_i$]{style="color:#88c0d0"} and [$s_i$]{style="color:#bf616a"} become entangled; and reducing the number of replicates tests whether replicate variation remains distinguishable from the condition baselines.
+
+If recovery improves with greater sequencing depth or additional replicates, the problem is one of **weak or practical identification**. If substantially different parameter combinations remain observationally equivalent even in very informative simulations, the model may be **structurally non-identifiable** and requires a different parameterisation, stronger external information, or a revised measurement design.
+
+[Predictive fit is not sufficient for parameter recovery. A model can reproduce the observed count distribution while allocating variation incorrectly among input abundance, matrix background, and target-specific enrichment. Simulation-based recovery checks whether the latent decomposition itself can be learned under the assumed model.]{.highlight-key-point}
+
+:::: {.callout-note icon="false" collapse="true"}
+# Implementing the zero-sum constraints
+
+A simple non-centred construction is
 
 $$
-a_i = \sigma_a(z_{a,i}-\bar z_a),
-\qquad z_{a,i} \sim \operatorname{Normal}(0,1),
+a_i=\sigma_a(z_{a,i}-\bar z_a),
+\qquad
+z_{a,i}\sim\operatorname{Normal}(0,1),
 $$
 
-with analogous definitions for $b_i$, $s_i$, $\gamma_{m,r}$, and $\gamma_{t,r}$. This non-centred hierarchical parameterisation also tends to be more stable when some compounds have little information.
+with analogous transformations for $b_i$, $s_i$, $\gamma_{m,r}$, and $\gamma_{t,r}$. Subtracting the mean enforces the zero-sum constraint, while $\sigma_a$ controls the magnitude of variation among compounds.
 
-The zero-sum definition makes an important point about the estimand explicit: $s_i=0$ means **typical target-specific enrichment within this experiment**, not a physical guarantee of no binding. Positive values indicate more target-specific enrichment than the library average, and negative values indicate less. Identifying an absolute no-binding state would require additional information, such as known non-binders, a calibrated negative-control distribution, or a mixture model with an explicitly defined null component.
+For computation, a dedicated zero-sum distribution or an $N-1$ dimensional contrast basis is preferable when available because it avoids carrying a redundant common-shift direction in the raw parameters.
+::::
 
 ##### Priors
 
