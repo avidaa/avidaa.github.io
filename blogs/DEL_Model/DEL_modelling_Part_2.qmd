@@ -2842,41 +2842,26 @@ $$
 \end{aligned}
 $$
 
-The model can therefore be imagined as a sequence of multiplicative adjustment knobs. We start with the sequencing exposure $E$ and then turn each relevant knob up or down. The terms $\log E_l$, $\log E_{m,r}$, and $\log E_{t,r}$ are sequencing-depth offsets. They account for the fact that a sample with more total reads should produce larger counts for every compound; for example, doubling $E$ doubles the expected count when all other terms are fixed. After this depth effect has been included, the condition intercepts $\alpha_l$, $\alpha_m$, and $\alpha_t$ capture remaining condition-wide differences in average recovery between the library, matrix, and target experiments. The replicate effects $\gamma_{m,r}$ and $\gamma_{t,r}$ then capture sample-specific departures from the matrix and target baselines.
-
-As a worked example, suppose a target replicate has $E_{t,r}=20$ reads per compound and the relevant multipliers are
+On the count scale, $E$ sets the sequencing exposure, while the exponentiated intercept and latent effects act as multiplicative adjustments. For example, if
 
 $$
-e^{\alpha_t}=1.1, \qquad
-e^{a_i}=1.5, \qquad
-e^{b_i}=2, \qquad
-e^{s_i}=3, \qquad
-e^{\gamma_{t,r}}=0.9.
+E_{t,r}=20,\quad e^{\alpha_t}=1.1,\quad e^{a_i}=1.5,\quad
+e^{b_i}=2,\quad e^{s_i}=3,\quad e^{\gamma_{t,r}}=0.9,
 $$
 
-The expected target count is then
+then
 
 $$
-\mu_{t,i,r}
-=20\times1.1\times1.5\times2\times3\times0.9
-=178.2.
+\mu_{t,i,r}=20\times1.1\times1.5\times2\times3\times0.9=178.2.
 $$
 
-To isolate the contribution of target-specific enrichment, hold every other term fixed and set $s_i=0$. Then $e^{s_i}=1$, so the expected target count is $59.4$. Restoring the value used above, $e^{s_i}=3$, multiplies this baseline expectation by three:
+Holding all other terms fixed and setting $s_i=0$ gives $\mu_{t,i,r}=59.4$. Therefore, $e^{s_i}=3$ triples the expected target count relative to the reference $s_i=0$, after accounting for exposure, condition recovery, input abundance, matrix background, and replicate variation. In general, increasing $s_i$ by one multiplies the expectation by $e\approx2.72$. The observed count can still differ from $\mu_{t,i,r}$ because it is a Negative Binomial realisation around that expectation.
 
-$$
-59.4\times3=178.2.
-$$
-
-Thus, $e^{s_i}$ is the target-specific fold change relative to the reference level $s_i=0$, after accounting for sequencing depth ($E_{t,r}$), condition-wide target recovery ($\alpha_t$), input abundance ($a_i$), matrix background ($b_i$), and target-replicate variation ($\gamma_{t,r}$). More generally, increasing $s_i$ by one multiplies the expected target count by $e\approx2.72$, with all other model components held fixed.
-
-These calculations concern the expected count $\mu_{t,i,r}$, not the observed count itself. The realised count can be higher or lower because the Negative Binomial likelihood represents residual sampling and experimental variation around that expectation.
-
-##### Identifiability: location constraints and recovery checks
+##### Identifiability: removing additive ambiguity and checking parameter recovery
 
 The condition intercepts $\alpha_l$, $\alpha_m$, and $\alpha_t$ and the effects $a_i$, $b_i$, $s_i$, $\gamma_{m,r}$, and $\gamma_{t,r}$ all enter the linear predictors additively. Without constraints, an arbitrary constant can be moved between these terms without changing any expected count.
 
-For example, for any constant $c$, define
+For example, for any constant $c$, define:
 
 $$
 a_i^\prime=a_i+c,\qquad
@@ -2885,7 +2870,7 @@ a_i^\prime=a_i+c,\qquad
 \alpha_t^\prime=\alpha_t-c.
 $$
 
-The constants cancel in every linear predictor. For the library condition,
+The constants cancel in every linear predictor. For the library condition:
 
 $$
 \eta_{l,i}^\prime
@@ -2906,9 +2891,15 @@ $$
 \sum_{r=1}^{R_t} \gamma_{t,r} = 0.
 $$
 
-This definition also clarifies the estimand. The value $s_i=0$ represents **typical target-specific enrichment within this experiment**, not a physical guarantee of no binding. Positive values indicate more target-specific enrichment than the library average, and negative values indicate less. An absolute no-binding reference would require additional information, such as known non-binders, a calibrated negative-control distribution, or an explicit null component.
+Because the $s_i$ values are constrained to sum to zero, zero is the **average target-specific effect across the compounds on the log scale**. Therefore:
 
-These zero-sum constraints solve the additive location ambiguity, but they do not establish that the data can distinguish [$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, and [$s_i$]{style="color:#bf616a"}. That broader identification depends on the measurement structure: library counts must contain enough information about input abundance, matrix counts must add information about background retention, and target counts must contain enough remaining information to estimate target-specific enrichment. Replicates must likewise be informative enough to separate replicate effects from condition-wide effects.
+- $s_i>0$ means that compound $i$ has more target-specific enrichment than the average compound;
+- $s_i<0$ means that it has less; and
+- $s_i=0$, or equivalently $e^{s_i}=1$, means that it is at the average, **not necessarily that it does not bind**.
+
+The model therefore estimates enrichment relative to the other compounds in this experiment. To interpret a particular value as absolute “no binding,” we would need an external reference, such as known non-binders, calibrated negative controls, or an explicit null component in the model.
+
+These zero-sum constraints remove the arbitrary additive-shift ambiguity, but they do not establish that the data can distinguish [$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, and [$s_i$]{style="color:#bf616a"}. That broader identification depends on the measurement structure: library counts must contain enough information about input abundance, matrix counts must add information about background retention, and target counts must contain enough remaining information to estimate target-specific enrichment. Replicates must likewise be informative enough to separate replicate effects from condition-wide effects.
 
 ###### Checking parameter recovery by simulation
 
