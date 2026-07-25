@@ -2704,7 +2704,7 @@ E_{m,r} = \frac{K_{m,r}}{N}, \qquad
 E_{t,r} = \frac{K_{t,r}}{N}
 $$
 
-as known sequencing-exposure offsets. Each offset is the count expected for one compound if reads were distributed uniformly within that sample. The offsets establish a common depth-adjusted baseline; they do not assume that compounds are actually equally abundant. Compound-specific departures from this baseline are introduced later through the latent effects.
+as known sequencing-exposure offsets. **Each offset is the count expected for one compound if reads were distributed uniformly within that sample.** The offsets establish a common depth-adjusted baseline; they do not assume that compounds are actually equally abundant. Compound-specific departures from this baseline are introduced later through the latent effects.
 
 ##### 2. Negative Binomial likelihood for residual count variation
 
@@ -2718,7 +2718,7 @@ C_{t,i,r} &\sim \operatorname{NegBinomial}_2(\mu_{t,i,r}, \phi_t),
 \end{aligned}
 $$
 
-Each line says that **the observed count is a noisy realisation around an expected count $\mu$**. One way to think about this is that $\mu$ is the model's recipe for repeated versions of the experiment, whereas $C$ is the particular result obtained on one occasion. **Repeating the same experiment does not have to produce exactly $\mu$ reads, but the results should be distributed around it**.
+Each line says that **the observed count is a noisy realisation around an expected count $\mu$**. Repeating the same experiment does not have to produce exactly $\mu$ reads, but the results should be distributed around it.
 
 The subscript in $\operatorname{NegBinomial}_2$ identifies the **NB2 parameterisation** of the Negative Binomial family; it does not denote a different distribution. The notation follows [Cameron and Trivedi (1986)](https://doi.org/10.1002/jae.3950010104). In NB2, the extra-Poisson variance grows quadratically with the mean:
 
@@ -2816,15 +2816,27 @@ At low expected counts, $1/\mu$ is large and sampling noise dominates, reproduci
 
 :::
 
-The parameter $\phi>0$ is the NB2 **inverse-dispersion parameter** introduced in [When is Negative Binomial appropriate?](DEL_modelling_Part_1.qmd#when-is-negative-binomial-appropriate){.box-ref-highlight} in Part 1. It controls how much variability remains beyond the Poisson sampling variance after the mean model has accounted for the specified biological and technical effects. Because the additional variance is $\mu^2/\phi$, smaller values of $\phi$ produce greater overdispersion and wider count distributions, whereas larger values produce less overdispersion and tighter distributions around $\mu$. As $\phi\rightarrow\infty$, the extra term approaches zero and the variance approaches the Poisson variance, $\operatorname{Var}(C)=\mu$.
+The parameter $\phi>0$ is the NB2 **inverse-dispersion parameter** introduced in [When is Negative Binomial appropriate?](DEL_modelling_Part_1.qmd#when-is-negative-binomial-appropriate){.box-ref-highlight} in Part 1. It controls how much variability remains beyond the Poisson sampling variance after the mean model has accounted for the specified biological and technical effects. 
 
-Part 1 described three possible modelling choices: a single shared $\phi$, separate condition-specific parameters, or condition-specific parameters linked through a hierarchical prior. Here we begin with separate parameters $\phi_l$, $\phi_m$, and $\phi_t$. This choice assumes one common dispersion level across compounds within each condition, while allowing the library, matrix, and target experiments to have different residual mean–variance relationships. It is more flexible than a shared $\phi$, but it estimates more parameters and may be less precise.
+Because the additional variance is $\mu^2/\phi$:
 
-A shared $\phi$ would pool information more strongly and would be preferable if the three conditions have similar residual variability. A hierarchical prior would provide an intermediate option by partially pooling the three estimates. Prior predictive checks, posterior predictive checks, and the stability of the fitted dispersion estimates should be used to decide whether the additional flexibility of separate parameters is supported by the data.
+- Smaller values of $\phi$ produce greater overdispersion and wider count distributions,
+- Larger values produce less overdispersion and tighter distributions around $\mu$. 
+- As $\phi\rightarrow\infty$, the extra term approaches zero and the variance approaches the Poisson variance, $\operatorname{Var}(C)=\mu$.
+
+Part 1 described three possible modelling choices: 
+
+- A single shared $\phi$, 
+- Separate condition-specific parameters, or 
+- Separate condition-specific parameters linked through a hierarchical prior. 
+
+Here we begin with separate parameters $\phi_l$, $\phi_m$, and $\phi_t$. This choice assumes one common dispersion level across compounds within each condition, while allowing the library, matrix, and target experiments to have different residual mean–variance relationships. It is more flexible     than a shared $\phi$, but it estimates more parameters and may be less precise.
+
+A shared $\phi$ would pool information more strongly and would be preferable if the three conditions have similar residual variability. A hierarchical prior would provide an intermediate option between a shared $\phi$ and separate parameters by partially pooling the three estimates. **Prior predictive checks, posterior predictive checks, and the stability of the fitted dispersion estimates should be used to decide whether the additional flexibility of separate parameters is supported by the data.**
 
 [The dispersion parameters describe variation left unexplained by the mean model; they are not intrinsically biological or technical. Their interpretation depends on which biological and technical processes have already been represented explicitly in the model.]{.highlight-key-point}
 
-##### Link function
+##### Log-linear model for the expected counts
 
 The next step is to specify the expected counts. We first define a linear predictor, $\eta$, for each condition. Each predictor contains a known log-exposure offset and an additive combination of the relevant model parameters:
 
@@ -2872,7 +2884,9 @@ $$
 \end{aligned}
 $$
 
-On the count scale, $E$ sets the sequencing exposure, while the exponentiated intercept and latent effects act as multiplicative adjustments. For example, if
+On the count scale, $E$ sets the sequencing exposure, while the exponentiated intercept and latent effects act as multiplicative adjustments. 
+
+For example, if
 
 $$
 E_{t,r}=20,\quad e^{\alpha_t}=1.1,\quad e^{a_i}=1.5,\quad
@@ -2885,7 +2899,13 @@ $$
 \mu_{t,i,r}=20\times1.1\times1.5\times2\times3\times0.9=178.2.
 $$
 
-Holding all other terms fixed and setting $s_i=0$ gives $\mu_{t,i,r}=59.4$. Therefore, $e^{s_i}=3$ triples the expected target count relative to the reference $s_i=0$, after accounting for exposure, condition recovery, input abundance, matrix background, and replicate variation. In general, increasing $s_i$ by one multiplies the expectation by $e\approx2.72$. The observed count can still differ from $\mu_{t,i,r}$ because it is a Negative Binomial realisation around that expectation.
+Holding all other terms fixed and setting $s_i=0$ gives $\mu_{t,i,r}=59.4$:
+
+$$
+\mu_{t,i,r}=20\times1.1\times1.5\times2\times1\times0.9=59.4.
+$$
+
+Therefore, $e^{s_i}=3$ triples the expected target count relative to the reference $s_i=0$, after accounting for exposure ($E_{t,r}$), condition recovery ($e^{\alpha_t}$), input abundance ($e^{a_i}$), matrix background ($e^{b_i}$), and replicate variation ($e^{\gamma_{t,r}}$). In general, increasing $s_i$ by one multiplies the expectation by $e\approx2.72$. The observed count can still differ from $\mu_{t,i,r}$ because it is a Negative Binomial realisation around that expectation.
 
 ##### Identifiability: removing additive ambiguity and checking parameter recovery
 
