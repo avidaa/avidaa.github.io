@@ -59,7 +59,7 @@ For DEL counts, the workflow is:
     Decide which processes generate the counts: input abundance, matrix background, target-specific enrichment, and replicate-level technical variation. Use the DAG to identify common causes, mediators, colliders, and assumed independencies before writing the statistical model.
 
 3.  **Write the generative model and priors.**\
-    Translate the DAG into a likelihood, link function, priors, and relationships between latent quantities and observed counts. Several models may be compatible with the same DAG. For example, Negative Binomial and Poisson-lognormal likelihoods or different pooling and dispersion structures.
+    Translate the DAG into a likelihood, link function,  relationships between latent quantities and observed counts and priors for the latent quantities and parameters. Several models may be compatible with the same DAG. For example, Negative Binomial and Poisson-lognormal likelihoods or different pooling and dispersion structures.
 
 4.  **Run prior predictive checks.**\
     Draw parameter values from the priors and simulate DEL counts before fitting the model. The simulated data should exhibit plausible count ranges, sparsity, dispersion, tail behaviour, matrix-target relationships, and replicate variation. Implausible simulations indicate that the model or priors need revision.
@@ -2816,7 +2816,7 @@ At low expected counts, $1/\mu$ is large and sampling noise dominates, reproduci
 
 :::
 
-The parameter $\phi>0$ is the NB2 **inverse-dispersion parameter** introduced in [When is Negative Binomial appropriate?](DEL_modelling_Part_1.qmd#when-is-negative-binomial-appropriate){.box-ref-highlight} in Part 1. It controls how much variability remains beyond the Poisson sampling variance after the mean model has accounted for the specified biological and technical effects. 
+The parameter $\phi>0$ is the NB2 **inverse-dispersion parameter** introduced in [When is Negative Binomial appropriate?](DEL_modelling_Part_1.qmd#when-is-negative-binomial-appropriate){.box-ref-highlight} in Part 1. **It controls how much variability remains beyond the Poisson sampling variance after the mean model has accounted for the specified biological and technical effects.** 
 
 Because the additional variance is $\mu^2/\phi$:
 
@@ -2824,17 +2824,169 @@ Because the additional variance is $\mu^2/\phi$:
 - Larger values produce less overdispersion and tighter distributions around $\mu$. 
 - As $\phi\rightarrow\infty$, the extra term approaches zero and the variance approaches the Poisson variance, $\operatorname{Var}(C)=\mu$.
 
-Part 1 described three possible modelling choices: 
+The dispersion structure provides a concrete example of why several statistical models can correspond to the same causal DAG. The DAG specifies which processes contribute to each expected count, but it does not determine how residual variation should be shared across conditions. We could use:
 
-- A single shared $\phi$, 
-- Separate condition-specific parameters, or 
-- Separate condition-specific parameters linked through a hierarchical prior. 
+1.  **One shared parameter:** $\phi_l=\phi_m=\phi_t=\phi$. This assumes the same residual mean–variance relationship in all three conditions and provides the strongest pooling.
+2.  **Separate condition-specific parameters:** $\phi_l$, $\phi_m$, and $\phi_t$. This allows each condition to have different residual variation but estimates more parameters and may produce less precise estimates.
+3.  **Hierarchically related parameters:** condition-specific $\phi_l$, $\phi_m$, and $\phi_t$ drawn from a shared population distribution. This partially pools the estimates and lies between complete sharing and complete separation.
 
-Here we begin with separate parameters $\phi_l$, $\phi_m$, and $\phi_t$. This choice assumes one common dispersion level across compounds within each condition, while allowing the library, matrix, and target experiments to have different residual mean–variance relationships. It is more flexible     than a shared $\phi$, but it estimates more parameters and may be less precise.
-
-A shared $\phi$ would pool information more strongly and would be preferable if the three conditions have similar residual variability. A hierarchical prior would provide an intermediate option between a shared $\phi$ and separate parameters by partially pooling the three estimates. **Prior predictive checks, posterior predictive checks, and the stability of the fitted dispersion estimates should be used to decide whether the additional flexibility of separate parameters is supported by the data.**
+All three choices preserve the causal structure of the DAG; they differ only in their assumptions about residual count variation and information sharing. Here we begin with separate condition-specific parameters. Prior predictive checks, posterior predictive checks, and the stability of the fitted estimates will show whether that additional flexibility is supported. Because there are only three conditions, a hierarchical dispersion model may itself be weakly estimated and should also be evaluated through simulation.
 
 [The dispersion parameters describe variation left unexplained by the mean model; they are not intrinsically biological or technical. Their interpretation depends on which biological and technical processes have already been represented explicitly in the model.]{.highlight-key-point}
+
+
+
+:::: {.callout-note icon="false" collapse="true"}
+# A Poisson-lognormal likelihood instead of Negative Binomial
+
+A Poisson-lognormal likelihood may be useful when, after accounting for the modelled biological and technical effects, NB2 still underestimates the far-right tail of the count distribution. It represents the remaining variation as observation-specific multiplicative changes, $\epsilon_{c,i,r}$, of the Poisson rates $\lambda_{c,i,r}$ as:
+
+$$
+\begin{aligned}
+C_{c,i,r} &\sim \operatorname{Poisson}(\lambda_{c,i,r}), \\
+\lambda_{c,i,r}
+    &= \exp(\eta_{c,i,r}+\epsilon_{c,i,r}) \\
+    &= \underbrace{\exp(\eta_{c,i,r})}_{\mu_{c,i,r}}
+       \times
+       \underbrace{\exp(\epsilon_{c,i,r})}_{\text{residual multiplier}} \\
+    &= \mu_{c,i,r}\exp(\epsilon_{c,i,r}), \\
+\epsilon_{c,i,r} &\sim \operatorname{Normal}(-\frac{\sigma_c^2}{2},\sigma_c^2).
+\end{aligned}
+$$
+
+**This allows occasional extreme counts.** However, a few high-count compounds alone do not justify it, because those counts may already be explained by the mean model or NB2 likelihood.
+
+
+Choosing a Poisson-lognormal likelihood is another example of a different statistical model that is faithful to the same causal DAG. The DAG still determines which biological and technical effects enter the linear predictor $\eta_{c,i,r}$. **The likelihood changes only how residual count variation is represented after those effects have been included.**
+
+However, the introduction of an additional latent value, $\epsilon_{c,i,r}$, for each observed count introduces a new challenge. We need to estimate a new latent parameter, $\sigma_c$, for each condition. For $N$ compounds and $R$ replicates, this introduces approximately $N\times R$ latent parameters. For a large DEL experiment, this can be a significant number of parameters to estimate.
+
+The causal effects still determine $\eta_{c,i,r}$. The extra residual allows observations with the same modelled mean structure to have different underlying Poisson rates. It is not a new biological cause; it represents residual observation-level heterogeneity. The centring term $-\sigma_c^2/2$ ensures that
+
+$$
+\mathbb E[\lambda_{c,i,r}\mid\eta_{c,i,r}]
+    =\exp(\eta_{c,i,r})
+    =\mu_{c,i,r}.
+$$
+
+For a simple example, suppose $\mu=10$, so $\eta=\log 10$. If one observation has $\epsilon=-0.4$, its latent rate is
+
+$$
+\lambda=10e^{-0.4}\approx6.7.
+$$
+
+If another has $\epsilon=0.4$, its rate is
+
+$$
+\lambda=10e^{0.4}\approx14.9.
+$$
+
+The final counts are then Poisson draws around these different latent rates. Variation in $\epsilon$ therefore creates more count variation than a single Poisson distribution with a fixed rate of 10. For $N$ compounds and $R$ replicates, however, this construction introduces approximately $N\times R$ latent residuals per replicated condition.
+
+## Why does NB2 not require explicit latent rates?
+
+NB2 also has a latent-rate interpretation. It can be written as a Poisson--Gamma mixture:
+
+$$
+\begin{aligned}
+\Lambda\mid\mu,\phi
+    &\sim\operatorname{Gamma}
+       \left(\text{shape}=\phi,\,
+             \text{rate}=\frac{\phi}{\mu}\right),\\
+C\mid\Lambda
+    &\sim\operatorname{Poisson}(\Lambda).
+\end{aligned}
+$$
+
+This Gamma distribution has
+
+$$
+\mathbb E[\Lambda]=\mu,
+\qquad
+\operatorname{Var}(\Lambda)=\frac{\mu^2}{\phi}.
+$$
+
+The marginal probability of observing $C=c$ is obtained by integrating over every possible latent rate:
+
+$$
+\begin{aligned}
+p(C=c\mid\mu,\phi)
+&=\int_0^\infty
+   p(C=c\mid\lambda)\,
+   p(\lambda\mid\mu,\phi)\,d\lambda\\
+&=\int_0^\infty
+   \frac{e^{-\lambda}\lambda^c}{c!}
+   \frac{(\phi/\mu)^\phi}{\Gamma(\phi)}
+   \lambda^{\phi-1}
+   e^{-(\phi/\mu)\lambda}\,d\lambda\\
+&=\frac{(\phi/\mu)^\phi}
+        {\Gamma(\phi)c!}
+  \int_0^\infty
+  \lambda^{c+\phi-1}
+  e^{-(1+\phi/\mu)\lambda}\,d\lambda.
+\end{aligned}
+$$
+
+Using
+
+$$
+\int_0^\infty x^{k-1}e^{-rx}\,dx
+    =\frac{\Gamma(k)}{r^k},
+$$
+
+the integral becomes
+
+$$
+p(C=c\mid\mu,\phi)
+=\frac{\Gamma(c+\phi)}
+       {\Gamma(\phi)c!}
+ \left(\frac{\phi}{\phi+\mu}\right)^\phi
+ \left(\frac{\mu}{\phi+\mu}\right)^c.
+$$
+
+This is the closed-form NB2 probability mass function. The latent Gamma rate is therefore integrated out analytically rather than estimated separately for every observation. The analogous Poisson-lognormal integral has no elementary closed form:
+
+$$
+p(C=c\mid\mu,\sigma)
+=\int_{-\infty}^{\infty}
+  \operatorname{Poisson}
+    \left(c\mid\mu e^\epsilon\right)
+  \operatorname{Normal}
+    \left(\epsilon\mid-\frac{\sigma^2}{2},\sigma^2\right)
+  d\epsilon.
+$$
+
+It must usually be handled with explicit latent residuals, numerical integration, or an approximation such as variational inference.
+
+## Numerical comparison with the same mean and variance
+
+Suppose $\mu=10$ and $\phi=5$. NB2 then has
+
+$$
+\operatorname{Var}(C)
+    =10+\frac{10^2}{5}
+    =30.
+$$
+
+For the Poisson-lognormal model to have the same variance, choose
+
+$$
+e^{\sigma^2}-1=\frac{1}{\phi},
+\qquad
+\sigma^2=\log\left(1+\frac{1}{5}\right)\approx0.182,
+\qquad
+\sigma\approx0.427.
+$$
+
+Both models now have mean 10 and variance 30, but their probability distributions are not identical. Numerically:
+
+- NB2 gives $P(C=0)\approx0.00412$, whereas Poisson-lognormal gives $P(C=0)\approx0.00216$.
+- NB2 gives $P(C=10)\approx0.0714$, whereas Poisson-lognormal gives $P(C=10)\approx0.0742$.
+- NB2 gives $P(C\ge30)\approx0.00392$, whereas Poisson-lognormal gives $P(C\ge30)\approx0.00600$.
+- Farther into the right tail, NB2 gives $P(C\ge40)\approx0.000186$, whereas Poisson-lognormal gives $P(C\ge40)\approx0.000678$.
+
+Thus, even after matching the first two moments, the Poisson-lognormal places more probability in the far right tail in this example. NB2 is computationally attractive because it has a closed-form likelihood; Poisson-lognormal may provide a more flexible heavy tail but introduces many latent residuals. Prior predictive checks, posterior predictive checks, and computational diagnostics should determine whether that additional flexibility is useful for the DEL data.
+::::
 
 ##### Log-linear model for the expected counts
 
