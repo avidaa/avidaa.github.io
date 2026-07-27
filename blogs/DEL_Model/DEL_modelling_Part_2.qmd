@@ -2868,9 +2868,9 @@ This explicit representation has an important computational consequence. The mod
 
 With $N$ compounds, $R_m$ matrix replicates, and $R_t$ target replicates, this gives approximately $N(1+R_m+R_t)$ latent residuals in addition to the three scale parameters. **For a large DEL experiment, explicitly estimating this many observation-level latent values can substantially increase memory use and optimisation time.** This is the main computational disadvantage relative to NB2, whose latent Gamma rates can be integrated out analytically.
 
-#### Why does NB2 not require explicit latent rates?
+#### What does it meaan that NB2's latent rates can be integrated out analytically?
 
-NB2 also has a latent-rate interpretation. It can be written as a Poisson--Gamma mixture:
+NB2 also has a latent-rate interpretation. It can be written as a Poisson-Gamma mixture:
 
 $$
 \begin{aligned}
