@@ -2854,36 +2854,21 @@ C_{c,i,r} &\sim \operatorname{Poisson}(\lambda_{c,i,r}), \\
 \end{aligned}
 $$
 
-**This allows occasional extreme counts.** However, a few high-count compounds alone do not justify it, because those counts may already be explained by the mean model or NB2 likelihood.
+In other words, the extra residual allows observations with the same modelled mean structure, $\exp(\eta_{c,i,r})$, to have different underlying Poisson rates, $\lambda_{c,i,r} = \exp(\eta_{c,i,r}+\epsilon_{c,i,r})$. Hence, it represents residual observation-level heterogeneity, which can cause occasional extreme counts. However, a few high-count compounds alone do not justify it, because those counts may already be explained by the mean model or NB2 likelihood.
 
+[Choosing a Poisson-lognormal likelihood is another example of a different statistical model that is faithful to the same causal DAG. The DAG still determines which biological and technical effects enter the linear predictor $\eta_{c,i,r}$; the likelihood changes only how residual count variation is represented after those effects have been included.]{.highlight-key-point}
 
-Choosing a Poisson-lognormal likelihood is another example of a different statistical model that is faithful to the same causal DAG. The DAG still determines which biological and technical effects enter the linear predictor $\eta_{c,i,r}$. **The likelihood changes only how residual count variation is represented after those effects have been included.**
+**In the Poisson-lognormal model, that residual variation is represented explicitly by the observation-level terms $\epsilon$.** 
 
-However, the introduction of an additional latent value, $\epsilon_{c,i,r}$, for each observed count introduces a new challenge. We need to estimate a new latent parameter, $\sigma_c$, for each condition. For $N$ compounds and $R$ replicates, this introduces approximately $N\times R$ latent parameters. For a large DEL experiment, this can be a significant number of parameters to estimate.
+This explicit representation has an important computational consequence. The model estimates only one residual-scale parameter for each condition, $\sigma_l$, $\sigma_m$, and $\sigma_t$, but it also introduces a **separate latent residual for every observed count**: 
 
-The causal effects still determine $\eta_{c,i,r}$. The extra residual allows observations with the same modelled mean structure to have different underlying Poisson rates. It is not a new biological cause; it represents residual observation-level heterogeneity. The centring term $-\sigma_c^2/2$ ensures that
+- $\epsilon_{l,i}$ for each library count, 
+- $\epsilon_{m,i,r}$ for each matrix count, 
+- $\epsilon_{t,i,r}$ for each target count. 
 
-$$
-\mathbb E[\lambda_{c,i,r}\mid\eta_{c,i,r}]
-    =\exp(\eta_{c,i,r})
-    =\mu_{c,i,r}.
-$$
+With $N$ compounds, $R_m$ matrix replicates, and $R_t$ target replicates, this gives approximately $N(1+R_m+R_t)$ latent residuals in addition to the three scale parameters. **For a large DEL experiment, explicitly estimating this many observation-level latent values can substantially increase memory use and optimisation time.** This is the main computational disadvantage relative to NB2, whose latent Gamma rates can be integrated out analytically.
 
-For a simple example, suppose $\mu=10$, so $\eta=\log 10$. If one observation has $\epsilon=-0.4$, its latent rate is
-
-$$
-\lambda=10e^{-0.4}\approx6.7.
-$$
-
-If another has $\epsilon=0.4$, its rate is
-
-$$
-\lambda=10e^{0.4}\approx14.9.
-$$
-
-The final counts are then Poisson draws around these different latent rates. Variation in $\epsilon$ therefore creates more count variation than a single Poisson distribution with a fixed rate of 10. For $N$ compounds and $R$ replicates, however, this construction introduces approximately $N\times R$ latent residuals per replicated condition.
-
-## Why does NB2 not require explicit latent rates?
+#### Why does NB2 not require explicit latent rates?
 
 NB2 also has a latent-rate interpretation. It can be written as a Poisson--Gamma mixture:
 
