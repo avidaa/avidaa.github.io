@@ -2870,28 +2870,162 @@ With $N$ compounds, $R_m$ matrix replicates, and $R_t$ target replicates, this g
 
 #### What does it meaan that NB2's latent rates can be integrated out analytically?
 
-NB2 also has a latent-rate interpretation. It can be written as a Poisson-Gamma mixture:
+NB2 also has a latent-rate interpretation, built from the same $\lambda_{c,i,r}$ and $\mu_{c,i,r}$ notation used above for the Poisson-lognormal model. Instead of writing the Poisson rate as $\lambda_{c,i,r}=\mu_{c,i,r}\exp(\epsilon_{c,i,r})$ with a lognormal residual, NB2 draws $\lambda_{c,i,r}$ directly from a Gamma distribution centred at $\mu_{c,i,r}$:
 
 $$
 \begin{aligned}
-\Lambda\mid\mu,\phi
+\lambda_{c,i,r}\mid\mu_{c,i,r},\phi_c
     &\sim\operatorname{Gamma}
-       \left(\text{shape}=\phi,\,
-             \text{rate}=\frac{\phi}{\mu}\right),\\
-C\mid\Lambda
-    &\sim\operatorname{Poisson}(\Lambda).
+       \left(\text{shape}=\phi_c,\,
+             \text{rate}=\frac{\phi_c}{\mu_{c,i,r}}\right),\\
+C_{c,i,r}\mid\lambda_{c,i,r}
+    &\sim\operatorname{Poisson}(\lambda_{c,i,r}).
 \end{aligned}
 $$
 
-This Gamma distribution has
+::: {.callout-note icon="false" collapse="true"}
+# What do the shape and rate parameters control?
+
+A Gamma random variable $X$ with shape $k>0$ and rate $\beta>0$ has density
 
 $$
-\mathbb E[\Lambda]=\mu,
+f(x\mid k,\beta)=\frac{\beta^k}{\Gamma(k)}\,x^{k-1}e^{-\beta x},
+\qquad x>0,
+$$
+
+with
+
+$$
+\mathbb E[X]=\frac{k}{\beta},
 \qquad
-\operatorname{Var}(\Lambda)=\frac{\mu^2}{\phi}.
+\operatorname{Var}(X)=\frac{k}{\beta^2}.
 $$
 
-The marginal probability of observing $C=c$ is obtained by integrating over every possible latent rate:
+The two parameters control the shape of this density over positive values in different ways:
+
+- **Shape $k$** governs the overall form of the curve:
+
+    - For $k<1$, the density is unbounded as $x\to0$ and decreases monotonically; 
+    - At $k=1$ it reduces to the Exponential distribution; 
+    - For $k>1$, it is unimodal, with the peak moving away from zero and the curve becoming increasingly symmetric and bell-shaped as $k$ grows.
+
+- **Rate $\beta$** governs the scale without changing that overall shape:
+
+  - Increasing $\beta$ compresses the distribution toward zero, 
+  - Decreasing $\beta$ stretches it toward larger values. 
+  - For any fixed $k$, rescaling $\beta$ simply rescales $X$; the shape parameter alone determines whether the density is spike-like, exponential-like, or bell-like.
+
+The plots below fix the rate at $\beta=1$ and vary only the shape $k$, so the change from panel to panel comes entirely from $k$. Each panel has its own $y$-axis, since the density values differ by orders of magnitude across $k$; what matters here is the shape of each curve, not comparing heights across panels.
+
+```{python}
+import numpy as np
+import pandas as pd
+from scipy.stats import gamma as gamma_dist
+from plotnine import (
+    ggplot, aes, geom_line, geom_area, facet_wrap, labs, theme_minimal, theme,
+    element_text, scale_color_manual, scale_fill_manual
+)
+
+x_gamma = np.linspace(0.001, 20, 500)
+shape_values = [0.5, 1, 2, 5, 10]
+rate_gamma = 1.0
+
+gamma_rows = []
+for k in shape_values:
+    density = gamma_dist.pdf(x_gamma, a=k, scale=1 / rate_gamma)
+    gamma_rows.append(pd.DataFrame({
+        "x": x_gamma,
+        "density": density,
+        "shape": f"k = {k}",
+    }))
+
+gamma_df = pd.concat(gamma_rows, ignore_index=True)
+gamma_df["shape"] = pd.Categorical(
+    gamma_df["shape"],
+    categories=[f"k = {k}" for k in shape_values],
+    ordered=True,
+)
+
+GAMMA_COLORS = ["#bf616a", "#d08770", "#a3be8c", "#5e81ac", "#b48ead"]
+
+(
+    ggplot(gamma_df, aes(x="x", y="density", color="shape", fill="shape"))
+    + geom_area(alpha=0.35)
+    + geom_line(size=1)
+    + facet_wrap("~shape", scales="free_y", nrow=1)
+    + scale_color_manual(values=GAMMA_COLORS)
+    + scale_fill_manual(values=GAMMA_COLORS)
+    + labs(
+        title="Effect of the shape parameter k on the Gamma density",
+        subtitle="Rate fixed at β = 1; only the shape parameter changes",
+        x="x",
+        y="Density",
+    )
+    + theme_minimal()
+    + theme(plot_title=element_text(weight="bold"), legend_position="none")
+)
+```
+
+As $k$ increases from $0.5$ to $10$, the curve moves from an unbounded spike at zero ($k=0.5$), through the Exponential decay of $k=1$, to increasingly symmetric, bell-shaped curves whose peak shifts away from zero ($k=2,5,10$). The rate $\beta=1$ is held fixed throughout, so all of this change is attributable to $k$ alone.
+
+For comparison, the next plot fixes $k=2$ and varies only the rate $\beta$, illustrating that $\beta$ rescales the same shape rather than changing its form:
+
+```{python}
+x_gamma_rate = np.linspace(0.001, 12, 500)
+rate_values = [0.5, 1, 2, 4]
+shape_fixed = 2.0
+
+rate_rows = []
+for beta in rate_values:
+    density = gamma_dist.pdf(x_gamma_rate, a=shape_fixed, scale=1 / beta)
+    rate_rows.append(pd.DataFrame({
+        "x": x_gamma_rate,
+        "density": density,
+        "rate": f"β = {beta}",
+    }))
+
+rate_df = pd.concat(rate_rows, ignore_index=True)
+rate_df["rate"] = pd.Categorical(
+    rate_df["rate"],
+    categories=[f"β = {beta}" for beta in rate_values],
+    ordered=True,
+)
+
+(
+    ggplot(rate_df, aes(x="x", y="density", color="rate"))
+    + geom_line(size=1)
+    + scale_color_manual(values=GAMMA_COLORS)
+    + labs(
+        title="Effect of the rate parameter β on the Gamma density",
+        subtitle="Shape fixed at k = 2; only the rate parameter changes",
+        x="x",
+        y="Density",
+        color="Rate",
+    )
+    + theme_minimal()
+    + theme(plot_title=element_text(weight="bold"))
+)
+```
+
+With $k=2$ fixed, increasing $\beta$ compresses the same bell-shaped curve toward zero, while decreasing $\beta$ stretches it toward larger values; the overall shape (unimodal, moderately skewed) does not change.
+
+In the NB2 mixture, $\lambda_{c,i,r}$ is Gamma with shape $\phi_c$ and rate $\phi_c/\mu_{c,i,r}$. Tying the rate to $\phi_c/\mu_{c,i,r}$ is what keeps the mean fixed at $\mu_{c,i,r}$ regardless of $\phi_c$, so changing $\phi_c$ only changes the shape of the distribution around that fixed mean:
+
+- Small $\phi_c$ gives a right-skewed, high-variance Gamma, so $\lambda_{c,i,r}$ varies substantially from one observation to the next, and the resulting counts are strongly overdispersed relative to Poisson.
+- Large $\phi_c$ gives an increasingly narrow, bell-shaped Gamma concentrated around $\mu_{c,i,r}$. In the limit $\phi_c\to\infty$, the Gamma collapses to a point mass at $\mu_{c,i,r}$, so $\lambda_{c,i,r}=\mu_{c,i,r}$ with no remaining variability, and NB2 reduces to $\operatorname{Poisson}(\mu_{c,i,r})$.
+:::
+
+This Gamma distribution has:
+
+$$
+\mathbb E[\lambda_{c,i,r}]=\mu_{c,i,r},
+\qquad
+\operatorname{Var}(\lambda_{c,i,r})=\frac{\mu_{c,i,r}^2}{\phi_c}.
+$$
+
+So $\lambda_{c,i,r}$ plays exactly the same role here as it did in the Poisson-lognormal model: a latent, observation-specific Poisson rate scattered around $\mu_{c,i,r}$. The difference is only in how that scatter is distributed, Gamma instead of lognormal, and this difference is what lets us integrate $\lambda_{c,i,r}$ away in closed form.
+
+To simplify notation, drop the $c,i,r$ subscripts and write $\mu$, $\phi$, $\lambda$, and $C$ for a single observation; the derivation is identical for every condition, compound, and replicate. The marginal probability of observing $C=c$ is obtained by integrating over every possible latent rate:
 
 $$
 \begin{aligned}
@@ -2929,7 +3063,7 @@ p(C=c\mid\mu,\phi)
  \left(\frac{\mu}{\phi+\mu}\right)^c.
 $$
 
-This is the closed-form NB2 probability mass function. The latent Gamma rate is therefore integrated out analytically rather than estimated separately for every observation. The analogous Poisson-lognormal integral has no elementary closed form:
+This is the closed-form NB2 probability mass function: for every observation, $\lambda_{c,i,r}$ has been integrated out analytically, so we never need to estimate it explicitly. Compare this with the Poisson-lognormal likelihood, which keeps its latent rate: because $\lambda_{c,i,r}=\mu_{c,i,r}\exp(\epsilon_{c,i,r})$ mixes a Poisson with a lognormal distribution rather than a Gamma distribution, the analogous integral has no elementary closed form:
 
 $$
 p(C=c\mid\mu,\sigma)
