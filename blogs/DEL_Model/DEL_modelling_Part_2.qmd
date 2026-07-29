@@ -2854,6 +2854,38 @@ C_{c,i,r} &\sim \operatorname{Poisson}(\lambda_{c,i,r}), \\
 \end{aligned}
 $$
 
+This is why the model is called Poisson-lognormal, even though the equation above writes $\epsilon_{c,i,r}$, not $\lambda_{c,i,r}$, as Normal. **By definition, if a random variable is Normal on the log scale, it is Lognormal on the original scale.** 
+
+Taking logs of $\lambda_{c,i,r}=\mu_{c,i,r}\exp(\epsilon_{c,i,r})$ gives:
+
+$$
+\log\lambda_{c,i,r}=\log\mu_{c,i,r}+\epsilon_{c,i,r},
+$$
+
+Conditional on the current values of the mean-model parameters, $\log\mu_{c,i,r}=\eta_{c,i,r}$ is a fixed quantity: it is the linear predictor built from $a_i$, $b_i$, $s_i$, and the condition and replicate effects. The right-hand side is therefore a fixed quantity, $\log\mu_{c,i,r}$, plus the Normal residual $\epsilon_{c,i,r}\sim\operatorname{Normal}(-\sigma_c^2/2,\sigma_c^2)$. Adding a constant to a Normal random variable shifts its mean by that constant and leaves its variance unchanged. Thus,
+
+$$
+\log\lambda_{c,i,r}\mid\mu_{c,i,r},\sigma_c
+\sim\operatorname{Normal}\!\left(
+\log\mu_{c,i,r}-\frac{\sigma_c^2}{2},\;
+\sigma_c^2
+\right).
+$$
+
+Therefore, $\lambda_{c,i,r}$ is Lognormal:
+
+$$
+\lambda_{c,i,r}\mid\mu_{c,i,r},\sigma_c
+\sim\operatorname{Lognormal}\!\left(
+\log\mu_{c,i,r}-\frac{\sigma_c^2}{2},\;
+\sigma_c^2
+\right),
+$$
+
+Here, $\log\mu_{c,i,r}-\sigma_c^2/2$ is the mean of $\log\lambda_{c,i,r}$, and $\sigma_c^2$ is its variance. These are log-scale parameters, not the mean and variance of $\lambda_{c,i,r}$ on the original scale. Software commonly parameterises a Lognormal distribution using the mean and standard deviation on the log scale; under that convention, the second argument is $\sigma_c$, not $\sigma_c^2$.
+
+The mean $-\sigma_c^2/2$ chosen for $\epsilon_{c,i,r}$ is exactly what is needed to keep $\mathbb E[\lambda_{c,i,r}]=\mu_{c,i,r}$: for a Lognormal variable, $\mathbb E[\exp(\epsilon_{c,i,r})]=\exp\!\left(-\sigma_c^2/2+\sigma_c^2/2\right)=1$, so multiplying by $\mu_{c,i,r}$ leaves the mean unchanged regardless of $\sigma_c$. Without that adjustment, $\mathbb E[\exp(\epsilon_{c,i,r})]=\exp(\sigma_c^2/2)>1$, and $\lambda_{c,i,r}$ would be systematically inflated above $\mu_{c,i,r}$ as $\sigma_c$ grows.
+
 In other words, the extra residual allows observations with the same modelled mean structure, $\exp(\eta_{c,i,r})$, to have different underlying Poisson rates, $\lambda_{c,i,r} = \exp(\eta_{c,i,r}+\epsilon_{c,i,r})$. Hence, it represents residual observation-level heterogeneity, which can cause occasional extreme counts. However, a few high-count compounds alone do not justify it, because those counts may already be explained by the mean model or NB2 likelihood.
 
 [Choosing a Poisson-lognormal likelihood is another example of a different statistical model that is faithful to the same causal DAG. The DAG still determines which biological and technical effects enter the linear predictor $\eta_{c,i,r}$; the likelihood changes only how residual count variation is represented after those effects have been included.]{.highlight-key-point}
@@ -3023,27 +3055,88 @@ $$
 \operatorname{Var}(\lambda_{c,i,r})=\frac{\mu_{c,i,r}^2}{\phi_c}.
 $$
 
-So $\lambda_{c,i,r}$ plays exactly the same role here as it did in the Poisson-lognormal model: a latent, observation-specific Poisson rate scattered around $\mu_{c,i,r}$. The difference is only in how that scatter is distributed, Gamma instead of lognormal, and this difference is what lets us integrate $\lambda_{c,i,r}$ away in closed form.
+So $\lambda_{c,i,r}$ plays exactly the same role here as it did in the Poisson-lognormal model: a latent, observation-specific Poisson rate scattered around $\mu_{c,i,r}$. **The difference is only in how that scatter is distributed, Gamma instead of lognormal, and this difference is what lets us integrate $\lambda_{c,i,r}$ away in closed form.** Side by side:
 
-To simplify notation, drop the $c,i,r$ subscripts and write $\mu$, $\phi$, $\lambda$, and $C$ for a single observation; the derivation is identical for every condition, compound, and replicate. The marginal probability of observing $C=c$ is obtained by integrating over every possible latent rate:
+::: {.columns}
+::: {.column width="48%"}
+**Poisson-lognormal**
 
 $$
 \begin{aligned}
-p(C=c\mid\mu,\phi)
-&=\int_0^\infty
-   p(C=c\mid\lambda)\,
-   p(\lambda\mid\mu,\phi)\,d\lambda\\
-&=\int_0^\infty
-   \frac{e^{-\lambda}\lambda^c}{c!}
-   \frac{(\phi/\mu)^\phi}{\Gamma(\phi)}
-   \lambda^{\phi-1}
-   e^{-(\phi/\mu)\lambda}\,d\lambda\\
-&=\frac{(\phi/\mu)^\phi}
-        {\Gamma(\phi)c!}
-  \int_0^\infty
-  \lambda^{c+\phi-1}
-  e^{-(1+\phi/\mu)\lambda}\,d\lambda.
+C_{c,i,r}\mid\lambda_{c,i,r} &\sim \operatorname{Poisson}(\lambda_{c,i,r}), \\
+\lambda_{c,i,r} &= \mu_{c,i,r}\exp(\epsilon_{c,i,r}), \\
+\epsilon_{c,i,r} &\sim \operatorname{Normal}\!\left(-\frac{\sigma_c^2}{2},\sigma_c^2\right).
 \end{aligned}
+$$
+:::
+
+::: {.column width="4%"}
+:::
+
+::: {.column width="48%"}
+**Poisson-Gamma (NB2)**
+
+$$
+\begin{aligned}
+C_{c,i,r}\mid\lambda_{c,i,r} &\sim \operatorname{Poisson}(\lambda_{c,i,r}), \\
+\lambda_{c,i,r} &\sim \operatorname{Gamma}\!\left(\phi_c,\,\frac{\phi_c}{\mu_{c,i,r}}\right).
+\end{aligned}
+$$
+:::
+:::
+
+In both cases $\lambda_{c,i,r}$ is centred at $\mu_{c,i,r}$ and $C_{c,i,r}$ is Poisson given $\lambda_{c,i,r}$; only the distribution used to scatter $\lambda_{c,i,r}$ around $\mu_{c,i,r}$ changes, lognormal versus Gamma. That distributional choice is what makes the Gamma case analytically integrable while the lognormal case is not.
+
+To simplify notation, drop the $c,i,r$ subscripts and write $\mu$, $\phi$, $\lambda$, and $C$ for a single observation; the derivation is identical for every condition, compound, and replicate.
+
+Two densities enter this derivation: $p(C=c\mid\lambda)$, the Poisson probability of observing $c$ counts given the rate $\lambda$, and $p(\lambda\mid\mu,\phi)$, the Gamma density of $\lambda$ derived above:
+
+$$
+p(C=c\mid\lambda)=\frac{e^{-\lambda}\lambda^{c}}{c!},
+\qquad
+p(\lambda\mid\mu,\phi)=\frac{(\phi/\mu)^{\phi}}{\Gamma(\phi)}\,\lambda^{\phi-1}e^{-(\phi/\mu)\lambda},
+$$
+
+where $c!$ is the factorial normalising the Poisson pmf, and $\Gamma(\phi)$ and $(\phi/\mu)^{\phi}$ together normalise the Gamma density so it integrates to $1$.
+
+**Step 1 — Set up the mixing integral.** Marginalising over $\lambda$ means integrating the product of these two densities over every possible value of $\lambda$:
+
+$$
+p(C=c\mid\mu,\phi)
+=\int_0^\infty
+   p(C=c\mid\lambda)\,
+   p(\lambda\mid\mu,\phi)\,d\lambda.
+$$
+
+**Step 2 — Substitute the two densities.** Replacing $p(C=c\mid\lambda)$ and $p(\lambda\mid\mu,\phi)$ with their explicit forms gives:
+
+$$
+p(C=c\mid\mu,\phi)
+=\int_0^\infty
+   \underbrace{\frac{e^{-\lambda}\lambda^{c}}{c!}}_{p(C=c\mid\lambda)}\;
+   \underbrace{\frac{(\phi/\mu)^{\phi}}{\Gamma(\phi)}\,\lambda^{\phi-1}e^{-(\phi/\mu)\lambda}}_{p(\lambda\mid\mu,\phi)}
+   \,d\lambda.
+$$
+
+**Step 3 — Move every term that does not depend on $\lambda$ outside the integral.** $c!$, $\Gamma(\phi)$, and $(\phi/\mu)^{\phi}$ are constants with respect to $\lambda$, so they factor out in front:
+
+$$
+p(C=c\mid\mu,\phi)
+=\frac{(\phi/\mu)^{\phi}}{\Gamma(\phi)\,c!}
+\int_0^\infty
+   \lambda^{c}\,\lambda^{\phi-1}\,e^{-\lambda}\,e^{-(\phi/\mu)\lambda}
+   \,d\lambda.
+$$
+
+**Step 4 — Combine the powers of $\lambda$ and the exponential terms.** Using $\lambda^{c}\lambda^{\phi-1}=\lambda^{c+\phi-1}$ and $e^{-\lambda}e^{-(\phi/\mu)\lambda}=e^{-(1+\phi/\mu)\lambda}$, the integral simplifies to a single power of $\lambda$ times a single exponential:
+
+$$
+p(C=c\mid\mu,\phi)
+=\frac{(\phi/\mu)^{\phi}}
+        {\Gamma(\phi)\,c!}
+  \int_0^\infty
+  \lambda^{c+\phi-1}\,
+  e^{-(1+\phi/\mu)\lambda}\,d\lambda.
 $$
 
 Using
