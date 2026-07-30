@@ -2854,6 +2854,9 @@ C_{c,i,r} &\sim \operatorname{Poisson}(\lambda_{c,i,r}), \\
 \end{aligned}
 $$
 
+::: {.callout-note icon="false" collapse="true"}
+# Why is the Poisson rate Lognormal?
+
 This is why the model is called Poisson-lognormal, even though the equation above writes $\epsilon_{c,i,r}$, not $\lambda_{c,i,r}$, as Normal. **By definition, if a random variable is Normal on the log scale, it is Lognormal on the original scale.** 
 
 Taking logs of $\lambda_{c,i,r}=\mu_{c,i,r}\exp(\epsilon_{c,i,r})$ gives:
@@ -2883,8 +2886,19 @@ $$
 $$
 
 Here, $\log\mu_{c,i,r}-\sigma_c^2/2$ is the mean of $\log\lambda_{c,i,r}$, and $\sigma_c^2$ is its variance. These are log-scale parameters, not the mean and variance of $\lambda_{c,i,r}$ on the original scale. Software commonly parameterises a Lognormal distribution using the mean and standard deviation on the log scale; under that convention, the second argument is $\sigma_c$, not $\sigma_c^2$.
+:::
 
-The mean $-\sigma_c^2/2$ chosen for $\epsilon_{c,i,r}$ is exactly what is needed to keep $\mathbb E[\lambda_{c,i,r}]=\mu_{c,i,r}$: for a Lognormal variable, $\mathbb E[\exp(\epsilon_{c,i,r})]=\exp\!\left(-\sigma_c^2/2+\sigma_c^2/2\right)=1$, so multiplying by $\mu_{c,i,r}$ leaves the mean unchanged regardless of $\sigma_c$. Without that adjustment, $\mathbb E[\exp(\epsilon_{c,i,r})]=\exp(\sigma_c^2/2)>1$, and $\lambda_{c,i,r}$ would be systematically inflated above $\mu_{c,i,r}$ as $\sigma_c$ grows.
+The term $\exp(\epsilon_{c,i,r})$ multiplies the modelled mean $\mu_{c,i,r}$. We want this multiplier to vary between observations without changing their average rate, so its mean must equal $1$. Simply centring $\epsilon_{c,i,r}$ at zero would not achieve this: exponentiation creates a right-skewed distribution, and the occasional large multipliers raise its mean above $1$. Shifting the Normal distribution slightly downward by setting its mean to $-\sigma_c^2/2$ corrects this effect:
+
+$$
+\mathbb E[\exp(\epsilon_{c,i,r})]=1
+\quad\Longrightarrow\quad
+\mathbb E[\lambda_{c,i,r}]
+=\mu_{c,i,r}\times1
+=\mu_{c,i,r}.
+$$
+
+For example, if $\sigma_c=1$ and $\epsilon_{c,i,r}$ were centred at zero, the average multiplier would be $\exp(1/2)\approx1.65$. Centring it at $-1/2$ instead brings the average multiplier back to $1$.
 
 In other words, the extra residual allows observations with the same modelled mean structure, $\exp(\eta_{c,i,r})$, to have different underlying Poisson rates, $\lambda_{c,i,r} = \exp(\eta_{c,i,r}+\epsilon_{c,i,r})$. Hence, it represents residual observation-level heterogeneity, which can cause occasional extreme counts. However, a few high-count compounds alone do not justify it, because those counts may already be explained by the mean model or NB2 likelihood.
 
