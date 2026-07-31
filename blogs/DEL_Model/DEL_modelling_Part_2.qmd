@@ -2855,7 +2855,7 @@ C_{c,i,r} &\sim \operatorname{Poisson}(\lambda_{c,i,r}), \\
 $$
 
 ::: {.callout-note icon="false" collapse="true"}
-# Why is the Poisson rate Lognormal?
+# Why is the Poisson rate Lognormally distributed?
 
 This is why the model is called Poisson-lognormal, even though the equation above writes $\epsilon_{c,i,r}$, not $\lambda_{c,i,r}$, as Normal. **By definition, if a random variable is Normal on the log scale, it is Lognormal on the original scale.** 
 
@@ -2898,7 +2898,25 @@ $$
 =\mu_{c,i,r}.
 $$
 
-For example, if $\sigma_c=1$ and $\epsilon_{c,i,r}$ were centred at zero, the average multiplier would be $\exp(1/2)\approx1.65$. Centring it at $-1/2$ instead brings the average multiplier back to $1$.
+For example, suppose the modelled mean is $\mu_{c,i,r}=100$ and $\sigma_c=1$. If we used $\epsilon_{c,i,r}\sim\operatorname{Normal}(0,1)$, then
+
+$$
+\mathbb E[\exp(\epsilon_{c,i,r})]
+=\exp\!\left(0+\frac{1^2}{2}\right)
+\approx1.65.
+$$
+
+<sup>Because for a Normal random variable $\epsilon \sim\operatorname{Normal}(m,\sigma^2)$, we have $\mathbb E[\exp(\epsilon)]=\exp(m+\frac{1}{2}\sigma^2)$.</sup>
+
+The average Poisson rate would therefore be $100\times1.65=165$, rather than the intended value of $100$. Instead, using $\epsilon_{c,i,r}\sim\operatorname{Normal}(-1/2,1)$ gives
+
+$$
+\mathbb E[\exp(\epsilon_{c,i,r})]
+=\exp\!\left(-\frac12+\frac{1^2}{2}\right)
+=1.
+$$
+
+The rates can still vary between observations, but their average remains $100\times1=100$.
 
 In other words, the extra residual allows observations with the same modelled mean structure, $\exp(\eta_{c,i,r})$, to have different underlying Poisson rates, $\lambda_{c,i,r} = \exp(\eta_{c,i,r}+\epsilon_{c,i,r})$. Hence, it represents residual observation-level heterogeneity, which can cause occasional extreme counts. However, a few high-count compounds alone do not justify it, because those counts may already be explained by the mean model or NB2 likelihood.
 
@@ -3054,11 +3072,64 @@ rate_df["rate"] = pd.Categorical(
 ```
 
 With $k=2$ fixed, increasing $\beta$ compresses the same bell-shaped curve toward zero, while decreasing $\beta$ stretches it toward larger values; the overall shape (unimodal, moderately skewed) does not change.
+:::
+
+::: {.callout-note icon="false" collapse="true"}
+# Why this parametrisation of the Gamma distribution is used?
 
 In the NB2 mixture, $\lambda_{c,i,r}$ is Gamma with shape $\phi_c$ and rate $\phi_c/\mu_{c,i,r}$. Tying the rate to $\phi_c/\mu_{c,i,r}$ is what keeps the mean fixed at $\mu_{c,i,r}$ regardless of $\phi_c$, so changing $\phi_c$ only changes the shape of the distribution around that fixed mean:
 
 - Small $\phi_c$ gives a right-skewed, high-variance Gamma, so $\lambda_{c,i,r}$ varies substantially from one observation to the next, and the resulting counts are strongly overdispersed relative to Poisson.
 - Large $\phi_c$ gives an increasingly narrow, bell-shaped Gamma concentrated around $\mu_{c,i,r}$. In the limit $\phi_c\to\infty$, the Gamma collapses to a point mass at $\mu_{c,i,r}$, so $\lambda_{c,i,r}=\mu_{c,i,r}$ with no remaining variability, and NB2 reduces to $\operatorname{Poisson}(\mu_{c,i,r})$.
+
+The plot below fixes the mean at $\mu=10$ and varies only $\phi_c$. Every curve therefore has the same mean, marked by the dashed vertical line; what changes is how tightly $\lambda$ concentrates around that mean:
+
+```{python}
+from plotnine import geom_vline
+
+mu_fixed = 10.0
+phi_values = [0.5, 1, 2, 10, 50]
+x_phi = np.linspace(0.001, 40, 800)
+
+phi_rows = []
+for phi in phi_values:
+    rate = phi / mu_fixed
+    density = gamma_dist.pdf(x_phi, a=phi, scale=1 / rate)
+    phi_rows.append(pd.DataFrame({
+        "x": x_phi,
+        "density": density,
+        "phi": f"φ = {phi}",
+    }))
+
+phi_df = pd.concat(phi_rows, ignore_index=True)
+phi_df["phi"] = pd.Categorical(
+    phi_df["phi"],
+    categories=[f"φ = {phi}" for phi in phi_values],
+    ordered=True,
+)
+
+PHI_COLORS = ["#bf616a", "#d08770", "#a3be8c", "#5e81ac", "#b48ead"]
+
+(
+    ggplot(phi_df, aes(x="x", y="density", color="phi", fill="phi"))
+    + geom_area(alpha=0.35)
+    + geom_line(size=1)
+    + geom_vline(xintercept=mu_fixed, linetype="dashed", color="#4c566a", size=0.7)
+    + facet_wrap("~phi", scales="free_y", nrow=1)
+    + scale_color_manual(values=PHI_COLORS)
+    + scale_fill_manual(values=PHI_COLORS)
+    + labs(
+        title="Effect of φ on the Gamma mixture for λ",
+        subtitle="Mean fixed at μ = 10 (dashed line); only the dispersion parameter φ changes",
+        x="λ",
+        y="Density",
+    )
+    + theme_minimal()
+    + theme(plot_title=element_text(weight="bold"), legend_position="none")
+)
+```
+
+Small $\phi$ values ($\phi=0.5,1,2$) produce broad, right-skewed densities, so $\lambda$ often takes values far above or below $\mu=10$. Large $\phi$ values ($\phi=10,50$) produce increasingly narrow peaks centred at $\mu=10$. As $\phi$ continues to grow, the curve collapses onto the dashed line, recovering a Poisson model with no extra rate variability.
 :::
 
 This Gamma distribution has:
@@ -3103,7 +3174,10 @@ In both cases $\lambda_{c,i,r}$ is centred at $\mu_{c,i,r}$ and $C_{c,i,r}$ is P
 
 To simplify notation, drop the $c,i,r$ subscripts and write $\mu$, $\phi$, $\lambda$, and $C$ for a single observation; the derivation is identical for every condition, compound, and replicate.
 
-Two densities enter this derivation: $p(C=c\mid\lambda)$, the Poisson probability of observing $c$ counts given the rate $\lambda$, and $p(\lambda\mid\mu,\phi)$, the Gamma density of $\lambda$ derived above:
+Two densities enter this derivation: 
+
+- $p(C=c\mid\lambda)$, the Poisson probability of observing $c$ counts given the rate $\lambda$, 
+- $p(\lambda\mid\mu,\phi)$, the Gamma density of $\lambda$ derived above:
 
 $$
 p(C=c\mid\lambda)=\frac{e^{-\lambda}\lambda^{c}}{c!},
