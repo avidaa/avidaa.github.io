@@ -3174,10 +3174,12 @@ In both cases $\lambda_{c,i,r}$ is centred at $\mu_{c,i,r}$ and $C_{c,i,r}$ is P
 
 To simplify notation, drop the $c,i,r$ subscripts and write $\mu$, $\phi$, $\lambda$, and $C$ for a single observation; the derivation is identical for every condition, compound, and replicate.
 
-Two densities enter this derivation: 
+Our goal is to calculate the probability of observing $c$ counts given only the modelled mean $\mu$ and dispersion $\phi$, namely $p(C=c\mid\mu,\phi)$. Because the latent Poisson rate $\lambda$ is unknown, we cannot evaluate a single Poisson probability directly. Instead, for each possible value of $\lambda$, we multiply the Poisson probability of $c$ counts by the Gamma density assigned to that value of $\lambda$. We then integrate these products over all possible positive values of $\lambda$.
+
+Two distributions enter this calculation:
 
 - $p(C=c\mid\lambda)$, the Poisson probability of observing $c$ counts given the rate $\lambda$, 
-- $p(\lambda\mid\mu,\phi)$, the Gamma density of $\lambda$ derived above:
+- $p(\lambda\mid\mu,\phi)$, the Gamma density of $\lambda$ given the mean $\mu$ and dispersion $\phi$
 
 $$
 p(C=c\mid\lambda)=\frac{e^{-\lambda}\lambda^{c}}{c!},
@@ -3227,24 +3229,139 @@ p(C=c\mid\mu,\phi)
   e^{-(1+\phi/\mu)\lambda}\,d\lambda.
 $$
 
-Using
+Using the integral representation of the Gamma function, we have:
 
 $$
 \int_0^\infty x^{k-1}e^{-rx}\,dx
     =\frac{\Gamma(k)}{r^k},
 $$
 
-the integral becomes
+Here, $k=c+\phi$ and $r=1+\phi/\mu$. Substituting these values into the integral representation of the Gamma function evaluates only the integral:
+
+$$
+\int_0^\infty
+\lambda^{c+\phi-1}e^{-(1+\phi/\mu)\lambda}\,d\lambda
+=
+\frac{\Gamma(c+\phi)}
+{\left(1+\phi/\mu\right)^{c+\phi}}.
+$$
+
+**Step 5 — Substitute this result back into the full expression.** The factor outside the integral remains unchanged:
 
 $$
 p(C=c\mid\mu,\phi)
-=\frac{\Gamma(c+\phi)}
-       {\Gamma(\phi)c!}
- \left(\frac{\phi}{\phi+\mu}\right)^\phi
- \left(\frac{\mu}{\phi+\mu}\right)^c.
+=
+\frac{(\phi/\mu)^\phi}{\Gamma(\phi)c!}
+\frac{\Gamma(c+\phi)}
+{\left(1+\phi/\mu\right)^{c+\phi}}.
 $$
 
-This is the closed-form NB2 probability mass function: for every observation, $\lambda_{c,i,r}$ has been integrated out analytically, so we never need to estimate it explicitly. Compare this with the Poisson-lognormal likelihood, which keeps its latent rate: because $\lambda_{c,i,r}=\mu_{c,i,r}\exp(\epsilon_{c,i,r})$ mixes a Poisson with a lognormal distribution rather than a Gamma distribution, the analogous integral has no elementary closed form:
+**Step 6 — Simplify the fractions.** First use
+
+$$
+1+\frac{\phi}{\mu}
+=\frac{\mu+\phi}{\mu},
+\qquad\text{so}\qquad
+\frac{1}{(1+\phi/\mu)^{c+\phi}}
+=\left(\frac{\mu}{\mu+\phi}\right)^{c+\phi}.
+$$
+
+Then
+
+$$
+\begin{aligned}
+p(C=c\mid\mu,\phi)
+&=\frac{\Gamma(c+\phi)}{\Gamma(\phi)c!}
+  \left(\frac{\phi}{\mu}\right)^\phi
+  \left(\frac{\mu}{\mu+\phi}\right)^{c+\phi}\\
+&=\frac{\Gamma(c+\phi)}{\Gamma(\phi)c!}
+  \frac{\phi^\phi}{\mu^\phi}
+  \frac{\mu^{c+\phi}}{(\mu+\phi)^{c+\phi}}\\
+&=\frac{\Gamma(c+\phi)}{\Gamma(\phi)c!}
+  \frac{\phi^\phi}{\mu^\phi}
+  \frac{\mu^c\mu^\phi}{(\mu+\phi)^{c+\phi}}\\
+&=\frac{\Gamma(c+\phi)}{\Gamma(\phi)c!}
+  \frac{\phi^\phi\mu^c\mu^\phi}
+       {\mu^\phi(\mu+\phi)^{c+\phi}}\\
+&=\frac{\Gamma(c+\phi)}{\Gamma(\phi)c!}
+  \frac{\phi^\phi\mu^c}
+       {(\mu+\phi)^{c+\phi}}\\
+&=\frac{\Gamma(c+\phi)}{\Gamma(\phi)c!}
+  \frac{\phi^\phi\mu^c}
+       {(\mu+\phi)^\phi(\mu+\phi)^c}\\
+&=\frac{\Gamma(c+\phi)}{\Gamma(\phi)c!}
+  \frac{\phi^\phi}{(\mu+\phi)^\phi}
+  \frac{\mu^c}{(\mu+\phi)^c}\\
+&=\frac{\Gamma(c+\phi)}{\Gamma(\phi)c!}
+  \left(\frac{\phi}{\phi+\mu}\right)^\phi
+  \left(\frac{\mu}{\phi+\mu}\right)^c.
+\end{aligned}
+$$
+
+
+The final line above is the **closed-form NB2 probability mass function**:
+
+$$
+\boxed{
+p(C=c\mid\mu,\phi)
+=
+\frac{\Gamma(c+\phi)}{\Gamma(\phi)c!}
+\left(\frac{\phi}{\phi+\mu}\right)^\phi
+\left(\frac{\mu}{\phi+\mu}\right)^c
+},
+\qquad c=0,1,2,\ldots
+$$
+
+This closed form lets us compute the probability of observing $c$ counts using only $\mu$ and $\phi$, while still accounting for extra-Poisson variation. The latent rate $\lambda$ originally represented observation-level variation around $\mu$, with $\operatorname{Var}(\lambda)=\mu^2/\phi$. Integrating out $\lambda$ removes the need to estimate a separate rate for every observation, but its contribution to the count variance remains:
+
+$$
+\operatorname{Var}(C)=\mu+\frac{\mu^2}{\phi}.
+$$
+
+::: {.callout-note icon="false" collapse="true"}
+# The connection to the usual Negative Binomial pmf
+
+The connection to the usual Negative Binomial pmf is easiest to see by writing
+
+$$
+r=\phi,
+\qquad
+p=\frac{\phi}{\phi+\mu},
+\qquad
+1-p=\frac{\mu}{\phi+\mu}.
+$$
+
+Substituting these into
+
+$$
+p(C=c\mid r,p)
+=\frac{\Gamma(c+r)}{\Gamma(r)c!}\,p^r(1-p)^c
+$$
+
+gives exactly the boxed expression:
+
+$$
+\begin{aligned}
+p(C=c\mid\mu,\phi)
+&=
+\frac{\Gamma(c+\phi)}{\Gamma(\phi)c!}
+\left(\frac{\phi}{\phi+\mu}\right)^\phi
+\left(1-\frac{\phi}{\phi+\mu}\right)^c\\
+&=
+\frac{\Gamma(c+\phi)}{\Gamma(\phi)c!}
+\left(\frac{\phi}{\phi+\mu}\right)^\phi
+\left(\frac{\phi+\mu-\phi}{\phi+\mu}\right)^c\\
+&=
+\frac{\Gamma(c+\phi)}{\Gamma(\phi)c!}
+\left(\frac{\phi}{\phi+\mu}\right)^\phi
+\left(\frac{\mu}{\phi+\mu}\right)^c.
+\end{aligned}
+$$
+
+
+:::
+
+In the Poisson-lognormal model, by contrast, $\lambda_{c,i,r}=\mu_{c,i,r}\exp(\epsilon_{c,i,r})$ mixes a Poisson distribution with a Lognormal distribution. The analogous integral has no elementary closed form:
 
 $$
 p(C=c\mid\mu,\sigma)
@@ -3258,34 +3375,6 @@ $$
 
 It must usually be handled with explicit latent residuals, numerical integration, or an approximation such as variational inference.
 
-## Numerical comparison with the same mean and variance
-
-Suppose $\mu=10$ and $\phi=5$. NB2 then has
-
-$$
-\operatorname{Var}(C)
-    =10+\frac{10^2}{5}
-    =30.
-$$
-
-For the Poisson-lognormal model to have the same variance, choose
-
-$$
-e^{\sigma^2}-1=\frac{1}{\phi},
-\qquad
-\sigma^2=\log\left(1+\frac{1}{5}\right)\approx0.182,
-\qquad
-\sigma\approx0.427.
-$$
-
-Both models now have mean 10 and variance 30, but their probability distributions are not identical. Numerically:
-
-- NB2 gives $P(C=0)\approx0.00412$, whereas Poisson-lognormal gives $P(C=0)\approx0.00216$.
-- NB2 gives $P(C=10)\approx0.0714$, whereas Poisson-lognormal gives $P(C=10)\approx0.0742$.
-- NB2 gives $P(C\ge30)\approx0.00392$, whereas Poisson-lognormal gives $P(C\ge30)\approx0.00600$.
-- Farther into the right tail, NB2 gives $P(C\ge40)\approx0.000186$, whereas Poisson-lognormal gives $P(C\ge40)\approx0.000678$.
-
-Thus, even after matching the first two moments, the Poisson-lognormal places more probability in the far right tail in this example. NB2 is computationally attractive because it has a closed-form likelihood; Poisson-lognormal may provide a more flexible heavy tail but introduces many latent residuals. Prior predictive checks, posterior predictive checks, and computational diagnostics should determine whether that additional flexibility is useful for the DEL data.
 ::::
 
 ##### Log-linear model for the expected counts
@@ -3323,41 +3412,7 @@ $$
 \end{aligned}
 $$
 
-Because $\exp(\eta)>0$ for every real value of $\eta$, this transformation guarantees that each $\mu$ is positive, as required for the expected value of a non-negative count. Substituting the definitions of the linear predictors reveals the count-scale interpretation:
-
-$$
-\begin{aligned}
-\mu_{l,i}
-    &= E_l \times e^{\alpha_l} \times e^{a_i}, \\
-\mu_{m,i,r}
-    &= E_{m,r} \times e^{\alpha_m} \times e^{a_i} \times e^{b_i} \times e^{\gamma_{m,r}}, \\
-\mu_{t,i,r}
-    &= E_{t,r} \times e^{\alpha_t} \times e^{a_i} \times e^{b_i} \times e^{s_i} \times e^{\gamma_{t,r}}.
-\end{aligned}
-$$
-
-On the count scale, $E$ sets the sequencing exposure, while the exponentiated intercept and latent effects act as multiplicative adjustments. 
-
-For example, if
-
-$$
-E_{t,r}=20,\quad e^{\alpha_t}=1.1,\quad e^{a_i}=1.5,\quad
-e^{b_i}=2,\quad e^{s_i}=3,\quad e^{\gamma_{t,r}}=0.9,
-$$
-
-then
-
-$$
-\mu_{t,i,r}=20\times1.1\times1.5\times2\times3\times0.9=178.2.
-$$
-
-Holding all other terms fixed and setting $s_i=0$ gives $\mu_{t,i,r}=59.4$:
-
-$$
-\mu_{t,i,r}=20\times1.1\times1.5\times2\times1\times0.9=59.4.
-$$
-
-Therefore, $e^{s_i}=3$ triples the expected target count relative to the reference $s_i=0$, after accounting for exposure ($E_{t,r}$), condition recovery ($e^{\alpha_t}$), input abundance ($e^{a_i}$), matrix background ($e^{b_i}$), and replicate variation ($e^{\gamma_{t,r}}$). In general, increasing $s_i$ by one multiplies the expectation by $e\approx2.72$. The observed count can still differ from $\mu_{t,i,r}$ because it is a Negative Binomial realisation around that expectation.
+Because $\exp(\eta)>0$ for every real value of $\eta$, this transformation guarantees that each $\mu$ is positive, as required for the expected value of a non-negative count. 
 
 ##### Identifiability: removing additive ambiguity and checking parameter recovery
 
