@@ -2690,7 +2690,7 @@ The DAG tells us which quantities should contribute to each count, but we must s
 1. Known offsets for sequencing depth, 
 2. Negative Binomial likelihood for residual count variation, 
 3. Log-linear model for the expected counts,
-4. Hierarchical priors for the compound and replicate effects. 
+4. Priors for the compound and replicate effects. 
 
 The hierarchy appears in the final component, where shared population-level priors provide partial pooling without forcing compounds to have identical abundance, background retention, or target enrichment.
 
@@ -2728,6 +2728,9 @@ $$
 \operatorname{Var}(C \mid \mu,\phi) = \mu + \frac{\mu^2}{\phi}.
 $$
 
+::: {.callout-note icon="false" collapse="true"}
+# How does NB2 differ from NB1?
+
 This differs from NB1, where the additional variance grows linearly with the mean. Using the same inverse-dispersion convention for $\phi$, the NB1 mean and variance are:
 
 $$
@@ -2747,11 +2750,10 @@ $$
 rather than the variance of $12$ implied by NB1:
 
 $$
-\operatorname{Var}(C)=10+\frac{10}{5}=12,
+\operatorname{Var}(C)=10+\frac{10}{5}=12.
 $$
 
-
-::: {.callout-note icon="false" collapse="true"}
+::: {.callout-tip icon="false" collapse="true"}
 
 # Absolute variation and relative noise are not the same
 
@@ -2816,6 +2818,9 @@ At low expected counts, $1/\mu$ is large and sampling noise dominates, reproduci
 
 :::
 
+:::
+
+
 The parameter $\phi>0$ is the NB2 **inverse-dispersion parameter** introduced in [When is Negative Binomial appropriate?](DEL_modelling_Part_1.qmd#when-is-negative-binomial-appropriate){.box-ref-highlight} in Part 1. **It controls how much variability remains beyond the Poisson sampling variance after the mean model has accounted for the specified biological and technical effects.** 
 
 Because the additional variance is $\mu^2/\phi$:
@@ -2824,7 +2829,15 @@ Because the additional variance is $\mu^2/\phi$:
 - Larger values produce less overdispersion and tighter distributions around $\mu$. 
 - As $\phi\rightarrow\infty$, the extra term approaches zero and the variance approaches the Poisson variance, $\operatorname{Var}(C)=\mu$.
 
-The dispersion structure provides a concrete example of why several statistical models can correspond to the same causal DAG. The DAG specifies which processes contribute to each expected count, but it does not determine how residual variation should be shared across conditions. We could use:
+:::::: {.callout-note icon="false" collapse="true"}
+# Different statistical models for the same causal DAG
+
+Several statistical models can correspond to the same causal DAG. The DAG tells us which processes enter each expected count, but it does not fix every modelling detail. In particular, it leaves open how residual variation is shared across conditions and which likelihood is used for the observed counts. The two examples below illustrate these choices.
+
+:::: {.callout-note icon="false" collapse="true"}
+# Different dispersion structures for the same DAG
+
+The DAG does not determine how residual variation should be shared across conditions. We could use:
 
 1.  **One shared parameter:** $\phi_l=\phi_m=\phi_t=\phi$. This assumes the same residual mean–variance relationship in all three conditions and provides the strongest pooling.
 2.  **Separate condition-specific parameters:** $\phi_l$, $\phi_m$, and $\phi_t$. This allows each condition to have different residual variation but estimates more parameters and may produce less precise estimates.
@@ -2833,8 +2846,7 @@ The dispersion structure provides a concrete example of why several statistical 
 All three choices preserve the causal structure of the DAG; they differ only in their assumptions about residual count variation and information sharing. Here we begin with separate condition-specific parameters. Prior predictive checks, posterior predictive checks, and the stability of the fitted estimates will show whether that additional flexibility is supported. Because there are only three conditions, a hierarchical dispersion model may itself be weakly estimated and should also be evaluated through simulation.
 
 [The dispersion parameters describe variation left unexplained by the mean model; they are not intrinsically biological or technical. Their interpretation depends on which biological and technical processes have already been represented explicitly in the model.]{.highlight-key-point}
-
-
+::::
 
 :::: {.callout-note icon="false" collapse="true"}
 # A Poisson-lognormal likelihood instead of Negative Binomial
@@ -2919,8 +2931,6 @@ $$
 The rates can still vary between observations, but their average remains $100\times1=100$.
 
 In other words, the extra residual allows observations with the same modelled mean structure, $\exp(\eta_{c,i,r})$, to have different underlying Poisson rates, $\lambda_{c,i,r} = \exp(\eta_{c,i,r}+\epsilon_{c,i,r})$. Hence, it represents residual observation-level heterogeneity, which can cause occasional extreme counts. However, a few high-count compounds alone do not justify it, because those counts may already be explained by the mean model or NB2 likelihood.
-
-[Choosing a Poisson-lognormal likelihood is another example of a different statistical model that is faithful to the same causal DAG. The DAG still determines which biological and technical effects enter the linear predictor $\eta_{c,i,r}$; the likelihood changes only how residual count variation is represented after those effects have been included.]{.highlight-key-point}
 
 **In the Poisson-lognormal model, that residual variation is represented explicitly by the observation-level terms $\epsilon$.** 
 
@@ -3376,8 +3386,9 @@ $$
 It must usually be handled with explicit latent residuals, numerical integration, or an approximation such as variational inference.
 
 ::::
+::::::
 
-##### Log-linear model for the expected counts
+##### 3. Log-linear model for the expected counts
 
 The next step is to specify the expected counts. We first define a linear predictor, $\eta$, for each condition. Each predictor contains a known log-exposure offset and an additive combination of the relevant model parameters:
 
@@ -3414,7 +3425,8 @@ $$
 
 Because $\exp(\eta)>0$ for every real value of $\eta$, this transformation guarantees that each $\mu$ is positive, as required for the expected value of a non-negative count. 
 
-##### Identifiability: removing additive ambiguity and checking parameter recovery
+:::::: {.callout-note icon="false" collapse="true"}
+# Identifiability: removing additive ambiguity and checking parameter recovery
 
 The condition intercepts $\alpha_l$, $\alpha_m$, and $\alpha_t$ and the effects $a_i$, $b_i$, $s_i$, $\gamma_{m,r}$, and $\gamma_{t,r}$ all enter the linear predictors additively. Without constraints, an arbitrary constant can be moved between these terms without changing any expected count.
 
@@ -3490,6 +3502,8 @@ with analogous transformations for $b_i$, $s_i$, $\gamma_{m,r}$, and $\gamma_{t,
 
 For computation, a dedicated zero-sum distribution or an $N-1$ dimensional contrast basis is preferable when available because it avoids carrying a redundant common-shift direction in the raw parameters.
 ::::
+
+::::::
 
 ##### Priors
 
