@@ -3426,7 +3426,8 @@ $$
 Because $\exp(\eta)>0$ for every real value of $\eta$, this transformation guarantees that each $\mu$ is positive, as required for the expected value of a non-negative count. 
 
 :::::: {.callout-note icon="false" collapse="true"}
-# Identifiability: removing additive ambiguity and checking parameter recovery
+
+# Valid inference requires an identifiable parameterisation
 
 The condition intercepts $\alpha_l$, $\alpha_m$, and $\alpha_t$ and the effects $a_i$, $b_i$, $s_i$, $\gamma_{m,r}$, and $\gamma_{t,r}$ all enter the linear predictors additively. Without constraints, an arbitrary constant can be moved between these terms without changing any expected count.
 
