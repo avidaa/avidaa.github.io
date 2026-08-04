@@ -3427,9 +3427,14 @@ Because $\exp(\eta)>0$ for every real value of $\eta$, this transformation guara
 
 :::::: {.callout-note icon="false" collapse="true"}
 
-# Valid inference requires an identifiable parameterisation
+# Are the model parameters identifiable?
 
-The condition intercepts $\alpha_l$, $\alpha_m$, and $\alpha_t$ and the effects $a_i$, $b_i$, $s_i$, $\gamma_{m,r}$, and $\gamma_{t,r}$ all enter the linear predictors additively. Without constraints, an arbitrary constant can be moved between these terms without changing any expected count.
+Identifiability asks whether the observed-data distribution uniquely determines the model parameters. We assess it in two stages:
+
+1.  **Structural identifiability:** can two different parameter values produce exactly the same expected counts, even with arbitrarily informative data?
+2.  **Practical identifiability:** after any structural ambiguities have been removed, do the available sequencing depth and replicates contain enough information to estimate the parameters precisely?
+
+Structural identifiability can first be checked algebraically by looking for transformations of the parameters that leave every linear predictor unchanged. In this model, the condition intercepts $\alpha_l$, $\alpha_m$, and $\alpha_t$ and the effects $a_i$, $b_i$, $s_i$, $\gamma_{m,r}$, and $\gamma_{t,r}$ all enter additively. This creates arbitrary shifts between an intercept and the corresponding effects.
 
 For example, for any constant $c$, define:
 
@@ -3450,7 +3455,11 @@ $$
 
 and the same cancellation occurs in the matrix and target conditions. Thus, setting $c=1$, for example, increases every $a_i$ by one and decreases every condition intercept by one while leaving all values of $\mu$ and the likelihood unchanged. The data cannot distinguish these parameterisations.
 
-Similar ambiguities occur between $b_i$ and the matrix and target intercepts, between $s_i$ and the target intercept, and between each set of replicate effects and its condition intercept. We remove these additive ambiguities by defining the compound and replicate effects as deviations around zero:
+Similar shifts can be made between $b_i$ and the matrix and target intercepts, between $s_i$ and the target intercept, and between each set of replicate effects and its condition intercept. The unconstrained model is therefore structurally non-identifiable.
+
+##### Removing the additive ambiguity
+
+We remove these arbitrary shifts by defining the compound and replicate effects as deviations around zero:
 
 $$
 \sum_{i=1}^{N} a_i =
@@ -3461,7 +3470,9 @@ $$
 \sum_{r=1}^{R_t} \gamma_{t,r} = 0.
 $$
 
-Because the $s_i$ values are constrained to sum to zero, zero is the **average target-specific effect across the compounds on the log scale**. Therefore:
+These constraints do not add information to the data or improve the experimental design. They simply choose one unique reference point from the equivalent parameterisations. Consequently, the condition intercepts describe the average log expected count, after accounting for the exposure offset, while the compound and replicate effects describe deviations from their respective averages.
+
+In particular, because the $s_i$ values sum to zero, zero is the **average target-specific effect across the compounds on the log scale**. Therefore:
 
 - $s_i>0$ means that compound $i$ has more target-specific enrichment than the average compound;
 - $s_i<0$ means that it has less; and
@@ -3469,24 +3480,30 @@ Because the $s_i$ values are constrained to sum to zero, zero is the **average t
 
 The model therefore estimates enrichment relative to the other compounds in this experiment. To interpret a particular value as absolute “no binding,” we would need an external reference, such as known non-binders, calibrated negative controls, or an explicit null component in the model.
 
-These zero-sum constraints remove the arbitrary additive-shift ambiguity, but they do not establish that the data can distinguish [$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, and [$s_i$]{style="color:#bf616a"}. That broader identification depends on the measurement structure: library counts must contain enough information about input abundance, matrix counts must add information about background retention, and target counts must contain enough remaining information to estimate target-specific enrichment. Replicates must likewise be informative enough to separate replicate effects from condition-wide effects.
+Once the additive shifts have been removed, the assumed measurement structure distinguishes the compound effects through successive comparisons:
 
-###### Checking parameter recovery by simulation
+- The library counts inform input abundance [$a_i$]{style="color:#a3be8c"}.
+- The matrix counts inform the combined contribution $a_i+b_i$; together with the library counts, they separate matrix background [$b_i$]{style="color:#88c0d0"} from input abundance.
+- The target counts inform $a_i+b_i+s_i$; comparison with the matrix counts separates target-specific enrichment [$s_i$]{style="color:#bf616a"} from their shared baseline.
 
-We can assess practical identification before fitting the real data:
+Under the current assumption that $a_i+b_i$ enters the matrix and target predictors identically, [$s_i$]{style="color:#bf616a"} is identified by the target-versus-matrix contrast. The library counts are needed to distinguish [$a_i$]{style="color:#a3be8c"} from [$b_i$]{style="color:#88c0d0"}, but not structurally required if [$s_i$]{style="color:#bf616a"} is the only estimand. Replicate effects are identified through comparisons across compounds within each replicate, subject to their own zero-sum constraints.
+
+##### Checking practical identifiability
+
+Even a structurally identifiable model can be weakly identified by finite, noisy data. We can assess practical identifiability through simulation-based parameter recovery:
 
 1.  Choose known values for the compound effects, replicate effects, intercepts, and dispersion parameters.
 2.  Simulate library, matrix, and target counts from the complete generative model.
 3.  Fit the model to those simulated counts without supplying the true parameter values.
 4.  Compare the posterior estimates with the known generating values.
 
-For [$s_i$]{style="color:#bf616a"}, useful diagnostics include bias in the posterior means, correlation between true and estimated effects, credible-interval coverage, posterior uncertainty, and recovery of compound rankings. The exercise should be repeated across realistic sequencing depths, dispersion levels, numbers of replicates, and effect sizes.
+For [$s_i$]{style="color:#bf616a"}, useful diagnostics include bias in the posterior means, correlation between true and estimated effects, credible-interval coverage, posterior uncertainty, and recovery of compound rankings. This exercise should be repeated across realistic sequencing depths, dispersion levels, numbers of replicates, and effect sizes.
 
 The experimental design can also be deliberately weakened. Removing library counts tests whether [$a_i$]{style="color:#a3be8c"} can still be separated from downstream effects; removing matrix counts tests whether [$b_i$]{style="color:#88c0d0"} and [$s_i$]{style="color:#bf616a"} become entangled; and reducing the number of replicates tests whether replicate variation remains distinguishable from the condition baselines.
 
-If recovery improves with greater sequencing depth or additional replicates, the problem is one of **weak or practical identification**. If substantially different parameter combinations remain observationally equivalent even in very informative simulations, the model may be **structurally non-identifiable** and requires a different parameterisation, stronger external information, or a revised measurement design.
+If recovery improves with greater sequencing depth or additional replicates, the limitation is **practical identifiability**. If distinct parameter combinations remain observationally equivalent even with highly informative simulated data, an unresolved **structural non-identifiability** remains and the model requires a different parameterisation or an additional constraint.
 
-[Predictive fit is not sufficient for parameter recovery. A model can reproduce the observed count distribution while allocating variation incorrectly among input abundance, matrix background, and target-specific enrichment. Simulation-based recovery checks whether the latent decomposition itself can be learned under the assumed model.]{.highlight-key-point}
+[Identifiability is established in two steps: algebra and constraints remove parameterisations that are observationally equivalent, while simulation tests whether the constrained parameters can be recovered with a realistic experiment. Good predictive fit alone is not sufficient because a model can reproduce the counts while allocating variation incorrectly among its latent components.]{.highlight-key-point}
 
 :::: {.callout-note icon="false" collapse="true"}
 # Implementing the zero-sum constraints
