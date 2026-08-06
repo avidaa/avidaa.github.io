@@ -3497,7 +3497,6 @@ $$
 
 with analogous transformations for $b_i$, $s_i$, $\gamma_{m,r}$, and $\gamma_{t,r}$. Subtracting the mean enforces the zero-sum constraint, while $\sigma_a$ controls the magnitude of variation among compounds.
 
-For computation, a dedicated zero-sum distribution or an $N-1$ dimensional contrast basis is preferable when available because it avoids carrying a redundant common-shift direction in the raw parameters.
 ::::
 
 ###### Other structural ambiguities to check
@@ -3505,7 +3504,7 @@ For computation, a dedicated zero-sum distribution or an $N-1$ dimensional contr
 Additive shifts are not the only source of structural non-identifiability. Other common mechanisms include:
 
 - **Aliased components:** if two effects always enter the predictors through the same combination, the data identify only that combination. For example, without library counts, $a_i$ and $b_i$ appear only as $a_i+b_i$. Even zero-sum constraints cannot separate them because an arbitrary zero-sum vector can be added to $a_i$ and subtracted from $b_i$ without changing any expected count.
-- **Scale ambiguity:** if both an effect and its loading are unknown, only their product may be identified. For example, a model containing $\lambda_b b_i$ is unchanged by replacing $b_i$ with $c b_i$ and $\lambda_b$ with $\lambda_b/c$. Fixing a loading, fixing an effect scale, or supplying external calibration is then required.
+- **Scale ambiguity:** the current model does not have this ambiguity because $a_i$, $b_i$, and $s_i$ enter the linear predictors with fixed coefficients of $1$; there is no unknown loading that can trade scale with an effect. As a hypothetical example, consider a different model in which a latent background effect $b_i$ enters the predictors only through the product $\lambda_b b_i$, with both $\lambda_b$ and $b_i$ unknown. The data could identify the product but not the two terms separately: $\lambda_b=2$ and $b_i=3$ give the same contribution as $\lambda_b=1$ and $b_i=6$, because both products equal $6$. More generally, replacing $b_i$ with $c b_i$ and $\lambda_b$ with $\lambda_b/c$ leaves the product unchanged. Such a model would require a fixed loading, a constraint on the scale of $b_i$, or external calibration.
 - **Label symmetry:** in a mixture extension with latent “binder” and “non-binder” components, exchanging the component labels can leave the likelihood unchanged. An ordering or scientifically anchored label is needed if the labels themselves are to be interpreted.
 
 The first two examples create a continuous set of equivalent parameter values and hence structural non-identifiability. Label symmetry generally creates a finite set of equivalent solutions, so the parameters may be locally but not globally identifiable.
