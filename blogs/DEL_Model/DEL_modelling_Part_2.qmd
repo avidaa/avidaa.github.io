@@ -104,7 +104,7 @@ Its precise numerical scale, additive, multiplicative, or log-scale, will be det
 In Bayesian terms, the inferential target is the joint posterior distribution:
 
 $$
-p\left(s_i \mid \mathbf{C}_l,\mathbf{C}_m,\mathbf{C}_t\right),
+p\left(\textcolor{#bf616a}{s_i} \mid \mathbf{C}_l,\mathbf{C}_m,\mathbf{C}_t\right),
 $$
 
 from which we can report a posterior estimate and credible interval for each compound, as well as posterior probabilities or rankings defined by scientifically meaningful thresholds. The remaining latent quantities and dispersion parameters are necessary for the model, but they are secondary to the scientific target [$s_i$]{style="color:#bf616a"}.
@@ -171,13 +171,13 @@ A path is a sequence of adjacent edges connecting two nodes. When identifying a 
 
 -   [$s_i$]{style="color:#bf616a"} → [$C_{t,i,r}$]{style="color:#d08770"}
 
-![Path from $s_i$ to $C_{t,i,r}$.](img/path_s_to_c_t.png){#fig-path-s_i-to-Ct_i_r width="75%"}
+![Path from $\textcolor{#bf616a}{s_i}$ to $C_{t,i,r}$.](img/path_s_to_c_t.png){#fig-path-s_i-to-Ct_i_r width="75%"}
 
 The graph also contains longer paths between [$s_i$]{style="color:#bf616a"} and other variables. For example, one path from [$s_i$]{style="color:#bf616a"} to the library count [$C_{l,i}$]{style="color:#b48ead"} passes through the target count and input abundance:
 
 -   [$s_i$]{style="color:#bf616a"} → [$C_{t,i,r}$]{style="color:#d08770"} ← [$a_i$]{style="color:#a3be8c"} → [$C_{l,i}$]{style="color:#b48ead"}
 
-![Path from $s_i$ to $C_{l,i}$.](img/path_s_to_c_l.png){#fig-path-sto-Cl width="75%"}
+![Path from $\textcolor{#bf616a}{s_i}$ to $C_{l,i}$.](img/path_s_to_c_l.png){#fig-path-sto-Cl width="75%"}
 
 ##### What does open or closed path mean in a DAG?
 
@@ -2671,11 +2671,11 @@ We therefore avoid a simple regression that places the noisy matrix count direct
 
 $$
 \begin{aligned}
-a_i
+\textcolor{#a3be8c}{a_i}
     &\longrightarrow C_{l,i},\\
-(a_i,b_i,\gamma_{m,r})
+(\textcolor{#a3be8c}{a_i},\textcolor{#88c0d0}{b_i},\gamma_{m,r})
     &\longrightarrow C_{m,i,r},\\
-(a_i,b_i,s_i,\gamma_{t,r})
+(\textcolor{#a3be8c}{a_i},\textcolor{#88c0d0}{b_i},\textcolor{#bf616a}{s_i},\gamma_{t,r})
     &\longrightarrow C_{t,i,r}.
 \end{aligned}
 $$
@@ -2877,7 +2877,7 @@ $$
 \log\lambda_{c,i,r}=\log\mu_{c,i,r}+\epsilon_{c,i,r},
 $$
 
-Conditional on the current values of the mean-model parameters, $\log\mu_{c,i,r}=\eta_{c,i,r}$ is a fixed quantity: it is the linear predictor built from $a_i$, $b_i$, $s_i$, and the condition and replicate effects. The right-hand side is therefore a fixed quantity, $\log\mu_{c,i,r}$, plus the Normal residual $\epsilon_{c,i,r}\sim\operatorname{Normal}(-\sigma_c^2/2,\sigma_c^2)$. Adding a constant to a Normal random variable shifts its mean by that constant and leaves its variance unchanged. Thus,
+Conditional on the current values of the mean-model parameters, $\log\mu_{c,i,r}=\eta_{c,i,r}$ is a fixed quantity: it is the linear predictor built from [$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}, and the condition and replicate effects. The right-hand side is therefore a fixed quantity, $\log\mu_{c,i,r}$, plus the Normal residual $\epsilon_{c,i,r}\sim\operatorname{Normal}(-\sigma_c^2/2,\sigma_c^2)$. Adding a constant to a Normal random variable shifts its mean by that constant and leaves its variance unchanged. Thus,
 
 $$
 \log\lambda_{c,i,r}\mid\mu_{c,i,r},\sigma_c
@@ -3436,7 +3436,7 @@ Identifiability asks whether the observed-data distribution uniquely determines 
 
 ##### Stage 1: Structural identifiability
 
-Structural identifiability can first be checked algebraically by looking for transformations of the parameters that leave every linear predictor unchanged. In this model, the condition intercepts $\alpha_l$, $\alpha_m$, and $\alpha_t$ and the effects $a_i$, $b_i$, $s_i$, $\gamma_{m,r}$, and $\gamma_{t,r}$ all enter additively. This creates arbitrary shifts between an intercept and the corresponding effects.
+Structural identifiability can first be checked algebraically by looking for transformations of the parameters that leave every linear predictor unchanged. In this model, the condition intercepts $\alpha_l$, $\alpha_m$, and $\alpha_t$ and the effects [$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}, $\gamma_{m,r}$, and $\gamma_{t,r}$ all enter additively. This creates arbitrary shifts between an intercept and the corresponding effects.
 
 The additive ambiguity below is an example of **structurally non-identifiable**.
 
@@ -3445,7 +3445,7 @@ The additive ambiguity below is an example of **structurally non-identifiable**.
 For example, for any constant $c$, define:
 
 $$
-a_i^\prime=a_i+c,\qquad
+\textcolor{#a3be8c}{a_i^\prime}=\textcolor{#a3be8c}{a_i}+c,\qquad
 \alpha_l^\prime=\alpha_l-c,\qquad
 \alpha_m^\prime=\alpha_m-c,\qquad
 \alpha_t^\prime=\alpha_t-c.
@@ -3455,20 +3455,20 @@ The constants cancel in every linear predictor. For the library condition:
 
 $$
 \eta_{l,i}^\prime
-    =\log E_l+(\alpha_l-c)+(a_i+c)
+    =\log E_l+(\alpha_l-c)+(\textcolor{#a3be8c}{a_i}+c)
     =\eta_{l,i},
 $$
 
-and the same cancellation occurs in the matrix and target conditions. Thus, setting $c=1$, for example, increases every $a_i$ by one and decreases every condition intercept by one while leaving all values of $\mu$ and the likelihood unchanged. The data cannot distinguish these parameterisations.
+and the same cancellation occurs in the matrix and target conditions. Thus, setting $c=1$, for example, increases every [$a_i$]{style="color:#a3be8c"} by one and decreases every condition intercept by one while leaving all values of $\mu$ and the likelihood unchanged. The data cannot distinguish these parameterisations.
 
-**Similar shifts can be made between $b_i$ and the matrix and target intercepts, between $s_i$ and the target intercept, and between each set of replicate effects and its condition intercept. The unconstrained model is therefore structurally non-identifiable.**
+**Similar shifts can be made between [$b_i$]{style="color:#88c0d0"} and the matrix and target intercepts, between [$s_i$]{style="color:#bf616a"} and the target intercept, and between each set of replicate effects and its condition intercept. The unconstrained model is therefore structurally non-identifiable.**
 
 We remove these arbitrary shifts by defining the compound and replicate effects as deviations around zero:
 
 $$
-\sum_{i=1}^{N} a_i =
-\sum_{i=1}^{N} b_i =
-\sum_{i=1}^{N} s_i = 0,
+\sum_{i=1}^{N} \textcolor{#a3be8c}{a_i} =
+\sum_{i=1}^{N} \textcolor{#88c0d0}{b_i} =
+\sum_{i=1}^{N} \textcolor{#bf616a}{s_i} = 0,
 \qquad
 \sum_{r=1}^{R_m} \gamma_{m,r} =
 \sum_{r=1}^{R_t} \gamma_{t,r} = 0.
@@ -3476,11 +3476,11 @@ $$
 
 These constraints do not add information to the data or change the model's expected counts. Without them, we could add the same constant to every effect and subtract it from the corresponding intercept, producing identical predictions but different parameter values. The zero-sum constraints remove this ambiguity by defining zero as the average effect. Under this convention, each condition intercept represents the average log expected count after accounting for the exposure offset, and each compound or replicate effect represents a deviation from its corresponding average.
 
-In particular, because the $s_i$ values sum to zero, zero is the **average target-specific effect across the compounds on the log scale**. Therefore:
+In particular, because the [$s_i$]{style="color:#bf616a"} values sum to zero, zero is the **average target-specific effect across the compounds on the log scale**. Therefore:
 
-- $s_i>0$ means that compound $i$ has more target-specific enrichment than the average compound;
-- $s_i<0$ means that it has less; and
-- $s_i=0$, or equivalently $e^{s_i}=1$, means that it is at the average, **not necessarily that it does not bind**.
+- [$s_i$]{style="color:#bf616a"}$>0$ means that compound $i$ has more target-specific enrichment than the average compound;
+- [$s_i$]{style="color:#bf616a"}$<0$ means that it has less; and
+- [$s_i$]{style="color:#bf616a"}$=0$, or equivalently $e^{\textcolor{#bf616a}{s_i}}=1$, means that it is at the average, **not necessarily that it does not bind**.
 
 [The model therefore estimates enrichment relative to the other compounds in this experiment. To interpret a particular value as absolute “no binding,” we would need an external reference, such as known non-binders, calibrated negative controls, or an explicit null component in the model.]{.highlight-key-point}
 
@@ -3490,36 +3490,33 @@ In particular, because the $s_i$ values sum to zero, zero is the **average targe
 A simple non-centred construction is
 
 $$
-a_i=\sigma_a(z_{a,i}-\bar z_a),
+\textcolor{#a3be8c}{a_i}=\sigma_a(z_{a,i}-\bar z_a),
 \qquad
 z_{a,i}\sim\operatorname{Normal}(0,1),
 $$
 
-with analogous transformations for $b_i$, $s_i$, $\gamma_{m,r}$, and $\gamma_{t,r}$. Subtracting the mean enforces the zero-sum constraint, while $\sigma_a$ controls the magnitude of variation among compounds.
+with analogous transformations for [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}, $\gamma_{m,r}$, and $\gamma_{t,r}$. Subtracting the mean enforces the zero-sum constraint, while $\sigma_a$ controls the magnitude of variation among compounds.
 
 ::::
 
 ::::: {.callout-note icon="false" collapse="true"}
-# Other possible structural ambiguities that do not apply to the current model
+# Why other structural ambiguities do not apply to the current model
 
-Additive shifts are not the only possible source of structural non-identifiability. The following ambiguities do not apply to the current model with all three measurement types and fixed unit loadings, but they could arise under a weakened measurement design or in future model extensions:
-
-- **Aliased components:** if two effects always enter the predictors through the same combination, the data identify only that combination. For example, without library counts, $a_i$ and $b_i$ appear only as $a_i+b_i$. Even zero-sum constraints cannot separate them because an arbitrary zero-sum vector can be added to $a_i$ and subtracted from $b_i$ without changing any expected count.
-- **Scale ambiguity:** the current model does not have this ambiguity because $a_i$, $b_i$, and $s_i$ enter the linear predictors with fixed coefficients of $1$; there is no unknown loading that can trade scale with an effect. As a hypothetical example, consider a different model in which a latent background effect $b_i$ enters the predictors only through the product $\lambda_b b_i$, with both $\lambda_b$ and $b_i$ unknown. The data could identify the product but not the two terms separately: $\lambda_b=2$ and $b_i=3$ give the same contribution as $\lambda_b=1$ and $b_i=6$, because both products equal $6$. More generally, replacing $b_i$ with $c b_i$ and $\lambda_b$ with $\lambda_b/c$ leaves the product unchanged. Such a model would require a fixed loading, a constraint on the scale of $b_i$, or external calibration.
-- **Label symmetry:** the current model does not contain latent classes, so it does not have this ambiguity. It could arise in a hypothetical mixture extension that assigns each compound to an unobserved “binder” or “non-binder” component. For example, suppose one component has a mean target-specific effect of $0$ and the other has a mean of $2$. Calling the first component “non-binder” and the second “binder” gives exactly the same likelihood as swapping both component names and all their associated parameters. The data can identify two groups, but the likelihood alone cannot determine which group should be called “binder.” To give the labels a stable scientific meaning, we could require the binder component to have the larger mean effect, use known binders and non-binders as anchors, or impose another scientifically justified ordering constraint.
-
-The first two examples create a continuous set of equivalent parameter values and hence structural non-identifiability. Label symmetry generally creates a finite set of equivalent solutions, so the parameters may be locally but not globally identifiable.
-:::::
-
-###### Structural identifiability of the current model
-
-Once the additive shifts have been removed, the assumed measurement structure distinguishes the compound effects through successive comparisons:
+Once the additive shifts have been removed, the three measurement types distinguish the compound effects through successive comparisons:
 
 - The library counts inform input abundance [$a_i$]{style="color:#a3be8c"}.
-- The matrix counts inform the combined contribution $a_i+b_i$; together with the library counts, they separate matrix background [$b_i$]{style="color:#88c0d0"} from input abundance.
-- The target counts inform $a_i+b_i+s_i$; comparison with the matrix counts separates target-specific enrichment [$s_i$]{style="color:#bf616a"} from their shared baseline.
+- The matrix counts inform [$a_i$]{style="color:#a3be8c"}+[$b_i$]{style="color:#88c0d0"}; comparison with the library counts separates matrix background [$b_i$]{style="color:#88c0d0"} from input abundance, [$a_i$]{style="color:#a3be8c"}.
+- The target counts inform [$a_i$]{style="color:#a3be8c"}+[$b_i$]{style="color:#88c0d0"}+[$s_i$]{style="color:#bf616a"}; comparison with the matrix counts separates target-specific enrichment [$s_i$]{style="color:#bf616a"} from their shared baseline, [$a_i$]{style="color:#a3be8c"}+[$b_i$]{style="color:#88c0d0"}.
 
-Under the current assumption that $a_i+b_i$ enters the matrix and target predictors identically, [$s_i$]{style="color:#bf616a"} is identified by the target-versus-matrix contrast. The library counts are needed to distinguish [$a_i$]{style="color:#a3be8c"} from [$b_i$]{style="color:#88c0d0"}, but not structurally required if [$s_i$]{style="color:#bf616a"} is the only estimand. Replicate effects are identified through comparisons across compounds within each replicate, subject to their own zero-sum constraints. With all three measurement types, fixed unit loadings, and the zero-sum constraints, the current mean parameterisation is intended to be globally identifiable.
+Under the assumption that [$a_i$]{style="color:#a3be8c"}+[$b_i$]{style="color:#88c0d0"} contributes identically to the matrix and target predictors, the target-versus-matrix contrast identifies [$s_i$]{style="color:#bf616a"}. Library counts are needed to distinguish [$a_i$]{style="color:#a3be8c"} from [$b_i$]{style="color:#88c0d0"}, although they are not structurally required if [$s_i$]{style="color:#bf616a"} is the only estimand. Comparisons across compounds within each replicate identify the replicate effects, subject to their zero-sum constraints. Thus, with all three measurement types, fixed unit loadings, and the zero-sum constraints, the current mean parameterisation is intended to be globally identifiable.
+
+This structure also explains why several other common ambiguities do not apply to the current model, although they could arise under a weakened measurement design or in future extensions:
+
+- **Aliased components:** if two effects always appear through the same combination, the data identify only that combination. This would occur if library counts were removed: [$a_i$]{style="color:#a3be8c"} and [$b_i$]{style="color:#88c0d0"} would then appear only as [$a_i$]{style="color:#a3be8c"}+[$b_i$]{style="color:#88c0d0"}, so an arbitrary zero-sum vector could be added to [$a_i$]{style="color:#a3be8c"} and subtracted from [$b_i$]{style="color:#88c0d0"} without changing any expected count. The current model avoids this ambiguity by including the library measurements.
+- **Scale ambiguity:** this occurs when an unknown effect and an unknown loading appear only through their product. The current model avoids it because [$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, and [$s_i$]{style="color:#bf616a"} all have fixed coefficients of $1$. In a hypothetical model containing only the product $\lambda_b\textcolor{#88c0d0}{b_i}$, however, $\lambda_b=2,\ \textcolor{#88c0d0}{b_i}=3$ and $\lambda_b=1,\ \textcolor{#88c0d0}{b_i}=6$ would be indistinguishable because both products equal $6$. Such a model would require a fixed loading, a constraint on the effect scale, or external calibration.
+- **Label symmetry:** this can occur in a mixture model with unobserved classes. The current model has no latent classes and therefore no labels to exchange. In a hypothetical binder/non-binder mixture, swapping the component names and all associated parameters would leave the likelihood unchanged. An ordering constraint or known binders and non-binders would be needed to anchor the labels scientifically.
+
+:::::
 
 ##### Stage 2: Practical identifiability
 
@@ -3590,7 +3587,7 @@ This prior includes values close to the Poisson limit while allowing substantial
 
 These numerical scales are starting assumptions, not facts learned from the observed counts. Their consequences must be evaluated by simulating complete library, matrix, and target datasets from the prior predictive distribution. In particular, we should check whether the model produces plausible zero frequencies, upper tails, replicate correlations, and target-to-matrix fold changes. If it does not, the priors should be revised before fitting the observed data.
 
-The model also makes several substantive assumptions that should later be tested by sensitivity analysis: background transfers from matrix to target with the same log-scale contribution $b_i$; counts are conditionally independent once the latent effects are known; and a single Negative Binomial dispersion is shared by all compounds within a condition. More flexible versions could estimate a matrix-to-target loading, use a sparse or heavy-tailed prior for $s_i$, or replace the Negative Binomial likelihood with a Poisson-lognormal model. Those extensions should be motivated by failed predictive checks rather than added automatically.
+The model also makes several substantive assumptions that should later be tested by sensitivity analysis: background transfers from matrix to target with the same log-scale contribution [$b_i$]{style="color:#88c0d0"}; counts are conditionally independent once the latent effects are known; and a single Negative Binomial dispersion is shared by all compounds within a condition. More flexible versions could estimate a matrix-to-target loading, use a sparse or heavy-tailed prior for [$s_i$]{style="color:#bf616a"}, or replace the Negative Binomial likelihood with a Poisson-lognormal model. Those extensions should be motivated by failed predictive checks rather than added automatically.
 
 [The target signal is the posterior distribution of a log fold-change, not a corrected count. The model infers it by jointly explaining all observed counts while propagating uncertainty in input abundance, matrix background, replicate effects, and overdispersion.]{.highlight-key-point}
 
