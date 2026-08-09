@@ -3434,7 +3434,7 @@ Identifiability asks whether the observed-data distribution uniquely determines 
 1.  **Structural identifiability:** can two different parameter values produce exactly the same expected counts, even with arbitrarily informative data?
 2.  **Practical identifiability:** after any structural ambiguities have been removed, do the available sequencing depth and replicates contain enough information to estimate the parameters precisely?
 
-##### Stage 1: Structural identifiability
+### Stage 1: Structural identifiability
 
 Structural identifiability can first be checked algebraically by looking for transformations of the parameters that leave every linear predictor unchanged. In this model, the condition intercepts $\alpha_l$, $\alpha_m$, and $\alpha_t$ and the effects [$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}, $\gamma_{m,r}$, and $\gamma_{t,r}$ all enter additively. This creates arbitrary shifts between an intercept and the corresponding effects.
 
@@ -3518,7 +3518,7 @@ This structure also explains why several other common ambiguities do not apply t
 
 :::::
 
-##### Stage 2: Practical identifiability
+### Stage 2: Practical identifiability
 
 Even a structurally identifiable model can be weakly identified by finite, noisy data. We can assess practical identifiability through simulation-based parameter recovery:
 
