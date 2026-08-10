@@ -3500,7 +3500,7 @@ with analogous transformations for [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style
 ::::
 
 ::::: {.callout-note icon="false" collapse="true"}
-# Why other structural ambiguities do not apply to the current model
+# Other structural ambiguities which do not apply to the current model
 
 Once the additive shifts have been removed, the three measurement types distinguish the compound effects through successive comparisons:
 
@@ -3527,13 +3527,19 @@ Even a structurally identifiable model can be weakly identified by finite, noisy
 3.  Fit the model to those simulated counts without supplying the true parameter values.
 4.  Compare the posterior estimates with the known generating values.
 
-For [$s_i$]{style="color:#bf616a"}, useful diagnostics include bias in the posterior means, correlation between true and estimated effects, credible-interval coverage, posterior uncertainty, and recovery of compound rankings. This exercise should be repeated across realistic sequencing depths, dispersion levels, numbers of replicates, and effect sizes.
+For [$s_i$]{style="color:#bf616a"}, useful diagnostics include bias in the posterior means, correlation between true and estimated effects, credible-interval coverage, posterior uncertainty, and recovery of compound rankings. 
 
-The experimental design can also be deliberately weakened. Removing library counts tests whether [$a_i$]{style="color:#a3be8c"} can still be separated from downstream effects; removing matrix counts tests whether [$b_i$]{style="color:#88c0d0"} and [$s_i$]{style="color:#bf616a"} become entangled; and reducing the number of replicates tests whether replicate variation remains distinguishable from the condition baselines.
+This exercise should be repeated across realistic sequencing depths, dispersion levels, numbers of replicates, and effect sizes.
 
-If recovery improves with greater sequencing depth or additional replicates, the limitation is **practical identifiability**. If distinct parameter combinations remain observationally equivalent even with highly informative simulated data, an unresolved **structural non-identifiability** remains and the model requires a different parameterisation or an additional constraint.
+The experimental design can also be deliberately weakened:
 
-[Identifiability is established in two steps: algebra and constraints remove parameterisations that are observationally equivalent, while simulation tests whether the constrained parameters can be recovered with a realistic experiment. Good predictive fit alone is not sufficient because a model can reproduce the counts while allocating variation incorrectly among its latent components.]{.highlight-key-point}
+ - Removing library counts tests whether [$a_i$]{style="color:#a3be8c"} can still be separated from downstream effects;
+ - Removing matrix counts tests whether [$b_i$]{style="color:#88c0d0"} and [$s_i$]{style="color:#bf616a"} become entangled; and
+ - Reducing the number of replicates tests whether replicate variation remains distinguishable from the condition baselines.
+
+If recovery improves with greater sequencing depth or additional replicates, the limitation is **practical identifiability**. 
+
+If two substantially different parameter combinations still produce the same distribution of library, matrix, and target counts, the data cannot distinguish between them. If this remains true even in simulations with very deep sequencing and many replicates, the problem is **structural non-identifiability**, not insufficient data. Collecting more of the same data will not resolve it; the model must instead be reparameterised, given an additional constraint, or supplied with a new measurement or external reference.
 
 ::::::
 
