@@ -3531,6 +3531,46 @@ For [$s_i$]{style="color:#bf616a"}, useful diagnostics include bias in the poste
 
 This exercise should be repeated across realistic sequencing depths, dispersion levels, numbers of replicates, and effect sizes.
 
+::::: {.callout-note icon="false" collapse="true"}
+# How do we evaluate parameter recovery?
+
+Because the data are simulated, the true generating value of each [$s_i$]{style="color:#bf616a"} is known. We can therefore compare it directly with the posterior obtained after fitting the model.
+
+- **Posterior-mean bias:** let [$\hat s_{i,m}$]{style="color:#bf616a"} be the posterior mean for compound $i$ in simulated dataset $m$, and let [$s_i^{\mathrm{true}}$]{style="color:#bf616a"} be its generating value. Across $M$ simulations,
+
+  $$
+  \operatorname{Bias}_i
+  =\frac{1}{M}\sum_{m=1}^{M}
+  \left(
+  \textcolor{#bf616a}{\hat s_{i,m}}
+  -\textcolor{#bf616a}{s_i^{\mathrm{true}}}
+  \right).
+  $$
+
+  A positive value indicates systematic overestimation and a negative value indicates systematic underestimation. Values close to zero indicate little average signed error. However, hierarchical shrinkage can pull extreme effects toward zero, so conditional bias for the largest or smallest effects should also be examined rather than relying only on the overall average.
+
+- **Credible-interval coverage:** for each simulation, record whether the credible interval contains the known generating value. For example, the coverage of a 90% interval is
+
+  $$
+  \operatorname{Coverage}_i
+  =\frac{1}{M}\sum_{m=1}^{M}
+  \mathbb I\!\left(
+  \textcolor{#bf616a}{s_i^{\mathrm{true}}}
+  \in \mathrm{CI}_{i,m}^{90\%}
+  \right).
+  $$
+
+  A well-calibrated 90% interval should contain the true value in approximately 90% of repeated simulations. Substantially lower coverage suggests intervals that are too narrow or estimates that are biased; substantially higher coverage may indicate unnecessarily wide intervals. The observed percentage will fluctuate because only finitely many simulations are run—for 1,000 simulations, coverage near 90% will typically vary by roughly two percentage points.
+
+- **Correlation and ranking recovery:** correlation between the true and posterior-mean effects measures whether compounds are ordered correctly. Rank correlation and recovery of the true top-ranked compounds are especially useful when prioritisation is the scientific goal. High correlation alone is not sufficient, because estimates can preserve the ordering while still being biased or overconfident.
+
+- **Posterior uncertainty:** posterior standard deviations or credible-interval widths show how precisely each effect is estimated. They should be considered together with bias and coverage: narrow intervals are useful only when they remain well calibrated.
+
+For formal treatments of simulation-based validation and posterior calibration, see [Cook, Gelman, and Rubin (2006)](https://doi.org/10.1198/106186006X136976) and [Talts et al. (2018)](https://doi.org/10.48550/arXiv.1804.06788). [Gelman et al. (2020)](https://arxiv.org/abs/2011.01808) place these checks within the broader Bayesian workflow of model building, computation, validation, and revision.
+:::::
+
+
+
 The experimental design can also be deliberately weakened:
 
  - Removing library counts tests whether [$a_i$]{style="color:#a3be8c"} can still be separated from downstream effects;
@@ -3598,6 +3638,12 @@ The model also makes several substantive assumptions that should later be tested
 [The target signal is the posterior distribution of a log fold-change, not a corrected count. The model infers it by jointly explaining all observed counts while propagating uncertainty in input abundance, matrix background, replicate effects, and overdispersion.]{.highlight-key-point}
 
 ## References:
+
+- [Cook, Gelman, & Rubin (2006), “Validation of Software for Bayesian Models Using Posterior Quantiles”](https://doi.org/10.1198/106186006X136976) — introduces simulation-based checks of posterior calibration using known generating parameter values.
+
+- [Talts et al. (2018), “Validating Bayesian Inference Algorithms with Simulation-Based Calibration”](https://doi.org/10.48550/arXiv.1804.06788) — develops simulation-based calibration for detecting biased or miscalibrated Bayesian computation.
+
+- [Gelman et al. (2020), “Bayesian Workflow”](https://arxiv.org/abs/2011.01808) — discusses simulation, model checking, computational validation, and iterative model improvement as parts of Bayesian analysis.
 
 - [Rosenbaum & Rubin (1983)](https://academic.oup.com/jrsssb/article/45/2/212/7027731) — classic paper on sensitivity to an unobserved binary covariate with a binary outcome.
 
