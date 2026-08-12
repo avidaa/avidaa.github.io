@@ -3560,13 +3560,20 @@ Because the data are simulated, the true generating value of each [$s_i$]{style=
   \right).
   $$
 
-  A well-calibrated 90% interval should contain the true value in approximately 90% of repeated simulations. Substantially lower coverage suggests intervals that are too narrow or estimates that are biased; substantially higher coverage may indicate unnecessarily wide intervals. The observed percentage will fluctuate because only finitely many simulations are run—for 1,000 simulations, coverage near 90% will typically vary by roughly two percentage points.
+  A well-calibrated 90% interval should contain the true value in approximately 90% of repeated simulations. 
+  
+  Substantially **lower** coverage suggests intervals that are too narrow or estimates that are biased.
+  Substantially **higher** coverage may indicate unnecessarily wide intervals. 
+  
+  The observed percentage will fluctuate because only finitely many simulations are run. For 1,000 simulations, coverage near 90% will typically vary by roughly two percentage points.
 
-- **Correlation and ranking recovery:** correlation between the true and posterior-mean effects measures whether compounds are ordered correctly. Rank correlation and recovery of the true top-ranked compounds are especially useful when prioritisation is the scientific goal. High correlation alone is not sufficient, because estimates can preserve the ordering while still being biased or overconfident.
+- **Correlation and ranking recovery:**      compare the known true effects with their posterior means across compounds. A high correlation means that compounds with larger true effects generally receive larger estimates. Rank correlation focuses specifically on whether the ordering is recovered. If the goal is to select the strongest binders, we should also check how many of the truly top-ranked compounds appear in the estimated top-ranked set. These measures assess prioritisation, not numerical calibration: estimates can have the correct ordering while still being systematically too large, too small, or too uncertain.
 
-- **Posterior uncertainty:** posterior standard deviations or credible-interval widths show how precisely each effect is estimated. They should be considered together with bias and coverage: narrow intervals are useful only when they remain well calibrated.
+- **Posterior uncertainty:** posterior standard deviations or credible-interval widths show how precisely each effect is estimated. They should be considered together with bias and coverage: **narrow intervals are useful only when they remain well calibrated.**
 
-For formal treatments of simulation-based validation and posterior calibration, see [Cook, Gelman, and Rubin (2006)](https://doi.org/10.1198/106186006X136976) and [Talts et al. (2018)](https://doi.org/10.48550/arXiv.1804.06788). [Gelman et al. (2020)](https://arxiv.org/abs/2011.01808) place these checks within the broader Bayesian workflow of model building, computation, validation, and revision.
+For formal treatments of simulation-based validation and posterior calibration, see [Cook, Gelman, and Rubin (2006)](https://doi.org/10.1198/106186006X136976) and [Talts et al. (2018)](https://doi.org/10.48550/arXiv.1804.06788). 
+
+[Gelman et al. (2020)](https://arxiv.org/abs/2011.01808) place these checks within the broader Bayesian workflow of model building, computation, validation, and revision.
 :::::
 
 
@@ -3583,7 +3590,7 @@ If two substantially different parameter combinations still produce the same dis
 
 ::::::
 
-##### Priors
+##### 4. Priors for the compound and replicate effects
 
 We use weakly informative priors on the log scale:
 
