@@ -3614,7 +3614,8 @@ $$
 \sim \operatorname{Normal}(0,1).
 $$
 
-The intercepts $\alpha_l$, $\alpha_m$, and $\alpha_t$ represent the condition-wide baseline for the library, matrix, and target experiments after accounting for the known exposure offsets. Because the compound and replicate effects sum to zero, each intercept describes the average condition on the log scale. The prior is centred at zero, so its median baseline multiplier is $e^0=1$. Approximately 95% of its prior mass lies between $-1.96$ and $1.96$, corresponding to multipliers between $e^{-1.96}\approx0.14$ and $e^{1.96}\approx7.1$. If prior knowledge suggests substantially different recovery relative to the exposure baseline, these priors should be recentered or rescaled.
+The intercepts $\alpha_l$, $\alpha_m$, and $\alpha_t$ represent the condition-wide baseline for the library, matrix, and target experiments after accounting for the known exposure offsets, $E_l$, $E_m$, and $E_t$. Because the compound and replicate effects sum to zero (zero-sum constraints), each intercept describes the average condition on the log scale. 
+The prior is centred at zero, so its median baseline multiplier is $e^0=1$. Approximately 95% of its prior mass lies between $-1.96$ and $1.96$, corresponding to multipliers between $e^{-1.96}\approx0.14$ and $e^{1.96}\approx7.1$. If prior knowledge suggests substantially different recovery relative to the exposure baseline, these priors should be recentered or rescaled.
 
 ###### Population scales for compound and replicate variation
 
