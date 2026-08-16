@@ -3762,7 +3762,7 @@ $$
 
 The absolute count range depends on the exposure offset. For example, if $E_c=100$ reads per compound, the prior permits baseline expected counts from approximately $14$ to $710$ reads. If $E_c=10$, the corresponding range is approximately $1.4$ to $71$ reads. 
 
-[This confirms that $\operatorname{Normal}(0,1)$ is a broad prior for the condition intercept. If previous experiments provide stronger information about plausible baseline counts, the prior can be narrowed or recentered.]{.highlight-key-point}
+[$\operatorname{Normal}(0,1)$ is a broad prior for the condition intercept. If previous experiments provide stronger information about plausible baseline counts, the prior can be narrowed or recentered.]{.highlight-key-point}
 
 
 ###### Population scales for compound and replicate variation
@@ -3785,11 +3785,168 @@ Each $\sigma$ is a non-negative population standard deviation on the log scale:
 - $\sigma_s$ controls how much target-specific enrichment [$s_i$]{style="color:#bf616a"} varies among compounds.
 - $\sigma_{\gamma_m}$ and $\sigma_{\gamma_t}$ control variation among matrix and target replicates, respectively.
 
-A $\operatorname{HalfNormal}(0,\tau)$ prior has most of its mass near zero while retaining a right tail that permits larger variation when supported by the data. Its median is approximately $0.67\tau$ and its 95th percentile is approximately $1.96\tau$. The selected scales therefore encode progressively tighter expectations:
+A $\operatorname{HalfNormal}(0,\tau)$ prior has most of its mass near zero while retaining a right tail that permits larger variation when supported by the data. Its median is approximately $0.67\tau$ and its 95th percentile is approximately $1.96\tau$. 
+
+The plot below shows the generic Half-Normal shape after expressing the horizontal axis in units of $\tau$. The shaded region contains 95% of the prior probability:
+
+```{python}
+from scipy.stats import halfnorm
+
+half_normal_grid = np.linspace(0, 3.5, 600)
+half_normal_median = halfnorm.ppf(0.50)
+half_normal_p95 = halfnorm.ppf(0.95)
+
+half_normal_df = pd.DataFrame({
+    "scaled_value": half_normal_grid,
+    "density": halfnorm.pdf(half_normal_grid),
+})
+half_normal_95_df = half_normal_df.query(
+    "scaled_value <= @half_normal_p95"
+)
+
+(
+    ggplot(half_normal_df, aes(x="scaled_value", y="density"))
+    + geom_area(
+        data=half_normal_95_df,
+        fill="#a3be8c",
+        alpha=0.35,
+    )
+    + geom_line(color="#a3be8c", size=1)
+    + geom_vline(
+        xintercept=half_normal_median,
+        color="#4c566a",
+        size=0.7,
+    )
+    + geom_vline(
+        xintercept=half_normal_p95,
+        linetype="dashed",
+        color="#4c566a",
+        size=0.7,
+    )
+    + labs(
+        title="Shape of a Half-Normal prior",
+        subtitle=(
+            "Solid line: median = 0.67τ; dashed line: "
+            "95th percentile = 1.96τ"
+        ),
+        x="Non-negative scale value (in units of τ)",
+        y="Density",
+    )
+    + theme_minimal()
+    + theme(plot_title=element_text(weight="bold"))
+)
+```
+
+The selected scales therefore encode progressively tighter expectations:
 
 - For $\sigma_a$ and $\sigma_b$, $\tau=0.75$ allows substantial compound heterogeneity. A log-scale standard deviation of $0.75$, for example, corresponds to a one-standard-deviation multiplier of $e^{0.75}\approx2.12$.
 - For $\sigma_s$, $\tau=0.50$ expresses the expectation that most compounds do not have extreme target-specific enrichment. At $\sigma_s=0.50$, one standard deviation corresponds to a multiplier of $e^{0.50}\approx1.65$. This does not exclude strong binders: [$s_i$]{style="color:#bf616a"}$=1$ represents a $e^1\approx2.7$-fold enrichment, and the shared scale can increase if the collection supports greater heterogeneity.
 - For the replicate scales, $\tau=0.25$ encodes the expectation that replicate-to-replicate variation is smaller than compound-to-compound variation. A log effect of $0.25$ corresponds to a multiplier of $e^{0.25}\approx1.28$.
+
+The plot below compares the three priors on the same scale. Smaller values of $\tau$ place more probability close to zero, whereas larger values permit larger population standard deviations:
+
+```{python}
+#| fig-width: 12
+#| fig-height: 4
+
+from plotnine import facet_wrap, geom_point, geom_text, scale_color_manual
+
+scale_grid = np.linspace(0, 2.5, 600)
+scale_prior_specs = [
+    ("Abundance/background\nτ = 0.75", 0.75),
+    ("Target enrichment\nτ = 0.50", 0.50),
+    ("Replicate effects\nτ = 0.25", 0.25),
+]
+
+scale_prior_rows = []
+scale_prior_medians = []
+
+for label, tau in scale_prior_specs:
+    median = halfnorm.ppf(0.50, scale=tau)
+    scale_prior_rows.append(pd.DataFrame({
+        "sigma": scale_grid,
+        "density": halfnorm.pdf(scale_grid, scale=tau),
+        "prior": label,
+    }))
+    scale_prior_medians.append({
+        "median": median,
+        "median_density": halfnorm.pdf(median, scale=tau),
+        "median_label": f"median = {median:.2f}",
+        "prior": label,
+    })
+
+scale_prior_df = pd.concat(scale_prior_rows, ignore_index=True)
+scale_prior_median_df = pd.DataFrame(scale_prior_medians)
+scale_prior_order = [label for label, _ in scale_prior_specs]
+
+scale_prior_df["prior"] = pd.Categorical(
+    scale_prior_df["prior"],
+    categories=scale_prior_order,
+    ordered=True,
+)
+scale_prior_median_df["prior"] = pd.Categorical(
+    scale_prior_median_df["prior"],
+    categories=scale_prior_order,
+    ordered=True,
+)
+
+SCALE_PRIOR_COLORS = {
+    scale_prior_order[0]: "#88c0d0",
+    scale_prior_order[1]: "#bf616a",
+    scale_prior_order[2]: "#d08770",
+}
+
+(
+    ggplot(scale_prior_df, aes(x="sigma", y="density", color="prior"))
+    + geom_line(size=1)
+    + geom_vline(
+        scale_prior_median_df,
+        aes(xintercept="median", color="prior"),
+        linetype="dashed",
+        size=0.9,
+        inherit_aes=False,
+        show_legend=False,
+    )
+    + geom_point(
+        scale_prior_median_df,
+        aes(x="median", y="median_density", color="prior"),
+        size=2.5,
+        inherit_aes=False,
+        show_legend=False,
+    )
+    + geom_text(
+        scale_prior_median_df,
+        aes(
+            x="median",
+            y="median_density",
+            label="median_label",
+            color="prior",
+        ),
+        nudge_x=0.08,
+        nudge_y=0.10,
+        ha="left",
+        size=8,
+        inherit_aes=False,
+        show_legend=False,
+    )
+    + facet_wrap("~prior", nrow=1)
+    + scale_color_manual(values=SCALE_PRIOR_COLORS)
+    + labs(
+        title="Comparison of priors for the population scales",
+        subtitle=(
+            "All panels use the same x- and y-axis scales; points, labels, "
+            "and dashed lines mark prior medians"
+        ),
+        x="Population standard deviation σ (log scale)",
+        y="Density",
+    )
+    + theme_minimal()
+    + theme(
+        plot_title=element_text(weight="bold"),
+        legend_position="none",
+    )
+)
+```
 
 ###### Standardised latent effects and hierarchical shrinkage
 
