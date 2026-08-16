@@ -3426,6 +3426,8 @@ $$
 Because $\exp(\eta)>0$ for every real value of $\eta$, this transformation guarantees that each $\mu$ is positive, as required for the expected value of a non-negative count. 
 
 <div id="are-the-model-parameters-identifiable"></div>
+
+
 :::::: {.callout-note icon="false" collapse="true"}
 
 # Are the model parameters identifiable?
@@ -3617,13 +3619,66 @@ $$
 
 The intercepts $\alpha_l$, $\alpha_m$, and $\alpha_t$ represent the condition-wide baseline for the library, matrix, and target experiments after accounting for the known exposure offsets, $E_l$, $E_m$, and $E_t$. Because the compound and replicate effects sum to zero (see [Are the model parameters identifiable?](#are-the-model-parameters-identifiable){.box-ref-highlight} for details), each intercept describes the average condition on the log scale.
 
-The prior $\alpha_c\sim\operatorname{Normal}(0,1)$ is symmetric around zero on the log scale. Therefore, the prior median is $\alpha_c=0$, which corresponds to a baseline multiplier of $e^{\alpha_c}=1$: before seeing the data, the central prior value leaves the exposure baseline unchanged. The central 95% prior interval is
+Let's use $c$ generically for the library ($l$), matrix ($m$), and target ($t$) conditions. The prior $\alpha_c\sim\operatorname{Normal}(0,1)$ is symmetric around zero on the log scale. Therefore, the prior median is $\alpha_c=0$, which corresponds to a baseline multiplier of $e^{\alpha_c}=e^0=1$. **That is, before seeing the data, the central prior value leaves the exposure baseline unchanged.** The central 95% prior interval is:
 
 $$
 -1.96\leq\alpha_c\leq1.96.
 $$
 
-After exponentiation, this becomes
+```{python}
+import numpy as np
+import pandas as pd
+from scipy.stats import norm, lognorm
+from plotnine import (
+    ggplot, aes, geom_area, geom_line, geom_vline,
+    labs, theme_minimal, theme, element_text
+)
+
+alpha_grid = np.linspace(-4, 4, 600)
+alpha_lower, alpha_upper = norm.ppf([0.025, 0.975])
+
+alpha_prior_df = pd.DataFrame({
+    "alpha": alpha_grid,
+    "density": norm.pdf(alpha_grid, loc=0, scale=1),
+})
+alpha_central_df = alpha_prior_df.query(
+    "@alpha_lower <= alpha <= @alpha_upper"
+)
+
+(
+    ggplot(alpha_prior_df, aes(x="alpha", y="density"))
+    + geom_area(
+        data=alpha_central_df,
+        fill="#5e81ac",
+        alpha=0.35,
+    )
+    + geom_line(color="#5e81ac", size=1)
+    + geom_vline(
+        xintercept=[alpha_lower, alpha_upper],
+        linetype="dashed",
+        color="#4c566a",
+        size=0.7,
+    )
+    + geom_vline(
+        xintercept=0,
+        color="#4c566a",
+        size=0.7,
+    )
+    + labs(
+        title="Prior for the log-scale condition intercept",
+        subtitle=(
+            "α ~ Normal(0, 1); shaded region and dashed lines show "
+            "the central 95% interval"
+        ),
+        x="Log-scale condition intercept α",
+        y="Density",
+    )
+    + theme_minimal()
+    + theme(plot_title=element_text(weight="bold"))
+)
+```
+
+After exponentiation, this becomes the Lognormal distribution of the multiplier $e^{\alpha_c}$ on the original count scale:
 
 $$
 e^{-1.96}\approx0.14
@@ -3631,94 +3686,84 @@ e^{-1.96}\approx0.14
 e^{1.96}\approx7.1.
 $$
 
-Thus, the prior allows the condition baseline to range from about 14% to about 710% of the exposure baseline. This is a broad prior on the original count scale. If earlier experiments suggest a typical multiplier $m_0\neq1$, the Normal prior should instead be centred at $\log m_0$; its standard deviation should be reduced if such a wide range is scientifically implausible.
-
-Here, $1$ is the **median**, not the mean, of the multiplier prior. Because exponentiation makes the distribution right-skewed, $\mathbb E[e^{\alpha_c}]=e^{1/2}\approx1.65$ when $\alpha_c\sim\operatorname{Normal}(0,1)$.
-
-The left panel below shows the Normal prior for $\alpha_c$ on the log scale. The right panel shows the corresponding Lognormal distribution of the multiplier $e^{\alpha_c}$ on the original count scale:
-
 ```{python}
-import numpy as np
-import pandas as pd
-from scipy.stats import norm, lognorm
-from plotnine import (
-    ggplot, aes, geom_area, geom_line, geom_vline, facet_wrap,
-    labs, scale_linetype_manual, theme_minimal, theme, element_text
-)
-
-prior_panels = [
-    "Log-scale intercept α",
-    "Implied multiplier exp(α)",
-]
-
-alpha_grid = np.linspace(-4, 4, 600)
 multiplier_grid = np.linspace(0.01, 10, 800)
-
-alpha_prior_df = pd.DataFrame({
-    "value": alpha_grid,
-    "density": norm.pdf(alpha_grid, loc=0, scale=1),
-    "panel": prior_panels[0],
-})
+multiplier_lower = np.exp(alpha_lower)
+multiplier_upper = np.exp(alpha_upper)
 
 multiplier_prior_df = pd.DataFrame({
-    "value": multiplier_grid,
+    "multiplier": multiplier_grid,
     "density": lognorm.pdf(multiplier_grid, s=1, scale=np.exp(0)),
-    "panel": prior_panels[1],
 })
-
-intercept_prior_df = pd.concat(
-    [alpha_prior_df, multiplier_prior_df],
-    ignore_index=True,
-)
-intercept_prior_df["panel"] = pd.Categorical(
-    intercept_prior_df["panel"],
-    categories=prior_panels,
-    ordered=True,
-)
-
-prior_markers_df = pd.DataFrame({
-    "value": [0, -1.96, 1.96, 1, np.exp(-1.96), np.exp(1.96)],
-    "marker": [
-        "Median", "Central 95% limits", "Central 95% limits",
-        "Median", "Central 95% limits", "Central 95% limits",
-    ],
-    "panel": [
-        prior_panels[0], prior_panels[0], prior_panels[0],
-        prior_panels[1], prior_panels[1], prior_panels[1],
-    ],
-})
-prior_markers_df["panel"] = pd.Categorical(
-    prior_markers_df["panel"],
-    categories=prior_panels,
-    ordered=True,
+multiplier_central_df = multiplier_prior_df.query(
+    "@multiplier_lower <= multiplier <= @multiplier_upper"
 )
 
 (
-    ggplot(intercept_prior_df, aes(x="value", y="density"))
-    + geom_area(fill="#5e81ac", alpha=0.25)
+    ggplot(multiplier_prior_df, aes(x="multiplier", y="density"))
+    + geom_area(
+        data=multiplier_central_df,
+        fill="#5e81ac",
+        alpha=0.35,
+    )
     + geom_line(color="#5e81ac", size=1)
     + geom_vline(
-        prior_markers_df,
-        aes(xintercept="value", linetype="marker"),
+        xintercept=[multiplier_lower, multiplier_upper],
+        linetype="dashed",
         color="#4c566a",
         size=0.7,
-        inherit_aes=False,
     )
-    + facet_wrap("~panel", scales="free", nrow=1)
-    + scale_linetype_manual(
-        values={"Median": "solid", "Central 95% limits": "dashed"}
+    + geom_vline(
+        xintercept=1,
+        color="#4c566a",
+        size=0.7,
     )
     + labs(
-        title="Prior for the condition intercept and its implied multiplier",
-        subtitle="Solid line: median; dashed lines: central 95% prior interval",
-        x="Value",
+        title="Prior for the baseline multiplier",
+        subtitle=(
+            "exp(α) with α ~ Normal(0, 1); shaded region and dashed "
+            "lines show the central 95% interval"
+        ),
+        x="Baseline multiplier exp(α)",
         y="Density",
-        linetype="Reference",
     )
     + theme_minimal()
     + theme(plot_title=element_text(weight="bold"))
 )
 ```
+
+Writing $E_c$ generically for the relevant known exposure offset ($E_l$, $E_{m,r}$, or $E_{t,r}$), the baseline expected count when the compound and replicate effects are zero is:
+$$
+\mu_{\mathrm{baseline},c}=E_c e^{\alpha_c}.
+$$
+
+::: {.small style="margin-left: 2rem; padding-left: 1rem; border-left: 3px solid #d8dee9;"}
+For example, in the library condition,
+
+$$
+\mu_{l,i}
+=E_l e^{\alpha_l}e^{\textcolor{#a3be8c}{a_i}}
+=E_l e^{\alpha_l}
+\quad\text{when }\textcolor{#a3be8c}{a_i}=0.
+$$
+
+This is the library-specific case of the generic baseline expression above.
+:::
+
+Therefore, the central 95% prior interval for the baseline expected count is:
+
+$$
+0.14E_c
+\;\leq\;
+\mu_{\mathrm{baseline},c}
+\;\leq\;
+7.1E_c.
+$$
+
+The absolute count range depends on the exposure offset. For example, if $E_c=100$ reads per compound, the prior permits baseline expected counts from approximately $14$ to $710$ reads. If $E_c=10$, the corresponding range is approximately $1.4$ to $71$ reads. 
+
+[This confirms that $\operatorname{Normal}(0,1)$ is a broad prior for the condition intercept. If previous experiments provide stronger information about plausible baseline counts, the prior can be narrowed or recentered.]{.highlight-key-point}
+
 
 ###### Population scales for compound and replicate variation
 
