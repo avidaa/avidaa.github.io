@@ -3608,7 +3608,7 @@ $$
 \mu_{l,i} = E_l e^{\alpha_l} e^{\textcolor{#a3be8c}{a_i}}
 $$
 
-A value of zero therefore means no multiplicative change ($e^0=1$), while a log effect $x$ multiplies the expected count by $e^x$. The priors below are initial, weakly informative assumptions; their suitability must be assessed through prior predictive simulation.
+A value of zero therefore means no multiplicative change ($e^0=1$), while a log effect $x \in \{a_i,b_i,s_i,\gamma_{m,r},\gamma_{t,r}\}$ multiplies the expected count by $e^x$. The priors below are initial, weakly informative assumptions; their suitability must be assessed through prior predictive simulation.
 
 ###### Condition baselines
 
@@ -3837,11 +3837,117 @@ half_normal_95_df = half_normal_df.query(
 )
 ```
 
-The selected scales therefore encode progressively tighter expectations:
+The priors are defined on the log scale, but their implications are easier to understand as changes in expected counts. Recall that when all compound and replicate effects are zero, the baseline expected count in condition $c$ is
 
-- For $\sigma_a$ and $\sigma_b$, $\tau=0.75$ allows substantial compound heterogeneity. A log-scale standard deviation of $0.75$, for example, corresponds to a one-standard-deviation multiplier of $e^{0.75}\approx2.12$.
-- For $\sigma_s$, $\tau=0.50$ expresses the expectation that most compounds do not have extreme target-specific enrichment. At $\sigma_s=0.50$, one standard deviation corresponds to a multiplier of $e^{0.50}\approx1.65$. This does not exclude strong binders: [$s_i$]{style="color:#bf616a"}$=1$ represents a $e^1\approx2.7$-fold enrichment, and the shared scale can increase if the collection supports greater heterogeneity.
-- For the replicate scales, $\tau=0.25$ encodes the expectation that replicate-to-replicate variation is smaller than compound-to-compound variation. A log effect of $0.25$ corresponds to a multiplier of $e^{0.25}\approx1.28$.
+$$
+\mu_{\mathrm{baseline},c}=E_c e^{\alpha_c}.
+$$
+
+Now suppose one effect, denoted by $x \in \{a_i,b_i,s_i,\gamma_{m,r},\gamma_{t,r}\}$, is included in the linear predictor while the other effects remain zero. The expected count becomes
+
+$$
+\mu_c(x)
+=E_c e^{\alpha_c+x}
+=\mu_{\mathrm{baseline},c}e^x.
+$$
+
+Therefore, the effect changes the baseline expected count by the multiplier
+
+$$
+\frac{\mu_c(x)}{\mu_{\mathrm{baseline},c}}=e^x.
+$$
+
+Depending on the condition, $x$ may be input abundance [$a_i$]{style="color:#a3be8c"}, matrix background [$b_i$]{style="color:#88c0d0"}, target-specific enrichment [$s_i$]{style="color:#bf616a"}, or a replicate effect $\gamma_{m,r}$ or $\gamma_{t,r}$. For example, $x=0.5$ multiplies the expected count by $e^{0.5}\approx1.65$, whereas $x=-0.5$ multiplies it by $e^{-0.5}\approx0.61$. Thus, positive effects increase expected counts and negative effects decrease them.
+
+For a concrete comparison, suppose the baseline is 100 expected reads and use the median of each scale prior, $0.67\tau$, as a representative spread:
+
+- $\sigma_a$ and $\sigma_b$: median scale $0.51$ (that is, 0.67 * 0.75), giving approximately **60–166 expected reads**. The [$a_i$]{style="color:#a3be8c"} effect applies to all three conditions; [$b_i$]{style="color:#88c0d0"} applies only to matrix and target.
+- $\sigma_s$: median scale $0.34$ (that is, 0.67 * 0.50), giving approximately **71–140 expected target reads**. Stronger effects remain possible; [$s_i$]{style="color:#bf616a"}$=1$ would give approximately 272 expected target reads (that is, $100e^1\approx272$).
+- $\sigma_{\gamma_m}$ and $\sigma_{\gamma_t}$: median scale $0.17$ (that is, 0.67 * 0.25), giving approximately **84–118 expected reads** in the affected replicate.
+
+```{python}
+#| fig-width: 10
+#| fig-height: 4
+
+from plotnine import geom_segment, scale_x_continuous
+
+baseline_count = 100
+count_effect_specs = [
+    ("Abundance/background", 0.75, "#88c0d0"),
+    ("Target enrichment", 0.50, "#bf616a"),
+    ("Replicate effects", 0.25, "#d08770"),
+]
+
+count_effect_rows = []
+for label, tau, color in count_effect_specs:
+    median_scale = halfnorm.ppf(0.50, scale=tau)
+    lower = baseline_count * np.exp(-median_scale)
+    upper = baseline_count * np.exp(median_scale)
+    count_effect_rows.append({
+        "effect": label,
+        "lower": lower,
+        "upper": upper,
+        "label_x": upper + 5,
+        "range_label": f"{lower:.0f}–{upper:.0f}",
+        "color": color,
+    })
+
+count_effect_df = pd.DataFrame(count_effect_rows)
+count_effect_order = [label for label, _, _ in count_effect_specs]
+count_effect_df["effect"] = pd.Categorical(
+    count_effect_df["effect"],
+    categories=count_effect_order[::-1],
+    ordered=True,
+)
+
+COUNT_EFFECT_COLORS = {
+    label: color for label, _, color in count_effect_specs
+}
+
+(
+    ggplot(count_effect_df, aes(y="effect", color="effect"))
+    + geom_segment(
+        aes(x="lower", xend="upper", yend="effect"),
+        size=4,
+        alpha=0.55,
+    )
+    + geom_point(aes(x="lower"), size=2)
+    + geom_point(aes(x="upper"), size=2)
+    + geom_vline(
+        xintercept=baseline_count,
+        linetype="dashed",
+        color="#4c566a",
+        size=0.7,
+    )
+    + geom_text(
+        aes(x="label_x", label="range_label"),
+        ha="left",
+        size=8,
+        show_legend=False,
+    )
+    + scale_color_manual(values=COUNT_EFFECT_COLORS)
+    + scale_x_continuous(
+        limits=(50, 190),
+        breaks=[50, 75, 100, 125, 150, 175],
+    )
+    + labs(
+        title="Representative prior effects on expected counts",
+        subtitle=(
+            "Ranges apply ± one prior-median scale to a baseline of "
+            "100 expected reads;\ndashed line marks the baseline"
+        ),
+        x="Expected count",
+        y="",
+    )
+    + theme_minimal()
+    + theme(
+        plot_title=element_text(weight="bold"),
+        legend_position="none",
+    )
+)
+```
+
+These are representative changes in the **expected count**, not predictive intervals or hard bounds. Each $\sigma$ is uncertain, effects can be larger, and NB2 adds observation-level variation around the resulting expectation.
 
 The plot below compares the three priors on the same scale. Smaller values of $\tau$ place more probability close to zero, whereas larger values permit larger population standard deviations:
 
@@ -3948,6 +4054,24 @@ SCALE_PRIOR_COLORS = {
 )
 ```
 
+The values of $\tau$ describe prior beliefs about the magnitude of different **types of variation**. The current choices imply
+
+$$
+\underbrace{\tau=0.75}_{\sigma_a,\sigma_b}
+>
+\underbrace{\tau=0.50}_{\sigma_s}
+>
+\underbrace{\tau=0.25}_{\sigma_{\gamma_m},\sigma_{\gamma_t}}.
+$$
+
+Thus, the model initially permits more between-compound variation in input abundance and matrix background, somewhat less variation in target-specific enrichment, and the least variation between replicates. 
+
+A smaller prior for the replicate scales is reasonable when experimental replicates are expected to be similar. 
+
+The distinction between the abundance/background and enrichment scales is less certain: DEL enrichment may also vary substantially.
+
+These values are therefore provisional modelling assumptions, not consequences of the likelihood or DAG. If previous experiments do not support this ordering, a reasonable simpler choice is to give $\sigma_a$, $\sigma_b$, and $\sigma_s$ the same prior while retaining a tighter prior for replicate effects. Prior predictive simulation should be used to check whether either choice generates plausible count ranges and fold changes.
+
 ###### Standardised latent effects and hierarchical shrinkage
 
 $$
@@ -3996,7 +4120,21 @@ $$
 \phi_c=\kappa_c^{-2}.
 $$
 
-Values near $\kappa_c=0$ imply very large $\phi_c$ and behaviour close to Poisson. For orientation, $\kappa_c=0.5$ implies $\phi_c=4$ and an asymptotic extra-Poisson CV of 50%, while $\kappa_c=1$ implies $\phi_c=1$ and much stronger overdispersion. This parameterisation makes the prior's implications easier to understand than a diffuse prior placed directly on $\phi_c$.
+Values near $\kappa_c=0$ imply very large $\phi_c$ and behaviour close to Poisson. In terms of counts,
+
+$$
+\operatorname{Var}(C\mid\mu,\kappa_c)
+=\mu+\mu^2\kappa_c^2.
+$$
+
+For example, when $\mu=100$:
+
+- $\kappa_c=0$ gives the Poisson standard deviation $\sqrt{100}=10$ reads.
+- The prior median is approximately $0.34$, corresponding to $\phi_c\approx8.7$ and a standard deviation of approximately $\sqrt{100+100^2(0.34)^2}\approx35$ reads.
+- $\kappa_c=0.5$ corresponds to $\phi_c=4$ and a standard deviation of approximately $51$ reads.
+- $\kappa_c=1$ corresponds to $\phi_c=1$ and a standard deviation of approximately $100$ reads.
+
+Thus, the prior allows count distributions ranging from nearly Poisson to strongly overdispersed. Expressing the prior through $\kappa_c$ makes these count-scale implications easier to understand than placing a diffuse prior directly on $\phi_c$.
 
 ###### Checking and revising these assumptions
 
