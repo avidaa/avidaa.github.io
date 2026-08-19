@@ -3425,10 +3425,7 @@ $$
 
 Because $\exp(\eta)>0$ for every real value of $\eta$, this transformation guarantees that each $\mu$ is positive, as required for the expected value of a non-negative count. 
 
-<div id="are-the-model-parameters-identifiable"></div>
-
-
-:::::: {.callout-note icon="false" collapse="true"}
+:::::: {#are-the-model-parameters-identifiable .callout-note icon="false" collapse="true"}
 
 # Are the model parameters identifiable?
 
@@ -3837,6 +3834,9 @@ half_normal_95_df = half_normal_df.query(
 )
 ```
 
+:::: {#log-scale-effects-and-expected-counts .callout-note collapse="true" icon="false"}
+## How log-scale effects change expected counts
+
 The priors are defined on the log scale, but their implications are easier to understand as changes in expected counts. Recall that when all compound and replicate effects are zero, the baseline expected count in condition $c$ is:
 
 $$
@@ -3852,8 +3852,9 @@ $$
 $$
 
 Depending on the condition, $x$ may be input abundance [$a_i$]{style="color:#a3be8c"}, matrix background [$b_i$]{style="color:#88c0d0"}, target-specific enrichment [$s_i$]{style="color:#bf616a"}, or a replicate effect $\gamma_{m,r}$ or $\gamma_{t,r}$. For example, $x=0.5$ multiplies the expected count by $e^{0.5}\approx1.65$, whereas $x=-0.5$ multiplies it by $e^{-0.5}\approx0.61$. Thus, positive effects increase expected counts and negative effects decrease them.
+::::
 
-For a concrete comparison, suppose the baseline, $\mu_{\mathrm{baseline},c}$, is 100 expected reads and use the median of each scale prior, $0.67\tau$, as a representative spread:
+Using the relationship derived in [How log-scale effects change expected counts](#log-scale-effects-and-expected-counts){.box-ref-highlight}, suppose the baseline, $\mu_{\mathrm{baseline},c}$, is 100 expected reads and use the median of each scale prior, $0.67\tau$, as a representative spread:
 
 - $\sigma_a$ and $\sigma_b$: median scale $0.51$ (that is, 0.67 * 0.75), giving approximately **60–166 expected reads**, (that is, $100e^{-0.51}\approx60$ and $100e^{0.51}\approx166$). The [$a_i$]{style="color:#a3be8c"} effect applies to all three conditions; [$b_i$]{style="color:#88c0d0"} applies only to matrix and target.
 - $\sigma_s$: median scale $0.34$ (that is, 0.67 * 0.50), giving approximately **71–140 expected target reads**. Stronger effects remain possible; [$s_i$]{style="color:#bf616a"}$=1$ would give approximately 272 expected target reads (that is, $100e^1\approx272$).
