@@ -4103,6 +4103,55 @@ $$
 
 The $z$ variables are standardised deviations without direct scientific units. Subtracting their means enforces the zero-sum constraints, and multiplying by the corresponding $\sigma$ gives each effect its population scale. Because all compounds share an estimated population scale, noisy compound-level effects are partially pooled toward zero, while strongly supported effects can remain far from zero. This is the hierarchical shrinkage discussed in the parameter-recovery section.
 
+:::: {.callout-note collapse="true" icon="false"}
+## Why use this parameterisation?
+
+This parameterisation constructs the latent-effect parameters, [$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}, $\gamma_{m,r}$, and $\gamma_{t,r}$, from unit-scale auxiliary variables $z \sim \operatorname{Normal}(0,1)$ and the population-scale parameters $\sigma_a$, $\sigma_b$, $\sigma_s$, $\sigma_{\gamma_m}$, and $\sigma_{\gamma_t}$. 
+
+It solves two modelling problems that arise from the hierarchical structure of the model: 
+
+1. Separating each condition intercept ($\alpha_l$, $\alpha_m$, or $\alpha_t$) from **any group-wide shift in the latent effects**, and 
+2. Learning how much input-abundance effects [$a_i$]{style="color:#a3be8c"}, matrix-background effects [$b_i$]{style="color:#88c0d0"}, and target-enrichment effects [$s_i$]{style="color:#bf616a"} vary across compounds, and how much $\gamma_{m,r}$ and $\gamma_{t,r}$ vary across matrix and target replicates.
+
+Here, a **group-wide shift** means the arithmetic mean of one type of latent effect: for example, $\bar a=\frac{1}{N}\sum_i a_i$ across compounds or $\bar\gamma_m=\frac{1}{R_m}\sum_r\gamma_{m,r}$ across matrix replicates. 
+
+[Without a constraint, the intercept (e.g. $\alpha_l$) and this common average (e.g. $\bar a$) are indistinguishable because moving a constant from one to the other leaves the expected counts unchanged. The zero-sum transformations set each such average to zero, so the intercept represents the group baseline and the latent effects represent deviations from it.]{.highlight-key-point}
+
+Conceptually, we want hierarchical priors such as
+
+$$
+\textcolor{#a3be8c}{a_i}\mid\sigma_a
+\sim\operatorname{Normal}(0,\sigma_a),
+$$
+
+with analogous priors for [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}, $\gamma_{m,r}$, and $\gamma_{t,r}$. A direct implementation, however, would still need the zero-sum constraints.
+
+**Problem 1: additive ambiguity.** Suppose we add a constant $d$ to every [$a_i$]{style="color:#a3be8c"} and subtract $d$ from $\alpha_l$, $\alpha_m$, and $\alpha_t$. Every linear predictor—and therefore every expected count—remains unchanged. The likelihood cannot determine whether this common shift belongs to the intercepts or to [$a_i$]{style="color:#a3be8c"}. Corresponding ambiguities occur between the other groups of effects and their condition intercepts, as explained in [Are the model parameters identifiable?](#are-the-model-parameters-identifiable){.box-ref-highlight}.
+
+Subtracting the group mean removes this ambiguity. For example, because
+
+$$
+\bar z_a=\frac{1}{N}\sum_{i=1}^{N}z_{a,i},
+$$
+
+the transformed abundance effects satisfy
+
+$$
+\sum_{i=1}^{N}\textcolor{#a3be8c}{a_i}
+=
+\sigma_a\left(
+\sum_{i=1}^{N}z_{a,i}-N\bar z_a
+\right)
+=0.
+$$
+
+The other transformations enforce the corresponding zero-sum constraints. Zero is an **identification convention**, not a claim that the average biological effect is literally zero. It assigns each group-wide average to the relevant intercept $\alpha_c$, while the compound and replicate effects describe deviations around that average.
+
+**Problem 2: unstable estimates for weakly observed effects.** Multiplication by $\sigma$ gives each group a shared, data-informed scale. Effects supported by little information are pulled toward the group average of zero, whereas strongly supported effects can remain farther away. This **hierarchical shrinkage** reduces unstable extreme estimates without forcing all compounds or replicates to have the same effect.
+
+Writing each effect as a unit Normal variable $z$ multiplied by an estimated scale $\sigma$ is called a **non-centred parameterisation**. It expresses the same hierarchical idea as a direct conditional Normal prior, but often produces more stable Bayesian computation when $\sigma$ is small or weakly identified.
+::::
+
 ###### Condition-specific dispersion
 
 Rather than place a prior directly on the NB2 inverse-dispersion parameter $\phi_c$, we define
@@ -4144,6 +4193,150 @@ These numerical scales are modelling assumptions, not facts learned before seein
 Sensitivity analysis should also examine the structural assumptions that background contributes to matrix and target counts through the same [$b_i$]{style="color:#88c0d0"}, counts are conditionally independent given the latent effects, and one dispersion parameter is shared by all compounds within each condition. More flexible alternatives include estimating a matrix-to-target loading, assigning a sparse or heavy-tailed prior to [$s_i$]{style="color:#bf616a"}, or replacing NB2 with a Poisson-lognormal likelihood. These extensions should be motivated by failed predictive checks rather than added automatically.
 
 [The target signal is the posterior distribution of a log fold-change, not a corrected count. The model infers it by jointly explaining all observed counts while propagating uncertainty in input abundance, matrix background, replicate effects, and overdispersion.]{.highlight-key-point}
+
+##### 5. Putting the complete model together
+
+The preceding sections introduced the likelihood, mean structure, and priors separately. We can now combine them into one generative model. Let $N$ be the number of compounds, and let $R_m$ and $R_t$ be the numbers of matrix and target replicates.
+
+###### The overall likelihood
+
+Conditional on the latent effects and model parameters, the observed counts are independent. Their joint likelihood is
+
+$$
+\begin{aligned}
+p(\mathbf C\mid\boldsymbol\theta,\mathbf E)
+&=
+\prod_{i=1}^{N}
+\operatorname{NB}_2\!\left(
+    C_{l,i}\mid\mu_{l,i},\phi_l
+\right)\\
+&\quad{}\times
+\prod_{i=1}^{N}\prod_{r=1}^{R_m}
+\operatorname{NB}_2\!\left(
+    C_{m,i,r}\mid\mu_{m,i,r},\phi_m
+\right)\\
+&\quad{}\times
+\prod_{i=1}^{N}\prod_{r=1}^{R_t}
+\operatorname{NB}_2\!\left(
+    C_{t,i,r}\mid\mu_{t,i,r},\phi_t
+\right).
+\end{aligned}
+$$
+
+Here, $\mathbf C$ denotes all observed counts, $\mathbf E$ denotes the known sequencing-exposure offsets, and $\boldsymbol\theta$ collects the unknown stochastic quantities $\boldsymbol\alpha$, $\boldsymbol\sigma$, $\mathbf z$, and $\boldsymbol\kappa$. The centred effects, expected counts, and inverse-dispersion parameters are deterministic functions of these quantities. This product is the **overall likelihood**: it assigns a joint probability to the complete set of library, matrix, and target counts for any proposed parameter values.
+
+The counts are independent only **conditional on** $\boldsymbol\theta$. Marginally, they are related because they share latent causes. For example, counts for the same compound share [$a_i$]{style="color:#a3be8c"}, while matrix and target counts additionally share [$b_i$]{style="color:#88c0d0"}.
+
+###### The complete generative specification
+
+The model can be generated from top to bottom as follows.
+
+First, draw the condition baselines, population scales, and condition-specific dispersion parameters:
+
+$$
+\begin{aligned}
+\alpha_l,\alpha_m,\alpha_t
+    &\overset{\mathrm{ind}}{\sim}\operatorname{Normal}(0,1),\\
+\sigma_a,\sigma_b
+    &\overset{\mathrm{ind}}{\sim}\operatorname{HalfNormal}(0,0.75),\\
+\sigma_s
+    &\sim\operatorname{HalfNormal}(0,0.50),\\
+\sigma_{\gamma_m},\sigma_{\gamma_t}
+    &\overset{\mathrm{ind}}{\sim}\operatorname{HalfNormal}(0,0.25),\\
+\kappa_l,\kappa_m,\kappa_t
+    &\overset{\mathrm{ind}}{\sim}\operatorname{HalfNormal}(0,0.50),\\
+\phi_c&=\kappa_c^{-2},
+\qquad c\in\{l,m,t\}.
+\end{aligned}
+$$
+
+Next, draw the standardised latent deviations:
+
+$$
+\begin{aligned}
+z_{a,i},z_{b,i},z_{s,i}
+    &\overset{\mathrm{ind}}{\sim}\operatorname{Normal}(0,1),
+    &&i=1,\ldots,N,\\
+z_{\gamma_m,r}
+    &\overset{\mathrm{ind}}{\sim}\operatorname{Normal}(0,1),
+    &&r=1,\ldots,R_m,\\
+z_{\gamma_t,r}
+    &\overset{\mathrm{ind}}{\sim}\operatorname{Normal}(0,1),
+    &&r=1,\ldots,R_t.
+\end{aligned}
+$$
+
+Centre and scale these deviations to obtain the identifiable compound and replicate effects:
+
+$$
+\begin{aligned}
+\textcolor{#a3be8c}{a_i}
+    &=\sigma_a(z_{a,i}-\bar z_a),&
+\textcolor{#88c0d0}{b_i}
+    &=\sigma_b(z_{b,i}-\bar z_b),&
+\textcolor{#bf616a}{s_i}
+    &=\sigma_s(z_{s,i}-\bar z_s),\\
+\gamma_{m,r}
+    &=\sigma_{\gamma_m}(z_{\gamma_m,r}-\bar z_{\gamma_m}),&
+\gamma_{t,r}
+    &=\sigma_{\gamma_t}(z_{\gamma_t,r}-\bar z_{\gamma_t}).
+\end{aligned}
+$$
+
+Then combine the known offsets and latent effects to calculate the expected counts:
+
+$$
+\begin{aligned}
+\mu_{l,i}
+    &=E_l\exp\!\left(
+        \alpha_l+\textcolor{#a3be8c}{a_i}
+    \right),\\
+\mu_{m,i,r}
+    &=E_{m,r}\exp\!\left(
+        \alpha_m+\textcolor{#a3be8c}{a_i}
+        +\textcolor{#88c0d0}{b_i}+\gamma_{m,r}
+    \right),\\
+\mu_{t,i,r}
+    &=E_{t,r}\exp\!\left(
+        \alpha_t+\textcolor{#a3be8c}{a_i}
+        +\textcolor{#88c0d0}{b_i}
+        +\textcolor{#bf616a}{s_i}+\gamma_{t,r}
+    \right).
+\end{aligned}
+$$
+
+Finally, generate the observed counts:
+
+$$
+\begin{aligned}
+C_{l,i}
+    &\sim\operatorname{NegBinomial}_2(\mu_{l,i},\phi_l),\\
+C_{m,i,r}
+    &\sim\operatorname{NegBinomial}_2(\mu_{m,i,r},\phi_m),\\
+C_{t,i,r}
+    &\sim\operatorname{NegBinomial}_2(\mu_{t,i,r},\phi_t),
+\end{aligned}
+\qquad
+\operatorname{Var}(C\mid\mu,\phi)
+=\mu+\frac{\mu^2}{\phi}.
+$$
+
+Equivalently, the joint generative distribution factorises as
+
+$$
+p(\mathbf C,\boldsymbol\theta\mid\mathbf E)
+=
+\underbrace{p(\mathbf C\mid\boldsymbol\theta,\mathbf E)}_{\text{overall likelihood}}
+\times
+\underbrace{p(\boldsymbol\alpha)\,
+p(\boldsymbol\sigma)\,
+p(\mathbf z)\,
+p(\boldsymbol\kappa)}_{\text{priors}},
+$$
+
+with the centred effects, expected counts, and $\phi_c=\kappa_c^{-2}$ defined deterministically from these quantities.
+
+This top-to-bottom description also gives the algorithm for the next stage of the Bayesian workflow: **prior predictive checking**. Draw parameters and latent effects from their priors, calculate the expected counts, simulate counts from NB2, and then ask whether the resulting DEL datasets are scientifically plausible.
 
 ## References:
 
