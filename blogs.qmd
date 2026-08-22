@@ -4,6 +4,8 @@ title: "Blogs"
 
 Here I share posts about topics that interest me and I am trying to learn, ranging from statistics and machine learning/AI to the drug discovery process. Click "Read more" to explore each post in detail.
 
+**Use of AI.** I use large language models to support research, technical exploration, and editing. I independently evaluate the reasoning, verify substantive claims against primary sources where possible, and take responsibility for the final content and any errors.
+
 <!-- Preview of Blog Post 1 -->
 
 ## Mathematical Derivation of VAE
@@ -13,7 +15,6 @@ Here I share posts about topics that interest me and I am trying to learn, rangi
 A concise walkthrough of the mathematical foundations behind Variational Autoencoders (VAE) highlighting key derivations and concepts for understanding how they work.
 
 [Read more](blogs/VAE_derivation/VAE_derivation.qmd)
-
 
 ## Modelling DNA-Encoded Libraries (DELs) - Part 1
 
