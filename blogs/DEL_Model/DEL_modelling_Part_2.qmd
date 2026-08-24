@@ -4124,9 +4124,11 @@ This conditional dependence is what makes the prior **hierarchical**: the compou
 
 The same hierarchy is used for [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}, $\gamma_{m,r}$, and $\gamma_{t,r}$, each with its corresponding population-scale parameter. A direct implementation of these conditional Normal priors would still require the zero-sum constraints described below.
 
-**Problem 1: additive ambiguity.** Suppose we add a constant $d$ to every [$a_i$]{style="color:#a3be8c"} and subtract $d$ from $\alpha_l$, $\alpha_m$, and $\alpha_t$. Every linear predictor—and therefore every expected count—remains unchanged. The likelihood cannot determine whether this common shift belongs to the intercepts or to [$a_i$]{style="color:#a3be8c"}. Corresponding ambiguities occur between the other groups of effects and their condition intercepts, as explained in [Are the model parameters identifiable?](#are-the-model-parameters-identifiable){.box-ref-highlight}.
+The equations above implement this hierarchy using centred, unit-scale variables $z$. The centring and scaling operations each have a separate purpose.
 
-Subtracting the group mean removes this ambiguity. For example, because
+**Why subtract the group mean?** This makes the latent effects identifiable separately from the condition intercepts. Suppose we add a constant $d$ to every [$a_i$]{style="color:#a3be8c"} and subtract $d$ from $\alpha_l$, $\alpha_m$, and $\alpha_t$. Every linear predictor—and therefore every expected count—remains unchanged. The likelihood cannot determine whether this common shift belongs to the intercepts or to [$a_i$]{style="color:#a3be8c"}. Corresponding ambiguities occur between the other groups of effects and their condition intercepts, as explained in [Are the model parameters identifiable?](#are-the-model-parameters-identifiable){.box-ref-highlight}.
+
+Subtracting the mean of the $z$ values removes this ambiguity. For example, because
 
 $$
 \bar z_a=\frac{1}{N}\sum_{i=1}^{N}z_{a,i},
@@ -4145,9 +4147,9 @@ $$
 
 The other transformations enforce the corresponding zero-sum constraints. Zero is an **identification convention**, not a claim that the average biological effect is literally zero. It assigns each group-wide average to the relevant intercept $\alpha_c$, while the compound and replicate effects describe deviations around that average.
 
-**Problem 2: unstable estimates for weakly observed effects.** Multiplication by $\sigma$ gives each group a shared, data-informed scale. Effects supported by little information are pulled toward the group average of zero, whereas strongly supported effects can remain farther away. This **hierarchical shrinkage** reduces unstable extreme estimates without forcing all compounds or replicates to have the same effect.
+**Why multiply by $\sigma$?** After centring, the $z$ values still have a fixed unit scale. Multiplying them by the relevant population scale gives the effects the amount of variation learned through the hierarchy. For example, a small $\sigma_a$ keeps the [$a_i$]{style="color:#a3be8c"} values close to zero, whereas a larger $\sigma_a$ permits greater differences among compounds.
 
-Writing each effect as a unit Normal variable $z$ multiplied by an estimated scale $\sigma$ is called a **non-centred parameterisation**. It expresses the same hierarchical idea as a direct conditional Normal prior, but often produces more stable Bayesian computation when $\sigma$ is small or weakly identified.
+Separating the unit-scale variable $z$ from the estimated scale $\sigma$ is called a **non-centred parameterisation**. It represents the same hierarchical model described above, but often produces more stable Bayesian computation when $\sigma$ is small or weakly identified.
 ::::
 
 ###### Condition-specific dispersion
