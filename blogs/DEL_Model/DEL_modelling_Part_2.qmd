@@ -4107,24 +4107,52 @@ The $z$ variables are standardised deviations without direct scientific units. S
 
 This parameterisation constructs the latent-effect parameters, [$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}, $\gamma_{m,r}$, and $\gamma_{t,r}$, from unit-scale auxiliary variables $z \sim \operatorname{Normal}(0,1)$ and the population-scale parameters $\sigma_a$, $\sigma_b$, $\sigma_s$, $\sigma_{\gamma_m}$, and $\sigma_{\gamma_t}$, which are shared across all compounds and replicates and discussed in [Population scales](#population-scales).
 
-To make the hierarchy concrete, consider the input-abundance effects [$a_i$]{style="color:#a3be8c"} as an example. The model contains one [$a_i$]{style="color:#a3be8c"} for every compound. Estimating all of them independently would produce unstable values for compounds with few reads. Instead, we assume that the abundance effects belong to a common population whose spread is learned from all compounds:
+To make the hierarchy concrete, consider the input-abundance effects [$a_i$]{style="color:#a3be8c"} as an example. The model contains one effect for every compound. Estimating them independently would produce unstable values for compounds with few reads. We therefore begin with preliminary, unconstrained effects $a_i^*$ that belong to a common population whose spread is learned from all compounds:
 
 $$
 \begin{aligned}
 \sigma_a
     &\sim\operatorname{HalfNormal}(0,0.75),
     &&\text{population level},\\
-\textcolor{#a3be8c}{a_i}\mid\sigma_a
+\textcolor{#a3be8c}{a_i^*}\mid\sigma_a
     &\sim\operatorname{Normal}(0,\sigma_a),
     &&\text{compound level}.
 \end{aligned}
 $$
 
-This conditional dependence is what makes the prior **hierarchical**: the compound-level parameters [$a_i$]{style="color:#a3be8c"} share the higher-level parameter $\sigma_a$. Data from all compounds inform $\sigma_a$, and the inferred $\sigma_a$ in turn controls how far each [$a_i$]{style="color:#a3be8c"} can plausibly lie from zero. This sharing produces partial pooling: uncertain abundance effects are regularised toward zero, while compounds with strong evidence can retain larger effects.
+This conditional dependence is what makes the prior **hierarchical**: the compound-level effects $a_i^*$ share the higher-level parameter $\sigma_a$. Data from all compounds inform $\sigma_a$, and the inferred $\sigma_a$ in turn controls how far the abundance effects can plausibly lie from zero. This sharing produces partial pooling: uncertain effects are regularised toward zero, while compounds with strong evidence can retain larger effects.
 
-The same hierarchy is used for [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}, $\gamma_{m,r}$, and $\gamma_{t,r}$, each with its corresponding population-scale parameter. A direct implementation of these conditional Normal priors would still require the zero-sum constraints described below.
+The connection to the standardised variable $z_{a,i}$ follows from a basic property of the Normal distribution. Draw
 
-The equations above implement this hierarchy using centred, unit-scale variables $z$. The centring and scaling operations each have a separate purpose.
+$$
+z_{a,i}\sim\operatorname{Normal}(0,1)
+$$
+
+and define the preliminary effect as
+
+$$
+\textcolor{#a3be8c}{a_i^*}=\sigma_a z_{a,i}.
+$$
+
+Conditional on $\sigma_a$, multiplying a standard Normal variable by $\sigma_a$ gives
+
+$$
+\textcolor{#a3be8c}{a_i^*}\mid\sigma_a
+\sim\operatorname{Normal}(0,\sigma_a),
+$$
+
+which is exactly the compound-level line in the hierarchy above. The preliminary effects $a_i^*$ do not yet satisfy the zero-sum constraint, so we centre them:
+
+$$
+\begin{aligned}
+\textcolor{#a3be8c}{a_i}
+&=\textcolor{#a3be8c}{a_i^*}-\textcolor{#a3be8c}{\bar a^*}\\
+&=\sigma_a z_{a,i}-\sigma_a\bar z_a\\
+&=\sigma_a\left(z_{a,i}-\bar z_a\right).
+\end{aligned}
+$$
+
+Thus, the final [$a_i$]{style="color:#a3be8c"} is the zero-sum version of the unconstrained hierarchical effect $a_i^*$. The same construction is used for [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}, $\gamma_{m,r}$, and $\gamma_{t,r}$, each with its corresponding population-scale parameter.
 
 **Why subtract the group mean?** This makes the latent effects identifiable separately from the condition intercepts. Suppose we add a constant $d$ to every [$a_i$]{style="color:#a3be8c"} and subtract $d$ from $\alpha_l$, $\alpha_m$, and $\alpha_t$. Every linear predictor—and therefore every expected count—remains unchanged. The likelihood cannot determine whether this common shift belongs to the intercepts or to [$a_i$]{style="color:#a3be8c"}. Corresponding ambiguities occur between the other groups of effects and their condition intercepts, as explained in [Are the model parameters identifiable?](#are-the-model-parameters-identifiable){.box-ref-highlight}.
 
