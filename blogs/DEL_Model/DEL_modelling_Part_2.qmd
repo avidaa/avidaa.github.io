@@ -4105,9 +4105,10 @@ The $z$ variables are standardised deviations without direct scientific units. S
 :::: {.callout-note collapse="true" icon="false"}
 ## Why use this parameterisation?
 
-This parameterisation constructs the latent-effect parameters, [$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}, $\gamma_{m,r}$, and $\gamma_{t,r}$, from unit-scale auxiliary variables $z \sim \operatorname{Normal}(0,1)$ and the population-scale parameters $\sigma_a$, $\sigma_b$, $\sigma_s$, $\sigma_{\gamma_m}$, and $\sigma_{\gamma_t}$, which are shared across all compounds and replicates and discussed in [Population scales](#population-scales).
+This [non-centred hierarchical parameterisation](https://betanalpha.github.io/assets/case_studies/hierarchical_modeling.html) constructs the latent-effect parameters, [$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}, $\gamma_{m,r}$, and $\gamma_{t,r}$, from unit-scale auxiliary variables $z \sim \operatorname{Normal}(0,1)$ and the population-scale parameters $\sigma_a$, $\sigma_b$, $\sigma_s$, $\sigma_{\gamma_m}$, and $\sigma_{\gamma_t}$, which are shared across all compounds and replicates and discussed in [Population scales](#population-scales).
 
-To make the hierarchy concrete, consider the input-abundance effects [$a_i$]{style="color:#a3be8c"} as an example. The model contains one effect for every compound. Estimating them independently would produce unstable values for compounds with few reads. We therefore begin with preliminary, unconstrained effects $a_i^*$ that belong to a common population whose spread is learned from all compounds:
+
+Consider the input-abundance effects [$a$]{style="color:#a3be8c"} as an example. The model contains one effect for every compound, [$a_i$]{style="color:#a3be8c"}. Estimating them independently would produce unstable values for compounds with few reads. We therefore use a common population scale, $\sigma_a$, whose spread is learned from all compounds, then given $\sigma_a$, the [$a_i^*$]{style="color:#a3be8c"} effect is drawn from a Normal distribution with mean 0 and variance $\sigma_a^2$:
 
 $$
 \begin{aligned}
@@ -4115,12 +4116,12 @@ $$
     &\sim\operatorname{HalfNormal}(0,0.75),
     &&\text{population level},\\
 \textcolor{#a3be8c}{a_i^*}\mid\sigma_a
-    &\sim\operatorname{Normal}(0,\sigma_a),
+    &\sim\operatorname{Normal}(0,\sigma_a^2),
     &&\text{compound level}.
 \end{aligned}
 $$
 
-This conditional dependence is what makes the prior **hierarchical**: the compound-level effects $a_i^*$ share the higher-level parameter $\sigma_a$. Data from all compounds inform $\sigma_a$, and the inferred $\sigma_a$ in turn controls how far the abundance effects can plausibly lie from zero. This sharing produces partial pooling: uncertain effects are regularised toward zero, while compounds with strong evidence can retain larger effects.
+This conditional dependence is what makes the prior **hierarchical**: the compound-level effects [$a_i^*$]{style="color:#a3be8c"} share the higher-level parameter $\sigma_a$. Data from all compounds inform $\sigma_a$, and the inferred $\sigma_a$ in turn controls how far the abundance effects can plausibly lie from zero. This sharing produces **partial pooling**: uncertain effects are regularised toward zero, while compounds with strong evidence can retain larger effects. We wrote [$a_i^*$]{style="color:#a3be8c"} to emphasise that it is a preliminary effect, not the final [$a_i$]{style="color:#a3be8c"}. The final effect satisfies the zero-sum constraint discussed in [Are the model parameters identifibale?](#are-the-model-parameters-identifiable){.box-ref-highlight}.
 
 The connection to the standardised variable $z_{a,i}$ follows from a basic property of the Normal distribution. Draw
 
