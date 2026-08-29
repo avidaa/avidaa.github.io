@@ -4108,75 +4108,70 @@ The $z$ variables are standardised deviations without direct scientific units. S
 This [non-centred hierarchical parameterisation](https://betanalpha.github.io/assets/case_studies/hierarchical_modeling.html) constructs the latent-effect parameters, [$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}, $\gamma_{m,r}$, and $\gamma_{t,r}$, from unit-scale auxiliary variables $z \sim \operatorname{Normal}(0,1)$ and the group-specific population scales discussed in [Population scales](#population-scales). Each scale is shared only within its corresponding group: for example, $\sigma_a$ is shared across the abundance effects, whereas $\sigma_{\gamma_m}$ is shared across the matrix-replicate effects.
 
 
-**Hierarchy and partial pooling.** Consider the input-abundance effects [$a$]{style="color:#a3be8c"} as an example. The model contains one effect for every compound, [$a_i$]{style="color:#a3be8c"}. Estimating them independently would produce unstable values for compounds with few reads. We therefore use a common population scale, $\sigma_a$, whose spread is learned from all compounds. Given $\sigma_a$, the preliminary effect [$a_i^*$]{style="color:#a3be8c"} is drawn from a Normal distribution with mean $0$ and variance $\sigma_a^2$:
+**Hierarchy and partial pooling.** Consider the input-abundance effects [$a$]{style="color:#a3be8c"} as an example. The model contains one effect for every compound, [$a_i$]{style="color:#a3be8c"}. Estimating them independently would produce unstable values for compounds with few reads. We therefore use a common population scale, $\sigma_a$, whose spread is learned from all compounds. Given $\sigma_a$, the preliminary effect $a_i^*$ is drawn from a Normal distribution with mean $0$ and variance $\sigma_a^2$:
 
 $$
 \begin{aligned}
 \sigma_a
     &\sim\operatorname{HalfNormal}(0,0.75),
     &&\text{population level},\\
-\textcolor{#a3be8c}{a_i^*}\mid\sigma_a
+{a_i^*}\mid\sigma_a
     &\sim\operatorname{Normal}(0,\sigma_a^2),
     &&\text{compound level}.
 \end{aligned}
 $$
 
-This conditional dependence is what makes the prior **hierarchical**: the compound-level effects [$a_i^*$]{style="color:#a3be8c"} share the higher-level parameter $\sigma_a$. Data from all compounds inform $\sigma_a$, and the inferred $\sigma_a$ in turn controls how far the abundance effects can plausibly lie from zero. This sharing produces **partial pooling**: uncertain effects are regularised toward zero, while compounds with strong evidence can retain larger effects. Hierarchical modelling specifies the shared structure; partial pooling is the resulting behaviour. We write [$a_i^*$]{style="color:#a3be8c"} to emphasise that it is a preliminary effect, not the final [$a_i$]{style="color:#a3be8c"}. The final effect satisfies the zero-sum constraint discussed in [Are the model parameters identifiable?](#are-the-model-parameters-identifiable){.box-ref-highlight}.
+This conditional dependence is what makes the prior **hierarchical**: the compound-level effects [$a_i^*$]{style="color:#a3be8c"} share the higher-level parameter $\sigma_a$. Data from all compounds inform $\sigma_a$, and the inferred $\sigma_a$ in turn controls how far the abundance effects can plausibly lie from zero. This sharing produces **partial pooling**: uncertain effects are regularised toward zero, while compounds with strong evidence can retain larger effects. Hierarchical modelling specifies the shared structure; partial pooling is the resulting behaviour. We write $a_i^*$ to emphasise that it is a preliminary effect, not the final [$a_i$]{style="color:#a3be8c"}. The final effect satisfies the zero-sum constraint discussed in [Are the model parameters identifiable?](#are-the-model-parameters-identifiable){.box-ref-highlight}.
 
-**Connection to the non-centred form.** The hierarchy above can be expressed using a standardised variable $z_{a,i}$. Draw
-
-$$
-z_{a,i}\sim\operatorname{Normal}(0,1)
-$$
-
-and define the preliminary effect as
+**From the preliminary effect to the final zero-sum effect.** After drawing one preliminary effect for each compound, $a_i^*$, first we calculate their arithmetic mean, $\bar a^*$:
 
 $$
-\textcolor{#a3be8c}{a_i^*}=\sigma_a z_{a,i}.
+\bar a^*=\frac{1}{N}\sum_{i=1}^{N}a_i^*.
 $$
 
-Multiplication by $\sigma_a$ applies the population scale learned through the hierarchy: a small $\sigma_a$ keeps the abundance effects close to zero, whereas a larger $\sigma_a$ permits greater differences among compounds. Conditional on $\sigma_a$, scaling a standard Normal variable in this way gives
+Then we subtract this common mean from every preliminary effect to obtain the final effect [$a_i$]{style="color:#a3be8c"}:
 
 $$
-\textcolor{#a3be8c}{a_i^*}\mid\sigma_a
-\sim\operatorname{Normal}(0,\sigma_a^2),
+\textcolor{#a3be8c}{a_i}=a_i^*-\bar a^*.
 $$
 
-which is exactly the compound-level line in the hierarchy above. The preliminary effects $a_i^*$ do not yet satisfy the zero-sum constraint, so we centre them:
+This guarantees the required zero-sum constraint:
 
 $$
 \begin{aligned}
-\textcolor{#a3be8c}{a_i}
-&=\textcolor{#a3be8c}{a_i^*}-\textcolor{#a3be8c}{\bar a^*}\\
-&=\sigma_a z_{a,i}-\sigma_a\bar z_a\\
-&=\sigma_a\left(z_{a,i}-\bar z_a\right).
+\sum_{i=1}^{N}\textcolor{#a3be8c}{a_i}
+&=\sum_{i=1}^{N}(a_i^*-\bar a^*)\\
+&=\sum_{i=1}^{N}a_i^*-N\bar a^*\\
+&=\sum_{i=1}^{N}a_i^*
+  -N\left(\frac{1}{N}\sum_{i=1}^{N}a_i^*\right)\\
+&=0.
 \end{aligned}
 $$
 
-Thus, the final [$a_i$]{style="color:#a3be8c"} is the zero-sum version of the unconstrained hierarchical effect $a_i^*$. The same construction is used for [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}, $\gamma_{m,r}$, and $\gamma_{t,r}$, each with its corresponding population-scale parameter.
-
-**Why subtract the group mean?** This additional step makes the latent effects identifiable separately from the condition intercepts. Suppose we add a constant $d$ to every [$a_i$]{style="color:#a3be8c"} and subtract $d$ from $\alpha_l$, $\alpha_m$, and $\alpha_t$. Every linear predictor—and therefore every expected count—remains unchanged. The likelihood cannot determine whether this common shift belongs to the intercepts or to [$a_i$]{style="color:#a3be8c"}. Corresponding ambiguities occur between the other groups of effects and their condition intercepts, as explained in [Are the model parameters identifiable?](#are-the-model-parameters-identifiable){.box-ref-highlight}.
-
-Subtracting the mean of the $z$ values removes this ambiguity. For example, because
+For example, suppose three preliminary effects are $(-0.2,\,0.4,\,0.7)$. Their mean is $0.3$, so the final effects are
 
 $$
-\bar z_a=\frac{1}{N}\sum_{i=1}^{N}z_{a,i},
+(-0.2,\,0.4,\,0.7)-0.3=(-0.5,\,0.1,\,0.4),
 $$
 
-the transformed abundance effects satisfy
+which sum to zero. The common value $0.3$ is absorbed by the condition intercepts ($\alpha_c$, $c\in\{l,m,t\}$), while the final [$a_i$]{style="color:#a3be8c"} values describe compound-specific deviations from that common level.
+
+In the non-centred implementation, $a_i^*=\sigma_a z_{a,i}$ and $\bar a^*=\sigma_a\bar z_a$. Therefore,
+
+TODO: 
+1. explain what does "The common value $0.3$ is absorbed by the condition intercepts ($\alpha_c$, $c\in\{l,m,t\}$), while the final [$a_i$]{style="color:#a3be8c"} values describe compound-specific deviations from that common level." mean?
+
+2. We can break this into three sections, hierarchical prior, zero-sum transformation, and non-centered version.
+
 
 $$
-\sum_{i=1}^{N}\textcolor{#a3be8c}{a_i}
-=
-\sigma_a\left(
-\sum_{i=1}^{N}z_{a,i}-N\bar z_a
-\right)
-=0.
+\textcolor{#a3be8c}{a_i}
+=a_i^*-\bar a^*
+=\sigma_a\left(z_{a,i}-\bar z_a\right),
 $$
 
-The other transformations enforce the corresponding zero-sum constraints. Zero is an **identification convention**, not a claim that the average biological effect is literally zero. It assigns each group-wide average to the relevant intercept $\alpha_c$, while the compound and replicate effects describe deviations around that average.
+which is the zero-sum transformation used in the model. The same calculation is applied separately to [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}, $\gamma_{m,r}$, and $\gamma_{t,r}$.
 
-Separating the unit-scale variable $z$ from the estimated scale $\sigma$ is called a **non-centred parameterisation**. It represents the same hierarchical model described above, but often produces more stable Bayesian computation when $\sigma$ is small or weakly identified.
 ::::
 
 ###### Condition-specific dispersion
