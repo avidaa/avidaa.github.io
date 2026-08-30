@@ -4108,7 +4108,9 @@ The $z$ variables are standardised deviations without direct scientific units. S
 This [non-centred hierarchical parameterisation](https://betanalpha.github.io/assets/case_studies/hierarchical_modeling.html) constructs the latent-effect parameters, [$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}, $\gamma_{m,r}$, and $\gamma_{t,r}$, from unit-scale auxiliary variables $z \sim \operatorname{Normal}(0,1)$ and the group-specific population scales discussed in [Population scales](#population-scales). Each scale is shared only within its corresponding group: for example, $\sigma_a$ is shared across the abundance effects, whereas $\sigma_{\gamma_m}$ is shared across the matrix-replicate effects.
 
 
-**Hierarchy and partial pooling.** Consider the input-abundance effects [$a$]{style="color:#a3be8c"} as an example. The model contains one effect for every compound, [$a_i$]{style="color:#a3be8c"}. Estimating them independently would produce unstable values for compounds with few reads. We therefore use a common population scale, $\sigma_a$, whose spread is learned from all compounds. Given $\sigma_a$, the preliminary effect $a_i^*$ is drawn from a Normal distribution with mean $0$ and variance $\sigma_a^2$:
+### 1. Hierarchical prior and partial pooling
+
+Consider the input-abundance effects [$a$]{style="color:#a3be8c"} as an example. The model contains one effect for every compound, [$a_i$]{style="color:#a3be8c"}. Estimating them independently would produce unstable values for compounds with few reads. We therefore use a common population scale, $\sigma_a$, whose spread is learned from all compounds. Given $\sigma_a$, the preliminary effect $a_i^*$ is drawn from a Normal distribution with mean $0$ and variance $\sigma_a^2$:
 
 $$
 \begin{aligned}
@@ -4121,9 +4123,15 @@ $$
 \end{aligned}
 $$
 
-This conditional dependence is what makes the prior **hierarchical**: the compound-level effects [$a_i^*$]{style="color:#a3be8c"} share the higher-level parameter $\sigma_a$. Data from all compounds inform $\sigma_a$, and the inferred $\sigma_a$ in turn controls how far the abundance effects can plausibly lie from zero. This sharing produces **partial pooling**: uncertain effects are regularised toward zero, while compounds with strong evidence can retain larger effects. Hierarchical modelling specifies the shared structure; partial pooling is the resulting behaviour. We write $a_i^*$ to emphasise that it is a preliminary effect, not the final [$a_i$]{style="color:#a3be8c"}. The final effect satisfies the zero-sum constraint discussed in [Are the model parameters identifiable?](#are-the-model-parameters-identifiable){.box-ref-highlight}.
+This conditional dependence is what makes the prior **hierarchical**: the compound-level effects $a_i^*$ share the higher-level parameter $\sigma_a$. Data from all compounds inform $\sigma_a$, and the inferred $\sigma_a$ in turn controls how far the abundance effects can plausibly lie from zero. This sharing produces **partial pooling**: uncertain effects are regularised toward zero, while compounds with strong evidence can retain larger effects. 
 
-**From the preliminary effect to the final zero-sum effect.** After drawing one preliminary effect for each compound, $a_i^*$, first we calculate their arithmetic mean, $\bar a^*$:
+[Hierarchical modelling specifies the shared structure; partial pooling is the resulting behaviour.]{.highlight-key-point} 
+
+We write $a_i^*$ to emphasise that it is a preliminary effect, not the final [$a_i$]{style="color:#a3be8c"}. The final effect satisfies the zero-sum constraint discussed in [Are the model parameters identifiable?](#are-the-model-parameters-identifiable){.box-ref-highlight}.
+
+### 2. Zero-sum transformation
+
+After drawing one preliminary effect for each compound, $a_i^*$, first we calculate their arithmetic mean, $\bar a^*$:
 
 $$
 \bar a^*=\frac{1}{N}\sum_{i=1}^{N}a_i^*.
@@ -4154,23 +4162,55 @@ $$
 (-0.2,\,0.4,\,0.7)-0.3=(-0.5,\,0.1,\,0.4),
 $$
 
-which sum to zero. The common value $0.3$ is absorbed by the condition intercepts ($\alpha_c$, $c\in\{l,m,t\}$), while the final [$a_i$]{style="color:#a3be8c"} values describe compound-specific deviations from that common level.
+which sum to zero. 
 
-In the non-centred implementation, $a_i^*=\sigma_a z_{a,i}$ and $\bar a^*=\sigma_a\bar z_a$. Therefore,
+### 3. Non-centred implementation
 
-TODO: 
-1. explain what does "The common value $0.3$ is absorbed by the condition intercepts ($\alpha_c$, $c\in\{l,m,t\}$), while the final [$a_i$]{style="color:#a3be8c"} values describe compound-specific deviations from that common level." mean?
+Rather than sample each preliminary effect $a_i^*$ directly from $\operatorname{Normal}(0,\sigma_a^2)$, we use a **non-centred parameterisation**. Separating the unit-scale variation from the unknown population scale often makes Bayesian computation more stable, especially when $\sigma_a$ is small or weakly identified.
 
-2. We can break this into three sections, hierarchical prior, zero-sum transformation, and non-centered version.
-
+First, we draw a standard Normal variable $z_{a,i}$ for each compound:
 
 $$
+z_{a,i}\sim\operatorname{Normal}(0,1),
+\qquad i=1,\ldots,N.
+$$
+
+Multiplying a Normal variable $z_{a,i}$ by $\sigma_a$ multiplies its standard deviation by $\sigma_a$. We can therefore define:
+
+$$
+a_i^*=\sigma_a z_{a,i},
+$$
+
+which implies:
+
+$$
+a_i^*\mid\sigma_a
+\sim\operatorname{Normal}(0,\sigma_a^2).
+$$
+
+The $a_i^*$ values have the required population scale, but they are still **unconstrained**: their realised mean is not necessarily zero. To enforce the zero-sum constraint, first wecalculate their mean:
+
+$$
+\begin{aligned}
+\bar a^*
+&=\frac{1}{N}\sum_{i=1}^{N}a_i^*\\
+&=\frac{1}{N}\sum_{i=1}^{N}\sigma_a z_{a,i}\\
+&=\sigma_a\bar z_a,
+\end{aligned}
+$$
+
+where $\bar z_a=\frac{1}{N}\sum_i z_{a,i}$. We then subtract this mean from every preliminary effect. Substituting $a_i^*=\sigma_a z_{a,i}$ and $\bar a^*=\sigma_a\bar z_a$ gives:
+
+$$
+\begin{aligned}
 \textcolor{#a3be8c}{a_i}
-=a_i^*-\bar a^*
-=\sigma_a\left(z_{a,i}-\bar z_a\right),
+&=a_i^*-\bar a^*\\
+&=\sigma_a z_{a,i}-\sigma_a\bar z_a\\
+&=\sigma_a\left(z_{a,i}-\bar z_a\right).
+\end{aligned}
 $$
 
-which is the zero-sum transformation used in the model. The same calculation is applied separately to [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}, $\gamma_{m,r}$, and $\gamma_{t,r}$.
+The final [$a_i$]{style="color:#a3be8c"} values therefore have the population scale controlled by $\sigma_a$ and satisfy $\sum_i a_i=0$. The same calculation is applied separately to [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}, $\gamma_{m,r}$, and $\gamma_{t,r}$.
 
 ::::
 
