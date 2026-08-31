@@ -4100,7 +4100,9 @@ $$
 \end{aligned}
 $$
 
-The $z$ variables are standardised deviations without direct scientific units. Subtracting their means enforces the zero-sum constraints, and multiplying by the corresponding $\sigma$ gives each effect its population scale. The box below explains why this construction is useful.
+The $z$ variables are standardised deviations without direct scientific units. Subtracting their means enforces the zero-sum constraints, and multiplying by the corresponding $\sigma$ gives each effect its population scale.
+
+The box below explains why this construction is useful.
 
 :::: {.callout-note collapse="true" icon="false"}
 ## Why use this parameterisation?
@@ -4212,6 +4214,213 @@ $$
 
 The final [$a_i$]{style="color:#a3be8c"} values therefore have the population scale controlled by $\sigma_a$ and satisfy $\sum_i a_i=0$. The same calculation is applied separately to [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}, $\gamma_{m,r}$, and $\gamma_{t,r}$.
 
+::::
+
+Because each $\sigma$ is itself unknown, the prior for a typical [$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}, or $\gamma$ effect is not a single Normal curve. The plot below therefore simulates the full hierarchy: first draw the relevant population scale from its Half-Normal prior, then construct one centred effect from a group of size $N=100$ compounds or $R=4$ replicates. [$a_i$]{style="color:#a3be8c"} and [$b_i$]{style="color:#88c0d0"} share the same scale prior, so they are shown together. The shaded region in each panel is the central 95% of the resulting marginal prior on the log-effect scale.
+
+```{python}
+#| fig-width: 12
+#| fig-height: 4.2
+
+from scipy.stats import gaussian_kde
+from plotnine import as_labeller, geom_area, facet_wrap, scale_fill_manual
+
+rng_latent = np.random.default_rng(1)
+n_latent_draws = 20000
+n_compounds_prior = 100
+n_replicates_prior = 4
+
+def simulate_centred_effect(tau, group_size, rng):
+    sigma = halfnorm.rvs(scale=tau, size=n_latent_draws, random_state=rng)
+    z = rng.normal(size=(n_latent_draws, group_size))
+    z_centred = z - z.mean(axis=1, keepdims=True)
+    return sigma * z_centred[:, 0]
+
+latent_prior_specs = [
+    ("Abundance / background", 0.75, n_compounds_prior, "#88c0d0"),
+    ("Target enrichment", 0.50, n_compounds_prior, "#bf616a"),
+    ("Replicate effects", 0.25, n_replicates_prior, "#d08770"),
+]
+
+log_effect_grid = np.linspace(-3.0, 3.0, 700)
+log_effect_rows = []
+log_effect_bounds = []
+LATENT_FACET_LABELS = {
+    str(i + 1): label for i, (label, _, _, _) in enumerate(latent_prior_specs)
+}
+LATENT_PRIOR_COLORS = {
+    str(i + 1): color for i, (_, _, _, color) in enumerate(latent_prior_specs)
+}
+
+for i, (label, tau, group_size, color) in enumerate(latent_prior_specs):
+    facet_id = str(i + 1)
+    samples = simulate_centred_effect(tau, group_size, rng_latent)
+    density = gaussian_kde(samples)(log_effect_grid)
+    lower, upper = np.quantile(samples, [0.025, 0.975])
+    log_effect_rows.append(pd.DataFrame({
+        "effect": log_effect_grid,
+        "density": density,
+        "facet_id": facet_id,
+        "prior": label,
+    }))
+    log_effect_bounds.append({
+        "facet_id": facet_id,
+        "lower": lower,
+        "upper": upper,
+    })
+
+log_effect_df = pd.concat(log_effect_rows, ignore_index=True)
+log_effect_df["facet_id"] = pd.Categorical(
+    log_effect_df["facet_id"],
+    categories=list(LATENT_FACET_LABELS.keys()),
+    ordered=True,
+)
+log_effect_central_df = (
+    log_effect_df
+    .merge(pd.DataFrame(log_effect_bounds), on="facet_id")
+    .query("lower <= effect <= upper")
+)
+
+(
+    ggplot(log_effect_df, aes(x="effect", y="density", color="facet_id"))
+    + geom_area(
+        log_effect_central_df,
+        aes(x="effect", y="density", fill="facet_id"),
+        alpha=0.30,
+        color=None,
+        show_legend=False,
+    )
+    + geom_line(size=1)
+    + geom_vline(xintercept=0, color="#4c566a", size=0.7)
+    + facet_wrap(
+        "~facet_id",
+        nrow=1,
+        scales="free_y",
+        labeller=as_labeller(LATENT_FACET_LABELS),
+    )
+    + scale_color_manual(values=LATENT_PRIOR_COLORS)
+    + scale_fill_manual(values=LATENT_PRIOR_COLORS)
+    + labs(
+        title="Marginal priors for centred latent effects",
+        subtitle=(
+            "Each panel mixes over uncertainty in the corresponding σ; "
+            "shaded regions mark the central 95%"
+        ),
+        x="Log-scale effect",
+        y="Density",
+    )
+    + theme_minimal()
+    + theme(
+        plot_title=element_text(weight="bold"),
+        legend_position="none",
+    )
+)
+```
+
+Compared on the same log-effect axis, the [$a_i$]{style="color:#a3be8c"} and [$b_i$]{style="color:#88c0d0"} prior is the most diffuse, the [$s_i$]{style="color:#bf616a"} prior is intermediate, and the replicate-effect prior is concentrated closest to zero.
+
+:::: {#latent-effects-original-count-scale .callout-note collapse="true" icon="false"}
+## What does this prior imply on the original count scale?
+
+A log-scale effect $x$ multiplies a baseline expected count by $e^x$. With a baseline of $100$ expected reads, the simulated hierarchical priors imply the following central 95% intervals for a typical effect:
+
+- [$a_i$]{style="color:#a3be8c"} or [$b_i$]{style="color:#88c0d0"}: approximately $20$ to $480$ expected reads ($100e^{\pm 1.6}$).
+- [$s_i$]{style="color:#bf616a"}: approximately $34$ to $290$ expected target reads ($100e^{\pm 1.1}$).
+- $\gamma_{m,r}$ or $\gamma_{t,r}$: approximately $62$ to $161$ expected reads in the affected replicate ($100e^{\pm 0.47}$).
+
+These intervals are wider than the representative $\pm 0.67\tau$ ranges shown for the population scales, because they also include uncertainty in $\sigma$ itself. The plot below uses the same simulated effects after transforming them to $100e^{x}$:
+
+```{python}
+#| fig-width: 12
+#| fig-height: 4.2
+
+from plotnine import scale_x_continuous
+
+rng_count = np.random.default_rng(1)
+baseline_count = 100
+count_grid = np.linspace(5, 450, 800)
+count_prior_rows = []
+count_prior_bounds = []
+
+for i, (label, tau, group_size, color) in enumerate(latent_prior_specs):
+    facet_id = str(i + 1)
+    samples = simulate_centred_effect(tau, group_size, rng_count)
+    expected_counts = baseline_count * np.exp(samples)
+    density = gaussian_kde(expected_counts)(count_grid)
+    lower, upper = np.quantile(expected_counts, [0.025, 0.975])
+    count_prior_rows.append(pd.DataFrame({
+        "expected_count": count_grid,
+        "density": density,
+        "facet_id": facet_id,
+        "prior": label,
+    }))
+    count_prior_bounds.append({
+        "facet_id": facet_id,
+        "lower": lower,
+        "upper": upper,
+    })
+
+count_prior_df = pd.concat(count_prior_rows, ignore_index=True)
+count_prior_df["facet_id"] = pd.Categorical(
+    count_prior_df["facet_id"],
+    categories=list(LATENT_FACET_LABELS.keys()),
+    ordered=True,
+)
+count_prior_central_df = (
+    count_prior_df
+    .merge(pd.DataFrame(count_prior_bounds), on="facet_id")
+    .query("lower <= expected_count <= upper")
+)
+
+(
+    ggplot(
+        count_prior_df,
+        aes(x="expected_count", y="density", color="facet_id"),
+    )
+    + geom_area(
+        count_prior_central_df,
+        aes(x="expected_count", y="density", fill="facet_id"),
+        alpha=0.30,
+        color=None,
+        show_legend=False,
+    )
+    + geom_line(size=1)
+    + geom_vline(
+        xintercept=baseline_count,
+        linetype="dashed",
+        color="#4c566a",
+        size=0.7,
+    )
+    + facet_wrap(
+        "~facet_id",
+        nrow=1,
+        scales="free_y",
+        labeller=as_labeller(LATENT_FACET_LABELS),
+    )
+    + scale_color_manual(values=LATENT_PRIOR_COLORS)
+    + scale_fill_manual(values=LATENT_PRIOR_COLORS)
+    + scale_x_continuous(
+        limits=(0, 450),
+        breaks=[0, 100, 200, 300, 400],
+    )
+    + labs(
+        title="Implied prior on expected counts",
+        subtitle=(
+            "Baseline of 100 expected reads; dashed line marks the baseline. "
+            "The abundance/background 95% interval extends beyond the plotted range."
+        ),
+        x="Expected count",
+        y="Density",
+    )
+    + theme_minimal()
+    + theme(
+        plot_title=element_text(weight="bold"),
+        legend_position="none",
+    )
+)
+```
+
+These distributions describe prior uncertainty in the **expected count** $\mu$, not the range of observed counts. The NB2 likelihood still adds sampling and extra-Poisson variation around each expectation.
 ::::
 
 ###### Condition-specific dispersion
