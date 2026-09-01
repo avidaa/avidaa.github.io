@@ -4425,14 +4425,23 @@ These distributions describe prior uncertainty in the **expected count** $\mu$, 
 
 ###### Condition-specific dispersion
 
-Rather than place a prior directly on the NB2 inverse-dispersion parameter $\phi_c$, we define
+Rather than place a prior directly on the NB2 inverse-dispersion parameter $\phi_c$ for $c\in\{l,m,t\}$, we define:
 
 $$
 \kappa_c=\frac{1}{\sqrt{\phi_c}},
 \qquad c\in\{l,m,t\},
 $$
 
-where $\kappa_c$ is the asymptotic extra-Poisson coefficient of variation in condition $c$. For large expected counts, the NB2 coefficient of variation approaches $\kappa_c$. We assign independent, identically specified priors to the three conditions:
+where $\kappa_c$ controls how much the counts vary beyond ordinary Poisson sampling noise in condition $c$. To interpret its size, express the standard deviation as a fraction of the expected count. This ratio is called the **coefficient of variation**:
+
+$$
+\frac{\operatorname{SD}(C\mid\mu,\kappa_c)}{\mu}
+=\sqrt{\frac{1}{\mu}+\kappa_c^2}.
+$$
+
+The $1/\mu$ term comes from Poisson sampling noise, while $\kappa_c^2$ represents the additional variation. As the expected count $\mu$ increases, the Poisson term becomes smaller and the ratio approaches $\kappa_c$. For example, $\kappa_c=0.5$ means that, at large expected counts, the standard deviation is approximately **50% of the expected count**. At smaller expected counts, Poisson sampling noise makes this percentage larger.
+
+We assign independent, identically specified priors to the three conditions:
 
 $$
 \kappa_l,\kappa_m,\kappa_t
