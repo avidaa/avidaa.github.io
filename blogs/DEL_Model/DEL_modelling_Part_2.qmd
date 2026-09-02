@@ -4425,21 +4425,74 @@ These distributions describe prior uncertainty in the **expected count** $\mu$, 
 
 ###### Condition-specific dispersion
 
-Rather than place a prior directly on the NB2 inverse-dispersion parameter $\phi_c$ for $c\in\{l,m,t\}$, we define:
+The NB2 likelihood is conventionally written in terms of the inverse-dispersion parameter $\phi_c$:
+
+$$
+\operatorname{Var}(C\mid\mu,\phi_c)
+=\mu+\frac{\mu^2}{\phi_c}.
+$$
+
+We could place a prior directly on $\phi_c$; doing so would define a valid model. The difficulty is that $\phi_c$ is awkward to interpret when choosing that prior. It runs in the opposite direction from the amount of variation: small $\phi_c$ means strong overdispersion, while large $\phi_c$ means little overdispersion. The Poisson model is approached as $\phi_c\rightarrow\infty$, so the value corresponding to no extra variation lies at infinity. Consequently, it is difficult to look at a prior such as a Gamma distribution on $\phi_c$ and judge what ranges of count variability it implies.
+
+We therefore express the same parameter on a more interpretable scale:
 
 $$
 \kappa_c=\frac{1}{\sqrt{\phi_c}},
 \qquad c\in\{l,m,t\},
 $$
 
-where $\kappa_c$ controls how much the counts vary beyond ordinary Poisson sampling noise in condition $c$. To interpret its size, express the standard deviation as a fraction of the expected count. This ratio is called the **coefficient of variation**:
+so that
 
 $$
-\frac{\operatorname{SD}(C\mid\mu,\kappa_c)}{\mu}
-=\sqrt{\frac{1}{\mu}+\kappa_c^2}.
+\frac{\mu^2}{\phi_c}=\mu^2\kappa_c^2.
 $$
 
-The $1/\mu$ term comes from Poisson sampling noise, while $\kappa_c^2$ represents the additional variation. As the expected count $\mu$ increases, the Poisson term becomes smaller and the ratio approaches $\kappa_c$. For example, $\kappa_c=0.5$ means that, at large expected counts, the standard deviation is approximately **50% of the expected count**. At smaller expected counts, Poisson sampling noise makes this percentage larger.
+This transformation puts the extra variance on a standard-deviation scale. The additional standard deviation is $\mu\kappa_c$, making $\kappa_c$ approximately the extra standard deviation as a proportion of the mean when expected counts are large. The direction is now intuitive: $\kappa_c=0$ is the Poisson limit, and increasing $\kappa_c$ allows progressively more overdispersion. For example,
+
+$$
+\begin{array}{c|c|c}
+\kappa_c & \phi_c=\kappa_c^{-2} &
+\text{approximate extra SD at large }\mu\\ \hline
+0.1 & 100 & 10\%\text{ of the mean}\\
+0.5 & 4   & 50\%\text{ of the mean}\\
+1.0 & 1   & 100\%\text{ of the mean}
+\end{array}
+$$
+
+Thus, $\kappa_c$ does not change the likelihood or solve an identifiability problem; it makes the prior easier to specify and check in scientifically meaningful units. A Half-Normal prior on $\kappa_c$ expresses direct beliefs about relative extra variability, with its mass near zero favouring modest overdispersion while its right tail permits larger departures from Poisson behaviour.
+
+The parameter $\kappa_c$ changes the variance of the Negative Binomial distribution, but it does **not** change its mean:
+
+$$
+\mathbb E(C\mid\mu,\kappa_c)=\mu,
+\qquad
+\operatorname{Var}(C\mid\mu,\kappa_c)
+=\mu+\mu^2\kappa_c^2.
+$$
+
+Here, $\mu$ is the expected count for the particular observation in condition $c$. The relative spread of the Negative Binomial distribution is its standard deviation divided by its mean. This ratio is the **coefficient of variation**:
+
+$$
+\begin{aligned}
+\operatorname{CV}(C\mid\mu,\kappa_c)
+&=\frac{\operatorname{SD}(C\mid\mu,\kappa_c)}
+        {\mathbb E(C\mid\mu,\kappa_c)}\\
+&=\frac{\sqrt{\mu+\mu^2\kappa_c^2}}{\mu}\\
+&=\sqrt{\frac{1}{\mu}+\kappa_c^2}.
+\end{aligned}
+$$
+
+The denominator is therefore $\mu$ because $\mu$ remains the Negative Binomial mean even after conditioning on $\kappa_c$. The expression contains two sources of variation. The term $1/\mu$ is ordinary Poisson counting noise. It becomes small relative to the mean when the expected count is large. The term $\kappa_c^2$ is the extra variation allowed by the Negative Binomial model, and it does not disappear as the expected count increases. Consequently, for large $\mu$, the coefficient of variation settles near $\kappa_c$.
+
+For example, if $\kappa_c=0.5$, then at large expected counts the standard deviation is about one-half of the expected count: a mean of $1{,}000$ reads corresponds to a standard deviation of roughly $500$ reads. For smaller expected counts, ordinary Poisson noise still contributes appreciably, so the total relative spread is somewhat larger than $\kappa_c$. If the expected count is only $\mu=4$, then
+
+$$
+\frac{\operatorname{SD}(C\mid\mu=4,\kappa_c=0.5)}{4}
+=\sqrt{\frac{1}{4}+0.5^2}
+\approx 0.71.
+$$
+
+The standard deviation is therefore approximately $4\times0.71=2.8$ reads, or **71% of the expected count**, rather than the 50% contributed by the extra Negative Binomial variation alone.
 
 We assign independent, identically specified priors to the three conditions:
 
@@ -4450,12 +4503,7 @@ $$
 \phi_c=\kappa_c^{-2}.
 $$
 
-Values near $\kappa_c=0$ imply very large $\phi_c$ and behaviour close to Poisson. In terms of counts,
-
-$$
-\operatorname{Var}(C\mid\mu,\kappa_c)
-=\mu+\mu^2\kappa_c^2.
-$$
+Values near $\kappa_c=0$ imply very large $\phi_c$ and behaviour close to Poisson.
 
 For example, when $\mu=100$:
 
