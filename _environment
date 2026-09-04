@@ -1,0 +1,3 @@
+# Used by quarto preview/render, including the editor Review button.
+# That command does not activate the project virtualenv on its own.
+QUARTO_PYTHON=python3/bin/python

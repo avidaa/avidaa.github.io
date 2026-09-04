@@ -1,0 +1,6 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/python3/bin/python",
+  "quarto.render.env": {
+    "QUARTO_PYTHON": "${workspaceFolder}/python3/bin/python"
+  }
+}

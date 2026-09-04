@@ -4468,7 +4468,9 @@ $$
 $$
 
 
-To interpret $\kappa_c$, compare the **total standard deviation** , $\operatorname{SD}(C\mid\mu,\kappa_c)$, with the mean, $\mathbb E(C\mid\mu,\kappa_c)$. This ratio is the coefficient of variation:
+To make variability comparable across observations with different expected counts, we can calculate the **coefficient of variation (CV)**. That is because, a standard deviation of $50$ reads is large when the expected count is $100$, but small when the expected count is $10{,}000$. Dividing the standard deviation by the mean (CV), removes the read units and reports the spread as a proportion of the expected count. The CV can be used to interpret $\kappa_c$ and choose its prior.
+
+For the Negative Binomial distribution, the CV is
 
 $$
 \begin{aligned}
@@ -4482,9 +4484,25 @@ $$
 \end{aligned}
 $$
 
-In the final expression, $1/\mu$ is the relative contribution from Poisson counting noise and $\kappa_c^2$ is the relative contribution from overdispersion. As $\mu$ increases, $1/\mu$ becomes smaller, so the total coefficient of variation approaches $\kappa_c$.
+Equivalently, the squared coefficient of variation is
 
-The transformation from $\phi_c$ to $\kappa_c$ does not change the likelihood or solve an identifiability problem. It makes the prior easier to specify and check: values of $\kappa_c$ can be read directly as the approximate total standard deviation relative to the mean when expected counts are large. A Half-Normal prior on $\kappa_c$ places substantial prior probability near the Poisson model while retaining a right tail that allows stronger overdispersion.
+$$
+\operatorname{CV}^2(C\mid\mu,\kappa_c)
+=\frac{1}{\mu}+\kappa_c^2.
+$$
+
+The term $1/\mu$ is the contribution of Poisson counting noise to the **squared CV**, while $\kappa_c^2$ is the contribution of overdispersion. As $\mu$ increases, $1/\mu$ becomes smaller, so the total CV approaches $\kappa_c$. Thus, when Poisson noise is small, $\kappa_c=0.5$ means that the standard deviation is approximately one-half of the expected count.
+
+The transformation from $\phi_c$ to $\kappa_c$ does not change the likelihood or solve an identifiability problem. The CV calculation shows why it makes the prior easier to specify: $\kappa_c$ directly describes the approximate proportional spread of large counts.
+
+For example, if the expected count is $1{,}000$ reads:
+
+- if $\kappa_c=0.5$,
+  $\operatorname{SD}=\sqrt{1000+1000^2(0.5)^2}=\sqrt{251{,}000}\approx501$ reads, or about $1{,}000\times0.5=500$ reads using the large-count approximation $\operatorname{SD}\approx\mu\kappa_c$;
+- if $\kappa_c=0.1$,
+  $\operatorname{SD}=\sqrt{1000+1000^2(0.1)^2}=\sqrt{11{,}000}\approx105$ reads, or about $1{,}000\times0.1=100$ reads.
+
+At smaller expected counts, the Poisson term also contributes noticeably, so the total standard deviation is larger than this simple approximation. A Half-Normal prior on $\kappa_c$ places substantial prior probability near the Poisson model while retaining a right tail that allows stronger overdispersion.
 
 We assign independent, identically specified priors to the three conditions:
 
