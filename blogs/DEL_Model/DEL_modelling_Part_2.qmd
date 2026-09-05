@@ -4425,6 +4425,16 @@ These distributions describe prior uncertainty in the **expected count** $\mu$, 
 
 ###### Condition-specific dispersion
 
+We give each condition its own dispersion parameter, $\kappa_c$, to describe count variability beyond Poisson sampling noise:
+
+$$
+\kappa_c=\frac{1}{\sqrt{\phi_c}},
+\qquad c\in\{l,m,t\},
+$$
+
+:::: {.callout-note collapse="true" icon="false"}
+## Why use $\kappa_c$ instead of $\phi_c$?
+
 The NB2 likelihood is conventionally written in terms of the inverse-dispersion parameter $\phi_c$:
 
 $$
@@ -4491,45 +4501,79 @@ $$
 =\frac{1}{\mu}+\kappa_c^2.
 $$
 
-The term $1/\mu$ is the contribution of Poisson counting noise to the squared CV, while $\kappa_c^2$ is the contribution of overdispersion. As $\mu$ increases, $1/\mu$ becomes smaller, so **the total CV approaches $\kappa_c$**.
+The term $1/\mu$ is the contribution of Poisson counting noise to the squared CV, while $\kappa_c^2$ is the contribution of overdispersion.
 
-For example, if the expected count is $1{,}000$ reads:
+For a fixed positive $\kappa_c$, as $\mu$ increases, $1/\mu$ becomes smaller, so **the total CV approaches $\kappa_c$** and **$\mu\kappa_c$ becomes a good approximation to the standard deviation**. This approximation requires $1/\mu$ to be small compared with $\kappa_c^2$. For example, if the expected count is $1{,}000$ reads, and $\kappa_c=0.5$, then $\operatorname{CV}^2=1/1000+(0.5)^2=0.251$ and $\operatorname{CV} = \sqrt{0.251} \approx 0.501$. $\operatorname{SD} = \sqrt{1000+1000^2(0.5)^2}=\sqrt{251{,}000}\approx501$ reads, or about $1{,}000\times0.5=500$ reads.
 
-- if $\kappa_c=0.5$, then
-  $\operatorname{CV}=\sqrt{1/1000+(0.5)^2}=\sqrt{0.251}\approx0.501$ and
-  $\operatorname{SD}=\sqrt{1000+1000^2(0.5)^2}=\sqrt{251{,}000}\approx501$ reads, or about $1{,}000\times0.5=500$ reads using the large-count approximation $\operatorname{SD}\approx\mu\kappa_c$;
-- if $\kappa_c=0.1$, then
-  $\operatorname{CV}=\sqrt{1/1000+(0.1)^2}=\sqrt{0.011}\approx0.105$ and
-  $\operatorname{SD}=\sqrt{1000+1000^2(0.1)^2}=\sqrt{11{,}000}\approx105$ reads, or about $1{,}000\times0.1=100$ reads.
+When $1/\mu$ is large compared with $\kappa_c^2$, **Poisson noise dominates**, making the total CV and standard deviation substantially larger than $\kappa_c$ and $\mu\kappa_c$, respectively. For example, if the expected count is $0.1$ reads, and $\kappa_c=0.5$, then $\operatorname{CV}^2=1/0.1+(0.5)^2=10.25$ and $\operatorname{CV} = \sqrt{10.25} \approx 3.2$. $\operatorname{SD} = \sqrt{0.1+0.1^2(0.5)^2}=\sqrt{0.1025} \approx 0.32$ reads, compared with $0.1\times0.5=0.05$ reads from the approximation.
 
-If the expected count is $0.1$ reads:
+::::
 
-- if $\kappa_c=0.5$, then
-  $\operatorname{CV}^2=\sqrt{1/0.1+(0.5)^2}=\sqrt{10.25}\approx3.2$ and
-  $\operatorname{SD}=\sqrt{0.1+0.1^2(0.5)^2}=\sqrt{0.13}\approx0.36$ reads, compared with about $0.1\times0.5=0.05$ reads using the large-count approximation $\operatorname{SD}\approx\mu\kappa_c$;
-- if $\kappa_c=0.1$, then
-  $\operatorname{CV}=\sqrt{1/0.1+(0.1)^2}=\sqrt{1.1}\approx1.05$ and
-  $\operatorname{SD}=\sqrt{0.1+0.1^2(0.1)^2}=\sqrt{0.11}\approx0.33$ reads, compared with about $0.1\times0.1=0.01$ read.
+**The prior on $\kappa_c$ and its expression on the log scale**
 
-We assign independent, identically specified priors to the three conditions:
+Before observing the data, we do not know $\kappa_c$. The prior expresses which amounts of overdispersion we consider plausible:
 
 $$
 \kappa_l,\kappa_m,\kappa_t
-\sim\operatorname{HalfNormal}(0,0.50),
+\overset{\mathrm{ind}}{\sim}\operatorname{HalfNormal}(0,0.50),
 \qquad
 \phi_c=\kappa_c^{-2}.
 $$
 
-Values near $\kappa_c=0$ imply very large $\phi_c$ and behaviour close to Poisson.
+Here, $\operatorname{HalfNormal}(0,0.50)$ means the distribution obtained by taking the absolute value of a Normal draw with mean zero and standard deviation $0.50$. It permits only non-negative values, has its highest density at zero, and gives progressively less density to larger values. This favours smaller amounts of extra variation while allowing stronger overdispersion if supported by the data. Values close to zero approach Poisson behaviour; this continuous prior does not assign positive probability to exactly $\kappa_c=0$.
 
-For example, when $\mu=100$:
+The number **$0.50$ controls the spread of the prior**. It does not fix $\kappa_c$ at $0.50$, and it is not an upper bound. Its implications are:
 
-- $\kappa_c=0$ gives the Poisson standard deviation $\sqrt{100}=10$ reads.
-- The prior median is approximately $0.34$, corresponding to $\phi_c\approx8.7$ and a standard deviation of approximately $\sqrt{100+100^2(0.34)^2}\approx35$ reads.
-- $\kappa_c=0.5$ corresponds to $\phi_c=4$ and a standard deviation of approximately $51$ reads.
-- $\kappa_c=1$ corresponds to $\phi_c=1$ and a standard deviation of approximately $100$ reads.
+- The prior median is approximately $0.34$: half of the prior probability lies below this value and half above it.
+- The 95th percentile is approximately $0.98$: the prior assigns 95% probability to $\kappa_c<0.98$.
+- Values above $1$ remain possible, with approximately 4.6% prior probability.
 
-Thus, the prior allows count distributions ranging from nearly Poisson to strongly overdispersed. Expressing the prior through $\kappa_c$ makes these count-scale implications easier to understand than placing a diffuse prior directly on $\phi_c$.
+Although the model uses a log link for the expected count, **this Half-Normal prior is placed directly on $\kappa_c$, not on $\log\kappa_c$**. The parameter $\kappa_c$ is dimensionless and describes dispersion in the counts.
+
+To express the same prior on the log scale, define
+
+$$
+u_c=\log\kappa_c,
+\qquad
+\kappa_c=\exp(u_c).
+$$
+
+Draw $\kappa_c$ from its Half-Normal prior and take its natural logarithm to obtain a draw of $u_c$. Under this transformed prior, the median of $u_c$ is approximately $-1.09$ and its 95th percentile is approximately $-0.02$. These correspond to the same $\kappa_c$ values, $\exp(-1.09)\approx0.34$ and $\exp(-0.02)\approx0.98$. Values of $\kappa_c$ approaching zero correspond to increasingly negative $u_c$. Assigning a Normal prior directly to $u_c$ would instead give $\kappa_c$ a Lognormal prior, changing the prior assumptions.
+
+Each condition has its own unknown dispersion parameter. Using the same prior for library, matrix, and target conditions gives them the same starting assumptions, but allows their fitted dispersion values to differ. Within a condition, one $\kappa_c$ is shared across its compounds and replicates; it describes residual count variability after the mean model has accounted for their latent effects.
+
+The choice of $0.50$ is a provisional modelling assumption. A smaller value would concentrate the prior more strongly near Poisson behaviour, while a larger value would permit stronger overdispersion more readily. We should choose it using previous experiments where available and check it by drawing from the prior, simulating counts, and assessing whether their variability is plausible.
+
+:::: {.callout-note collapse="true" icon="false"}
+## What does this prior mean for observed counts?
+
+The prior on $\kappa_c$ describes uncertainty about how widely observed counts will vary around their expected count $\mu$. For any given $\mu$ and $\kappa_c$, the Negative Binomial standard deviation is
+
+$$
+\operatorname{SD}(C\mid\mu,\kappa_c)
+=\sqrt{\mu+\mu^2\kappa_c^2}.
+$$
+
+The table translates two representative values from the prior into standard deviations measured in reads:
+
+| Expected count $\mu$ | SD at the prior median, $\kappa_c\approx0.337$ | SD at the prior 95th percentile, $\kappa_c\approx0.980$ |
+|---:|---:|---:|
+| $0.1$ | $0.318$ reads | $0.331$ reads |
+| $10$ | $4.62$ reads | $10.30$ reads |
+| $1{,}000$ | $339$ reads | $980$ reads |
+
+For an expected count of $0.1$, Poisson noise accounts for most of the variance at both values of $\kappa_c$, so changing $\kappa_c$ makes little difference to the standard deviation. At an expected count of $1{,}000$, overdispersion has a much larger effect. A fractional expected count is an average across hypothetical repetitions; each observed count is still an integer such as $0$, $1$, or $2$.
+
+The table describes the spread of the count distribution at selected values of $\kappa_c$. Its entries are **not intervals containing 50% or 95% of observed counts**. To find a prior predictive interval for counts, we must also include the uncertainty in $\kappa_c$ and the randomness of the Negative Binomial observations:
+
+1. Draw one $\kappa_c$ for each condition from $\operatorname{HalfNormal}(0,0.50)$.
+2. Set $\phi_c=\kappa_c^{-2}$ and generate each count from $\operatorname{NB}_2(\mu,\phi_c)$, using the same $\kappa_c$ for all observations in that condition.
+3. Repeat these steps and summarise the simulated counts, including their zero frequencies and upper tails.
+
+Holding $\mu$ fixed isolates the implications of the dispersion prior. For a prior predictive check of the complete model, we also draw the intercepts and latent effects from their priors to obtain each observation's $\mu$. This checks whether all the priors together generate plausible observed counts.
+
+::::
+
 
 ###### Checking and revising these assumptions
 
