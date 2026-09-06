@@ -4509,8 +4509,6 @@ When $1/\mu$ is large compared with $\kappa_c^2$, **Poisson noise dominates**, m
 
 ::::
 
-**The prior on $\kappa_c$ and its expression on the log scale**
-
 Before observing the data, we do not know $\kappa_c$. The prior expresses which amounts of overdispersion we consider plausible:
 
 $$
