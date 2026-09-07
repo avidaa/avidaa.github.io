@@ -339,6 +339,9 @@ Let's plot the simulated data to see the associations between the variables.
 Starting with the raw association between Umbrella and GettingWet:
 
 ```{python}
+#| label: fig-umbrella-raw-heatmap
+#| fig-cap: "Umbrella use and getting wet in the simulated population. Tiles show counts and percentages of all observations."
+
 import pandas as pd
 from plotnine import (
     ggplot, aes, geom_tile, geom_text, facet_wrap,
@@ -411,6 +414,9 @@ p1
 And, stratified association by Weather, that show what happens after blocking the backdoor path:
 
 ```{python}
+#| label: fig-umbrella-weather-heatmap
+#| fig-cap: "Umbrella use and getting wet after stratifying by weather. Percentages are calculated within each weather group."
+
 strat_counts = (
     data
     .groupby(["Weather", "Umbrella", "GettingWet"])
@@ -848,6 +854,9 @@ For each value of $\delta$ on a grid, we compute summary statistics of the adjus
 ![One-sided sensitivity analysis: higher assumed hidden bias shifts the corrected effect to more negative values.](img/sensitivity_analysis_explainer.png){#fig-sensitivity-analysis-explainer width="50%"}
 
 ```{python}
+#| label: fig-umbrella-bias-sensitivity
+#| fig-cap: "Sensitivity of the inferred umbrella effect to an assumed hidden-weather bias. The curve and band show the posterior median and central 80% interval after bias correction."
+
 import numpy as np
 import pandas as pd
 import torch
@@ -901,7 +910,7 @@ p_sensitivity = (
         title="Sensitivity to hidden weather confounding",
         subtitle=(
             "Applies \u03b2_causal(\u03b4) = \u03b2_naive \u2212 \u03b4 to the unadjusted posterior"
-            " (hidden-weather causal structure shown in Figure 14).\n"
+            " (see the hidden-weather DAG above).\n"
             "Line: posterior median. Ribbon: central 80% interval. Red line: first \u03b4 where the posterior mean and 80% interval are below zero."
         ),
         x="Assumed omitted-confounder bias (\u03b4) on the umbrella log-odds",
@@ -986,6 +995,9 @@ Because Weather is never observed, the model must infer it entirely from the joi
 [So the latent variable model gives us a more mechanistic version of the hidden-confounding story, but it is not assumption-free. The sensitivity analysis is weaker but more transparent; the latent variable model is more structural but more model-dependent.]{.highlight-key-point}
 
 ```{python}
+#| label: fig-latent-weather-posteriors
+#| fig-cap: "Posterior distributions of the path coefficients in the model with unobserved weather."
+
 def latent_weather_model(umbrella, wet):
     """
     Marginalized latent common-cause model:
@@ -1229,6 +1241,9 @@ The weak identification we saw above is not unique to latent-variable models. It
 A practical signal of weak identification is that the posterior looks a lot like the prior. If the data carry little information about a parameter, Bayesian updating has little to update, and the posterior will closely track whatever prior we started with. Comparing the two is therefore a useful diagnostic: a posterior that remains wide and prior-shaped is not a sign that something went wrong, it is the correct answer to the question we asked. But it is also an invitation to ask a sharper question, **collect more data**, or reconsider whether the parameter is estimable at all given the available evidence.
 
 ```{python}
+#| label: fig-latent-weather-prior-posterior
+#| fig-cap: "Prior and posterior distributions of the latent-weather model coefficients, showing how the observations update the assumed effects."
+
 rng_ident = np.random.default_rng(42)
 n_prior_ident = 5_000
 prior_sd_ident = 2.0
@@ -1486,6 +1501,9 @@ This code simulates a dataset of 1000 observations from the true pipe structure 
 Let’s plot the simulated data to see the associations between the variables.
 
 ```{python}
+#| label: fig-pipe-simulated-associations
+#| fig-cap: "Simulated mediation example. The upper panel compares weight loss by exercise status; the lower panel relates weight loss to blood pressure."
+
 from plotnine import geom_jitter, geom_boxplot, geom_smooth, scale_color_manual, scale_fill_manual, theme_minimal, geom_point
 
 pipe_plot_df = pd.DataFrame({
@@ -1639,6 +1657,9 @@ post_direct_pipe = run_pipe_mcmc(direct_effect_model, ex_t, wl_t, bp_t)
 ```
 
 ```{python}
+#| label: fig-pipe-effect-posteriors
+#| fig-cap: "Posterior distributions for the total exercise effect, the direct exercise effect conditional on weight loss, and the weight-loss coefficient conditional on exercise."
+
 draws_pipe = {
     "Total effect\n(Exercise -> BP)":          post_total_pipe["beta_ex"].numpy(),
     "Direct effect\n(Exercise -> BP | WL)":    post_direct_pipe["beta_ex"].numpy(),
@@ -1878,6 +1899,9 @@ In the full population, `Smart` and `Athletic` are independent by construction. 
 Let's plot the relationship between `Smart` and `Athletic` in the full population:
 
 ```{python}
+#| label: fig-collider-full-population
+#| fig-cap: "Smart and Athletic in the full simulated population, before conditioning on admission. The line shows the fitted linear association."
+
 from plotnine import (
     ggplot,
     aes,
@@ -1931,6 +1955,9 @@ admitted_df = population_df.query("Admitted == 1").copy()
 Among admitted students, `Smart` and `Athletic` are no longer independent:
 
 ```{python}
+#| label: fig-collider-admitted-population
+#| fig-cap: "Smart and Athletic among admitted applicants. Selecting on admission induces an association between the two traits."
+
 # Calculate the correlation
 admitted_population_corr = admitted_df[["Smart", "Athletic"]].corr().iloc[0, 1]
 
@@ -2052,6 +2079,9 @@ post_adjusted_collider = run_collider_mcmc(smart_full_t, athletic_full_t, admitt
 ```
 
 ```{python}
+#| label: fig-collider-coefficient-posteriors
+#| fig-cap: "Posterior distributions of the Smart coefficient when modelling Athletic, with and without conditioning on the admission collider."
+
 draws_collider = {
     "Full population\n(no conditioning)": post_full_collider["beta_smart"].detach().numpy(),
     "Full population\n(+ Admitted covariate)": post_adjusted_collider["beta_smart"].detach().numpy(),
@@ -2296,6 +2326,9 @@ It is not itself the collider, but it is a downstream consequence of it. Let's p
 
 
 ```{python}
+#| label: fig-collider-descendant-associations
+#| fig-cap: "Associations between Smart and Athletic in the full population, among admitted applicants, and among applicants included in the student database, a descendant of admission."
+
 from plotnine import (
     ggplot,
     aes,
@@ -2485,6 +2518,9 @@ post_desc_database = run_descendant_mcmc(smart_desc_t, athletic_desc_t, database
 ```
 
 ```{python}
+#| label: fig-collider-descendant-posteriors
+#| fig-cap: "Posterior distributions of the Smart coefficient with no adjustment, adjustment for admission, or adjustment for student-database membership."
+
 draws_descendant = {
     "Full population\n(no conditioning)": post_desc_unconditioned["beta_smart"].detach().numpy(),
     "Full population\n(+ Admitted covariate)": post_desc_admitted["beta_smart"].detach().numpy(),
@@ -2992,6 +3028,9 @@ The two parameters control the shape of this density over positive values in dif
 The plots below fix the rate at $\beta=1$ and vary only the shape $k$, so the change from panel to panel comes entirely from $k$. Each panel has its own $y$-axis, since the density values differ by orders of magnitude across $k$; what matters here is the shape of each curve, not comparing heights across panels.
 
 ```{python}
+#| label: fig-gamma-shape-densities
+#| fig-cap: "Gamma distributions with different shape parameters and a fixed rate of 1."
+
 import numpy as np
 import pandas as pd
 from scipy.stats import gamma as gamma_dist
@@ -3045,6 +3084,9 @@ As $k$ increases from $0.5$ to $10$, the curve moves from an unbounded spike at 
 For comparison, the next plot fixes $k=2$ and varies only the rate $\beta$, illustrating that $\beta$ rescales the same shape rather than changing its form:
 
 ```{python}
+#| label: fig-gamma-rate-densities
+#| fig-cap: "Gamma distributions with different rate parameters and a fixed shape of 2."
+
 x_gamma_rate = np.linspace(0.001, 12, 500)
 rate_values = [0.5, 1, 2, 4]
 shape_fixed = 2.0
@@ -3095,6 +3137,9 @@ In the NB2 mixture, $\lambda_{c,i,r}$ is Gamma with shape $\phi_c$ and rate $\ph
 The plot below fixes the mean at $\mu=10$ and varies only $\phi_c$. Every curve therefore has the same mean, marked by the dashed vertical line; what changes is how tightly $\lambda$ concentrates around that mean:
 
 ```{python}
+#| label: fig-gamma-inverse-dispersion
+#| fig-cap: "Gamma distributions for the latent Poisson rate at different inverse-dispersion values. The mean remains fixed at 10, marked by the dashed line."
+
 from plotnine import geom_vline
 
 mu_fixed = 10.0
@@ -3623,6 +3668,9 @@ $$
 $$
 
 ```{python}
+#| label: fig-condition-intercept-prior
+#| fig-cap: "Standard Normal prior for a condition intercept on the log-mean scale. Shading and dashed lines mark the central 95% prior interval."
+
 import numpy as np
 import pandas as pd
 from scipy.stats import norm, lognorm
@@ -3689,6 +3737,9 @@ e^{1.96}\approx7.1.
 $$
 
 ```{python}
+#| label: fig-baseline-multiplier-prior
+#| fig-cap: "Prior for the baseline count multiplier obtained by exponentiating the condition intercept. Shading and dashed lines mark the central 95% prior interval."
+
 multiplier_grid = np.linspace(0.01, 10, 800)
 multiplier_lower = np.exp(alpha_lower)
 multiplier_upper = np.exp(alpha_upper)
@@ -3792,6 +3843,9 @@ A $\operatorname{HalfNormal}(0,\tau)$ prior has most of its mass near zero while
 The plot below shows the generic Half-Normal shape after expressing the horizontal axis in units of $\tau$. The shaded region contains 95% of the prior probability:
 
 ```{python}
+#| label: fig-standard-half-normal-prior
+#| fig-cap: "Half-Normal prior expressed in units of its scale parameter. Shading contains 95% of the prior probability; vertical lines mark the median and 95th percentile."
+
 from scipy.stats import halfnorm
 
 half_normal_grid = np.linspace(0, 3.5, 600)
@@ -3842,6 +3896,8 @@ half_normal_95_df = half_normal_df.query(
 The plot below compares the three priors on the same scale. Smaller values of $\tau$ place more probability close to zero, whereas larger values permit larger population standard deviations:
 
 ```{python}
+#| label: fig-population-scale-priors
+#| fig-cap: "Half-Normal priors for compound and replicate population scales. Points and dashed lines mark the prior medians, with identical axes across panels."
 #| fig-width: 12
 #| fig-height: 4
 
@@ -3984,6 +4040,8 @@ Suppose the baseline, $\mu_{\mathrm{baseline},c}$, is 100 expected reads and use
 - $\sigma_{\gamma_m}$ and $\sigma_{\gamma_t}$: median scale $0.17$ (that is, 0.67 * 0.25), giving approximately **84–118 expected reads** in the affected replicate.
 
 ```{python}
+#| label: fig-population-scale-count-effects
+#| fig-cap: "Representative changes to a baseline of 100 expected reads using plus or minus one prior-median population scale. These ranges are illustrative effects, not predictive intervals."
 #| fig-width: 10
 #| fig-height: 4
 
@@ -4219,6 +4277,8 @@ The final [$a_i$]{style="color:#a3be8c"} values therefore have the population sc
 Because each $\sigma$ is itself unknown, the prior for a typical [$a_i$]{style="color:#a3be8c"}, [$b_i$]{style="color:#88c0d0"}, [$s_i$]{style="color:#bf616a"}, or $\gamma$ effect is not a single Normal curve. The plot below therefore simulates the full hierarchy: first draw the relevant population scale from its Half-Normal prior, then construct one centred effect from a group of size $N=100$ compounds or $R=4$ replicates. [$a_i$]{style="color:#a3be8c"} and [$b_i$]{style="color:#88c0d0"} share the same scale prior, so they are shown together. The shaded region in each panel is the central 95% of the resulting marginal prior on the log-effect scale.
 
 ```{python}
+#| label: fig-centred-latent-effect-priors
+#| fig-cap: "Marginal priors for centred latent effects, integrating over uncertainty in their population scales. Shading marks the central 95% of simulated effects for groups of 100 compounds or four replicates."
 #| fig-width: 12
 #| fig-height: 4.2
 
@@ -4331,6 +4391,8 @@ A log-scale effect $x$ multiplies a baseline expected count by $e^x$. With a bas
 These intervals are wider than the representative $\pm 0.67\tau$ ranges shown for the population scales, because they also include uncertainty in $\sigma$ itself. The plot below uses the same simulated effects after transforming them to $100e^{x}$:
 
 ```{python}
+#| label: fig-latent-effect-expected-counts
+#| fig-cap: "Priors for expected counts obtained by applying the centred latent effects to a baseline of 100 reads. Shading marks central 95% intervals, with the abundance/background interval extending beyond the displayed range."
 #| fig-width: 12
 #| fig-height: 4.2
 
@@ -4509,69 +4571,232 @@ When $1/\mu$ is large compared with $\kappa_c^2$, **Poisson noise dominates**, m
 
 ::::
 
-Before observing the data, we do not know $\kappa_c$. The prior expresses which amounts of overdispersion we consider plausible:
+Before observing the data, we do not know $\kappa_c$. We use the same prior for the library, matrix, and target conditions, drawing a separate value for each:
 
 $$
 \kappa_l,\kappa_m,\kappa_t
-\overset{\mathrm{ind}}{\sim}\operatorname{HalfNormal}(0,0.50),
+\overset{\mathrm{ind}}{\sim}\operatorname{HalfNormal}(0,0.5),
 \qquad
 \phi_c=\kappa_c^{-2}.
 $$
 
-Here, $\operatorname{HalfNormal}(0,0.50)$ means the distribution obtained by taking the absolute value of a Normal draw with mean zero and standard deviation $0.50$. It permits only non-negative values, has its highest density at zero, and gives progressively less density to larger values. This favours smaller amounts of extra variation while allowing stronger overdispersion if supported by the data. Values close to zero approach Poisson behaviour; this continuous prior does not assign positive probability to exactly $\kappa_c=0$.
+This prior permits only non-negative values and gives higher density to smaller amounts of overdispersion. The value $0.5$ controls the spread of the prior; it is neither a fixed value of $\kappa_c$ nor an upper bound. Its median is approximately $0.34$, its 95th percentile is approximately $0.98$, and approximately 4.6% of its probability lies above $1$.
 
-The number **$0.50$ controls the spread of the prior**. It does not fix $\kappa_c$ at $0.50$, and it is not an upper bound. Its implications are:
+```{python}
+#| label: fig-dispersion-prior
+#| fig-width: 9
+#| fig-height: 3.8
+#| fig-cap: "Half-Normal prior for dispersion. Shading contains 95% of the prior probability."
 
-- The prior median is approximately $0.34$: half of the prior probability lies below this value and half above it.
-- The 95th percentile is approximately $0.98$: the prior assigns 95% probability to $\kappa_c<0.98$.
-- Values above $1$ remain possible, with approximately 4.6% prior probability.
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator, MaxNLocator, StrMethodFormatter
+from matplotlib.text import Text
+from matplotlib.font_manager import FontProperties, findfont
+from plotnine import theme_minimal
+from scipy.stats import halfnorm, nbinom, poisson
 
-Although the model uses a log link for the expected count, **this Half-Normal prior is placed directly on $\kappa_c$, not on $\log\kappa_c$**. The parameter $\kappa_c$ is dimensionless and describes dispersion in the counts.
+DISPERSION_COLORS = {
+    "prior": "#277F8E",
+    "poisson": "#65758B",
+    "median": "#8B6BA8",
+    "upper": "#C58B47",
+    "ink": "black",
+}
 
-To express the same prior on the log scale, define
+# Match the theme_minimal() typography used by the surrounding plotnine plots.
+DISPERSION_RCPARAMS = theme_minimal().rcParams
+DISPERSION_BASE_SIZE = DISPERSION_RCPARAMS["font.size"]
+with plt.rc_context(DISPERSION_RCPARAMS):
+    DISPERSION_FONT = FontProperties(
+        fname=findfont(FontProperties(family=["sans-serif"]))
+    ).get_name()
 
-$$
-u_c=\log\kappa_c,
-\qquad
-\kappa_c=\exp(u_c).
-$$
+def new_dispersion_figure(*args, **kwargs):
+    with plt.rc_context(DISPERSION_RCPARAMS):
+        return plt.subplots(*args, **kwargs)
 
-Draw $\kappa_c$ from its Half-Normal prior and take its natural logarithm to obtain a draw of $u_c$. Under this transformed prior, the median of $u_c$ is approximately $-1.09$ and its 95th percentile is approximately $-0.02$. These correspond to the same $\kappa_c$ values, $\exp(-1.09)\approx0.34$ and $\exp(-0.02)\approx0.98$. Values of $\kappa_c$ approaching zero correspond to increasingly negative $u_c$. Assigning a Normal prior directly to $u_c$ would instead give $\kappa_c$ a Lognormal prior, changing the prior assumptions.
+def match_dispersion_typography(fig):
+    # Use the font resolved by theme_minimal() for every text element.
+    for text in fig.findobj(Text):
+        text.set_fontfamily(DISPERSION_FONT)
 
-Each condition has its own unknown dispersion parameter. Using the same prior for library, matrix, and target conditions gives them the same starting assumptions, but allows their fitted dispersion values to differ. Within a condition, one $\kappa_c$ is shared across its compounds and replicates; it describes residual count variability after the mean model has accounted for their latent effects.
+def style_dispersion_axis(ax):
+    ax.set_facecolor("white")
+    ax.set_axisbelow(True)
+    ax.xaxis.set_minor_locator(AutoMinorLocator(2))
+    ax.yaxis.set_minor_locator(AutoMinorLocator(2))
+    ax.grid(which="major", color="#E5E5E5", linewidth=1)
+    ax.grid(which="minor", color="#FAFAFA", linewidth=0.5)
+    ax.spines[:].set_visible(False)
+    ax.tick_params(which="both", length=0, colors="#4D4D4D",
+                   labelsize=0.8 * DISPERSION_BASE_SIZE)
+    for label in (ax.xaxis.label, ax.yaxis.label):
+        label.set_color("black")
+        label.set_fontsize(DISPERSION_BASE_SIZE)
 
-The choice of $0.50$ is a provisional modelling assumption. A smaller value would concentrate the prior more strongly near Poisson behaviour, while a larger value would permit stronger overdispersion more readily. We should choose it using previous experiments where available and check it by drawing from the prior, simulating counts, and assessing whether their variability is plausible.
+kappa_tau = 0.50
+kappa_median = halfnorm.ppf(0.50, scale=kappa_tau)
+kappa_p95 = halfnorm.ppf(0.95, scale=kappa_tau)
+kappa_grid = np.linspace(0, 2.0, 700)
+kappa_density = halfnorm.pdf(kappa_grid, scale=kappa_tau)
 
-:::: {.callout-note collapse="true" icon="false"}
-## What does this prior mean for observed counts?
+fig, ax = new_dispersion_figure(figsize=(9, 3.8), layout="constrained")
+style_dispersion_axis(ax)
+ax.fill_between(
+    kappa_grid, kappa_density, where=kappa_grid <= kappa_p95,
+    color=DISPERSION_COLORS["prior"], alpha=0.16,
+)
+ax.plot(kappa_grid, kappa_density, color=DISPERSION_COLORS["prior"], lw=2.3)
+for value, color, label, label_position in [
+    (kappa_median, DISPERSION_COLORS["median"],
+     f"Median: {kappa_median:.2f}", (0.65, 1.25)),
+    (kappa_p95, DISPERSION_COLORS["upper"],
+     f"95th percentile: {kappa_p95:.2f}", (1.12, 0.72)),
+]:
+    height = halfnorm.pdf(value, scale=kappa_tau)
+    ax.vlines(value, 0, height, color=color, ls="--", lw=1.2)
+    ax.scatter(value, height, color=color, s=35, zorder=3)
+    ax.annotate(
+        label, xy=(value, height), xytext=label_position,
+        color=DISPERSION_COLORS["ink"], fontsize=8,
+        arrowprops={"arrowstyle": "-", "color": color, "lw": 1},
+    )
+ax.set(
+    xlim=(0, 2), ylim=(0, 1.75), xticks=[0, 0.5, 1, 1.5, 2],
+    xlabel="Dispersion κ", ylabel="Prior density",
+)
+ax.set_title("Prior for condition-specific dispersion",
+             loc="left", fontsize=1.2 * DISPERSION_BASE_SIZE,
+             color="black", weight="bold", pad=15)
+match_dispersion_typography(fig)
+plt.show()
+```
 
-The prior on $\kappa_c$ describes uncertainty about how widely observed counts will vary around their expected count $\mu$. For any given $\mu$ and $\kappa_c$, the Negative Binomial standard deviation is
+**What does this prior mean for observed counts?**
 
-$$
-\operatorname{SD}(C\mid\mu,\kappa_c)
-=\sqrt{\mu+\mu^2\kappa_c^2}.
-$$
+Increasing $\kappa_c$ spreads the possible observed counts more widely around the same expected count. This is easier to see by fixing $\mu$ and comparing entire count distributions:
 
-The table translates two representative values from the prior into standard deviations measured in reads:
+- $\kappa_c=0$ gives the Poisson limit, with variance $\mu$.
+- $\kappa_c\approx0.34$ is the median of our dispersion prior.
+- $\kappa_c\approx0.98$ is its 95th percentile and allows much stronger overdispersion.
 
-| Expected count $\mu$ | SD at the prior median, $\kappa_c\approx0.337$ | SD at the prior 95th percentile, $\kappa_c\approx0.980$ |
-|---:|---:|---:|
-| $0.1$ | $0.318$ reads | $0.331$ reads |
-| $10$ | $4.62$ reads | $10.30$ reads |
-| $1{,}000$ | $339$ reads | $980$ reads |
+Each row below holds the expected count fixed. Moving from left to right increases dispersion. The horizontal axes are identical within each row, so the widening of the distributions can be compared directly. Each panel uses its own probability axis to keep the broader distributions visible. The dashed line marks the expected count, which stays in the same place.
 
-For an expected count of $0.1$, Poisson noise accounts for most of the variance at both values of $\kappa_c$, so changing $\kappa_c$ makes little difference to the standard deviation. At an expected count of $1{,}000$, overdispersion has a much larger effect. A fractional expected count is an average across hypothetical repetitions; each observed count is still an integer such as $0$, $1$, or $2$.
+```{python}
+#| label: fig-counts-fixed-dispersion
+#| fig-width: 11
+#| fig-height: 6.6
+#| fig-cap: "Count distributions at three fixed dispersion values. Panels show probabilities at integer counts; the high-count panels connect these probabilities for readability. Each row extends to the 99.5th percentile of its broadest distribution, so a small right tail is omitted."
 
-The table describes the spread of the count distribution at selected values of $\kappa_c$. Its entries are **not intervals containing 50% or 95% of observed counts**. To find a prior predictive interval for counts, we must also include the uncertainty in $\kappa_c$ and the randomness of the Negative Binomial observations:
+fixed_kappa_specs = [
+    ("Poisson limit", 0.0, DISPERSION_COLORS["poisson"]),
+    ("Prior median", kappa_median, DISPERSION_COLORS["median"]),
+    ("Prior 95th percentile", kappa_p95, DISPERSION_COLORS["upper"]),
+]
 
-1. Draw one $\kappa_c$ for each condition from $\operatorname{HalfNormal}(0,0.50)$.
-2. Set $\phi_c=\kappa_c^{-2}$ and generate each count from $\operatorname{NB}_2(\mu,\phi_c)$, using the same $\kappa_c$ for all observations in that condition.
-3. Repeat these steps and summarise the simulated counts, including their zero frequencies and upper tails.
+def count_distribution(mu, kappa):
+    if kappa == 0:
+        return poisson(mu)
+    phi = kappa ** -2
+    return nbinom(n=phi, p=phi / (phi + mu))
 
-Holding $\mu$ fixed isolates the implications of the dispersion prior. For a prior predictive check of the complete model, we also draw the intercepts and latent effects from their priors to obtain each observation's $\mu$. This checks whether all the priors together generate plausible observed counts.
+fig, axes = new_dispersion_figure(
+    2, 3, figsize=(11, 6.6), sharex="row", layout="constrained",
+)
+for row, mu in enumerate((10, 1000)):
+    xmax = int(count_distribution(mu, kappa_p95).ppf(0.995))
+    counts = np.arange(xmax + 1)
+    for col, (label, kappa, color) in enumerate(fixed_kappa_specs):
+        ax = axes[row, col]
+        style_dispersion_axis(ax)
+        mass = count_distribution(mu, kappa).pmf(counts)
+        if mu == 10:
+            ax.bar(counts, mass, width=0.85, color=color, alpha=0.8)
+        else:
+            ax.fill_between(counts, mass, color=color, alpha=0.18)
+            ax.plot(counts, mass, color=color, lw=1.7)
+        ax.axvline(mu, color=DISPERSION_COLORS["ink"], ls="--", lw=1)
+        sd = np.sqrt(mu + mu**2 * kappa**2)
+        ax.set_title(f"{label} · κ = {kappa:.2f}",
+                     fontsize=0.8 * DISPERSION_BASE_SIZE, color="black", pad=10)
+        ax.text(0.97, 0.92, f"SD = {sd:,.1f} reads", transform=ax.transAxes,
+                ha="right", va="top", fontsize=8, color=DISPERSION_COLORS["ink"])
+        ax.set_xlim(-0.5, xmax)
+        ax.set_ylim(bottom=0)
+        ax.set_xlabel("Observed count (reads)")
+        ax.xaxis.set_major_locator(MaxNLocator(nbins=4, integer=True))
+        ax.xaxis.set_major_formatter(StrMethodFormatter("{x:,.0f}"))
+        if col == 0:
+            ax.set_ylabel(f"Expected count = {mu:,}\nProbability per count")
+fig.suptitle("More dispersion allows a wider range of observed counts",
+             fontsize=1.2 * DISPERSION_BASE_SIZE, weight="bold",
+             color=DISPERSION_COLORS["ink"], ha="left", x=0.02)
+match_dispersion_typography(fig)
+plt.show()
+```
 
-::::
+At an expected count of $1{,}000$, moving from Poisson variation to the prior median increases the standard deviation from about $32$ to $339$ reads. At the prior 95th percentile it reaches about $980$ reads. The broad distributions are skewed: more probability lies at low counts, while a long right tail keeps the mean at $1{,}000$. The mean therefore need not be the most likely count.
 
+**Generating counts from the full prior**
+
+The previous figure uses selected values of $\kappa_c$. To see what the prior as a whole implies, we now draw $\kappa_c\sim\operatorname{HalfNormal}(0,0.5)$ and then draw an observed count from the corresponding Negative Binomial distribution. Repeating both steps includes uncertainty about dispersion as well as variation in the observed counts.
+
+The teal distributions below show these simulated counts. The dashed curves show the Poisson distributions at the same expected counts. Wider teal distributions indicate the additional variability allowed by our prior. Both distributions have the same theoretical mean.
+
+```{python}
+#| label: fig-counts-dispersion-prior-predictive
+#| fig-width: 10
+#| fig-height: 4.5
+#| fig-cap: "Prior predictive counts with the expected count held fixed. Each panel uses 200,000 simulations. High counts are grouped into bins of 50 reads; the Poisson reference uses exactly the same bins. The plotted range contains at least 99.5% of the simulated counts."
+
+rng_dispersion = np.random.default_rng(2026)
+n_dispersion_simulations = 200000
+# One κ per hypothetical experiment. For this marginal plot we retain one
+# count per experiment; observations within a condition would share its κ.
+dispersion_kappa_draws = np.abs(rng_dispersion.normal(0, kappa_tau, n_dispersion_simulations))
+dispersion_phi_draws = dispersion_kappa_draws ** -2
+prior_predictive_counts = {}
+
+fig, axes = new_dispersion_figure(1, 2, figsize=(10, 4.5), layout="constrained")
+for ax, mu, bin_width in zip(axes, (10, 1000), (1, 50)):
+    # Gamma–Poisson sampling is equivalent to NB2 and keeps the mean at μ.
+    rates = rng_dispersion.gamma(shape=dispersion_phi_draws, scale=mu / dispersion_phi_draws)
+    samples = rng_dispersion.poisson(rates)
+    prior_predictive_counts[mu] = samples
+    xmax = int(np.ceil(np.quantile(samples, 0.995) / bin_width) * bin_width)
+    edges = np.arange(-0.5, xmax + bin_width, bin_width)
+    centres = (edges[:-1] + edges[1:]) / 2
+    # Divide by all draws, including those outside the displayed range.
+    mass = np.histogram(samples, bins=edges)[0] / n_dispersion_simulations
+    poisson_mass = np.diff(poisson.cdf(edges, mu=mu))
+    style_dispersion_axis(ax)
+    ax.bar(centres, mass, width=bin_width * 0.9,
+           color=DISPERSION_COLORS["prior"], alpha=0.7,
+           label="Counts drawn using the full prior")
+    ax.plot(centres, poisson_mass, color=DISPERSION_COLORS["poisson"],
+            ls="--", lw=2, label="Poisson reference")
+    ax.axvline(mu, color=DISPERSION_COLORS["ink"], ls=":", lw=1.1,
+               label="Expected count")
+    ax.set_title(f"Expected count = {mu:,} reads",
+                 fontsize=0.8 * DISPERSION_BASE_SIZE, color="black")
+    ax.set(xlim=(-0.5, edges[-1]), ylim=(0, None), xlabel="Observed count (reads)",
+           ylabel="Probability per count" if bin_width == 1 else "Probability per 50-read bin")
+    ax.xaxis.set_major_locator(MaxNLocator(nbins=4, integer=True))
+    ax.xaxis.set_major_formatter(StrMethodFormatter("{x:,.0f}"))
+handles, labels = axes[0].get_legend_handles_labels()
+fig.legend(handles, labels, loc="outside lower center", ncol=1, frameon=False,
+           fontsize=0.8 * DISPERSION_BASE_SIZE, labelcolor="black")
+fig.suptitle("Observed counts implied by the dispersion prior",
+             fontsize=1.2 * DISPERSION_BASE_SIZE, weight="bold",
+             color="black", ha="left", x=0.02)
+match_dispersion_typography(fig)
+plt.show()
+```
+
+When the expected count is very small, most observations are zero even without overdispersion. For example, at $\mu=0.1$, the probability of zero is approximately 90.48% under Poisson sampling and 90.53% at the prior median of $\kappa_c$. This makes the effect of dispersion less visible than in the larger-count examples. An expected count of $0.1$ is an average across hypothetical repetitions; individual observed counts are still integers.
+
+Each condition has its own unknown $\kappa_c$, shared across its compounds and replicates. Using the same prior gives library, matrix, and target conditions the same starting assumptions, while allowing their fitted dispersion values to differ. The choice of $0.5$ is provisional: a smaller prior spread would favour less overdispersion, while a larger spread would allow more. Holding $\mu$ fixed in these plots isolates this choice. A prior predictive check of the complete model also draws the intercepts and latent effects to obtain each observation's $\mu$, then checks whether the resulting counts have plausible zero frequencies and upper tails.
 
 ###### Checking and revising these assumptions
 
