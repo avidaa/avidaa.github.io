@@ -4738,7 +4738,8 @@ plt.show()
 
 At an expected count of $1{,}000$, moving from Poisson variation to the prior median increases the standard deviation from about $32$ to $339$ reads. At the prior 95th percentile it reaches about $980$ reads. The broad distributions are skewed: more probability lies at low counts, while a long right tail keeps the mean at $1{,}000$. The mean therefore need not be the most likely count.
 
-**Generating counts from the full prior**
+:::: {.callout-note collapse="true" icon="false"}
+## Generating counts from the full prior
 
 The previous figure uses selected values of $\kappa_c$. To see what the prior as a whole implies, we now draw $\kappa_c\sim\operatorname{HalfNormal}(0,0.5)$ and then draw an observed count from the corresponding Negative Binomial distribution. Repeating both steps includes uncertainty about dispersion as well as variation in the observed counts.
 
@@ -4793,8 +4794,7 @@ fig.suptitle("Observed counts implied by the dispersion prior",
 match_dispersion_typography(fig)
 plt.show()
 ```
-
-When the expected count is very small, most observations are zero even without overdispersion. For example, at $\mu=0.1$, the probability of zero is approximately 90.48% under Poisson sampling and 90.53% at the prior median of $\kappa_c$. This makes the effect of dispersion less visible than in the larger-count examples. An expected count of $0.1$ is an average across hypothetical repetitions; individual observed counts are still integers.
+::::
 
 Each condition has its own unknown $\kappa_c$, shared across its compounds and replicates. Using the same prior gives library, matrix, and target conditions the same starting assumptions, while allowing their fitted dispersion values to differ. The choice of $0.5$ is provisional: a smaller prior spread would favour less overdispersion, while a larger spread would allow more. Holding $\mu$ fixed in these plots isolates this choice. A prior predictive check of the complete model also draws the intercepts and latent effects to obtain each observation's $\mu$, then checks whether the resulting counts have plausible zero frequencies and upper tails.
 
