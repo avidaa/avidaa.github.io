@@ -2721,14 +2721,15 @@ The matrix count still provides information about [$b_i$]{style="color:#88c0d0"}
 
 ### Write the generative model and priors
 
-The DAG tells us which quantities should contribute to each count, but we must still specify how those contributions generate the observed data. The model has four components: 
+The DAG tells us which quantities should contribute to each count, but we must still specify how those contributions generate the observed data. We develop the model in five steps:
 
-1. Known offsets for sequencing depth, 
-2. Negative Binomial likelihood for residual count variation, 
-3. Log-linear model for the expected counts,
-4. Priors for the compound and replicate effects. 
+1. **Known offsets for sequencing depth:** account for differences in total usable reads among samples.
+2. **Negative Binomial likelihood:** describe variation in observed counts around their expected values, including variation beyond Poisson sampling noise.
+3. **Log-linear model for the expected counts:** combine the offsets, condition baselines, and compound and replicate effects, and establish the constraints needed to identify these effects.
+4. **Priors for the model parameters and latent effects:** specify prior beliefs about condition baselines, population scales, standardised latent effects, and condition-specific dispersion, and examine their implications for expected counts.
+5. **The complete generative model:** combine the likelihood, priors, and deterministic transformations into a joint specification that can generate simulated datasets for prior predictive checks.
 
-The hierarchy appears in the final component, where shared population-level priors provide partial pooling without forcing compounds to have identical abundance, background retention, or target enrichment.
+The hierarchical priors in step 4 allow partial pooling within each group of compound or replicate effects. Shared population scales regularise uncertain effects while allowing individual compounds and replicates to differ.
 
 ##### 1. Known offsets for sequencing depth
 
@@ -4672,8 +4673,8 @@ ax.set_title("Prior for condition-specific dispersion",
 match_dispersion_typography(fig)
 plt.show()
 ```
-
-**What does this prior mean for observed counts?**
+:::: {.callout-note collapse="true" icon="false"}
+## What does this prior mean for observed counts?
 
 Increasing $\kappa_c$ spreads the possible observed counts more widely around the same expected count. This is easier to see by fixing $\mu$ and comparing entire count distributions:
 
@@ -4795,16 +4796,34 @@ match_dispersion_typography(fig)
 plt.show()
 ```
 ::::
+::::
 
-Each condition has its own unknown $\kappa_c$, shared across its compounds and replicates. Using the same prior gives library, matrix, and target conditions the same starting assumptions, while allowing their fitted dispersion values to differ. The choice of $0.5$ is provisional: a smaller prior spread would favour less overdispersion, while a larger spread would allow more. Holding $\mu$ fixed in these plots isolates this choice. A prior predictive check of the complete model also draws the intercepts and latent effects to obtain each observation's $\mu$, then checks whether the resulting counts have plausible zero frequencies and upper tails.
+Each condition has its own unknown $\kappa_c$, shared across its compounds and replicates. Using the same prior gives library, matrix, and target conditions the same starting assumptions, while allowing their fitted dispersion values to differ. The choice of $0.5$ is provisional: a smaller prior spread would favour less overdispersion, while a larger spread would allow more. 
+
+[A prior predictive check of the complete model draws the intercepts and latent effects to obtain each observation's $\mu$, then checks whether the resulting counts have plausible zero frequencies and upper tails.]{.highlight-key-point}
 
 ###### Checking and revising these assumptions
 
-These numerical scales are modelling assumptions, not facts learned before seeing the counts. Prior predictive simulation should determine whether they generate plausible zero frequencies, upper tails, replicate correlations, and target-to-matrix fold changes. Implausible simulations indicate that the priors should be revised before fitting the observed data.
+The prior distributions and their numerical settings express our starting beliefs about the experiment. Before fitting the model, we should check what those beliefs imply by drawing parameters from the priors and generating simulated counts. This is a **prior predictive check**. We ask whether the simulated datasets are plausible for a DEL experiment:
 
-Sensitivity analysis should also examine the structural assumptions that background contributes to matrix and target counts through the same [$b_i$]{style="color:#88c0d0"}, counts are conditionally independent given the latent effects, and one dispersion parameter is shared by all compounds within each condition. More flexible alternatives include estimating a matrix-to-target loading, assigning a sparse or heavy-tailed prior to [$s_i$]{style="color:#bf616a"}, or replacing NB2 with a Poisson-lognormal likelihood. These extensions should be motivated by failed predictive checks rather than added automatically.
+- **Zero counts:** Are the proportions of compounds with no reads plausible in each condition?
+- **Very large counts:** Are unusually high counts as frequent and as large as we would reasonably expect?
+- **Agreement between replicates:** Do replicates show a plausible degree of similarity across compounds?
+- **Target-versus-matrix differences:** Are the differences in expected counts, after accounting for sequencing depth, consistent with plausible enrichment and background variation?
 
-[The target signal is the posterior distribution of a log fold-change, not a corrected count. The model infers it by jointly explaining all observed counts while propagating uncertainty in input abundance, matrix background, replicate effects, and overdispersion.]{.highlight-key-point}
+If these simulations regularly produce unrealistic datasets, we should revisit the prior settings or model structure before fitting. Once the model is fitted, **posterior predictive checks** ask whether simulations using the inferred parameters reproduce the patterns in the observed data.
+
+We should also check how strongly our conclusions depend on the model's structural assumptions. The current model assumes that [$b_i$]{style="color:#88c0d0"} contributes equally to the matrix and target log-means, that the counts are independent once all latent effects and other parameters are given, and that every compound in a condition shares the same dispersion parameter. Shared latent effects can still make the counts correlated before conditioning on those effects.
+
+If a check reveals a specific mismatch, we can consider a corresponding change:
+
+- If matrix background appears to contribute differently in the target condition, estimate a coefficient multiplying [$b_i$]{style="color:#88c0d0"} in the target predictor.
+- If most target-specific effects appear close to the average but a few are much larger, consider a prior on [$s_i$]{style="color:#bf616a"} that concentrates effects near zero while allowing occasional large deviations.
+- If the model fails to reproduce residual count variability or extreme counts, consider allowing dispersion to vary among compounds or using a Poisson-lognormal likelihood.
+
+Each change introduces additional assumptions and may make parameters harder to estimate. We should assess whether it improves predictive checks and whether the inferred target effects change materially. This comparison is a **sensitivity analysis**: it shows which conclusions remain stable under plausible alternative assumptions.
+
+[The result of interest is the posterior distribution of the target-specific log effect, $s_i$. Under the zero-sum constraint, it measures enrichment relative to the average compound. Its uncertainty reflects the model's joint estimation of input abundance, matrix background, replicate effects, and residual count variation.]{.highlight-key-point}
 
 ##### 5. Putting the complete model together
 
