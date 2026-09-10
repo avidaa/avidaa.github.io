@@ -1,0 +1,555 @@
+---
+title: "Modelling DNA Encoded Libraries (DELs) — Part 2, revised"
+subtitle: "Building a Bayesian model for relative target-specific enrichment"
+format:
+  html:
+    theme: default
+    toc: true
+    toc-depth: 2
+jupyter:
+  kernelspec:
+    name: python3
+    language: python
+    display_name: Python 3
+execute:
+  echo: true
+  cache: false
+  freeze: false
+code-fold: true
+code-summary: "Show the code"
+---
+
+*This shorter version can be read alongside the [original, detailed article](DEL_modelling_Part_2.qmd). It assumes familiarity with regression and the basic idea of a Bayesian prior and posterior.*
+
+## What are we trying to learn?
+
+A high target count can have several explanations. A compound may have been abundant in the starting library, retained by the matrix, enriched specifically in the target experiment, or affected by technical variation. The count alone cannot tell us which explanation matters most.
+
+Building on [Part 1](DEL_modelling_Part_1.qmd), this article specifies a Bayesian model that uses library, matrix, and target measurements together. We will define the expected counts, account for residual variation, choose priors, and simulate complete experiments to see what those choices imply. Fitting the model and checking its posterior are subsequent steps. Molecular structure is reserved for the compound-aware extension in Part 3.
+
+For each compound $i$, the measurements are a library count $C_{l,i}$, matrix counts $C_{m,i,r}$, and target counts $C_{t,i,r}$, where $r$ indexes replicates. We introduce three compound effects:
+
+| Effect | What it represents | Where it contributes |
+|:-----------------------|:-----------------------|:-----------------------|
+| [$a_i$]{style="color:#a3be8c"} | Input abundance | Library, matrix, and target |
+| [$b_i$]{style="color:#88c0d0"} | Matrix background | Matrix and target |
+| [$s_i$]{style="color:#bf616a"} | Target-specific enrichment | Target only |
+
+**Our quantity of interest is** $s_i$: the compound's target-specific log effect relative to the average compound in this experiment. Its exponential, $e^{s_i}$, is a relative multiplier of the expected target count. For example, $s_i=\log 2$ contributes a multiplier of two, after accounting for the model's other terms.
+
+Zero has a specific meaning here. We centre the target effects so that they sum to zero; $s_i=0$ therefore means average target-specific enrichment on the log scale. It does not establish absence of binding. An absolute “no binding” interpretation would require an external reference, such as calibrated negative controls. The model estimates enrichment under experimental and statistical assumptions; it does not directly measure binding affinity.
+
+## How the three measurements separate the effects
+
+The model's central structure is simple: library counts inform $a_i$; matrix counts inform $a_i+b_i$; target counts inform $a_i+b_i+s_i$. Comparing these measurements allows us to distinguish the contributions, subject to the assumptions below.
+
+![Measurement DAG for the DEL model. Abundance contributes to all three conditions; background contributes to matrix and target; the target-specific effect contributes only to target. Replicate effects are shared across compounds within a sample. Baselines, offsets, dispersion parameters, and hierarchical priors are omitted to keep the measurement structure visible.](img/dag_with_latent_factors_and_replicates.png){#fig-revised-del-dag width="85%"}
+
+The arrows encode a modelling assumption: **the same abundance and background effects enter the matrix and target predictors with the same coefficients**. This shared contribution is what allows the target-versus-matrix comparison to isolate target-specific enrichment. If background behaves differently in the target experiment, some of that difference could instead be attributed to $s_i$.
+
+Library measurements distinguish abundance from background. They are valuable for understanding those separate contributions, although the shared $a_i+b_i$ term cancels from the model's target-versus-matrix contrast. Replicates help distinguish persistent compound effects from sample-level shifts and residual count variation.
+
+Consider three illustrative compounds. A has high input abundance, B has additional matrix retention, and C has additional target-specific enrichment. Suppose sequencing exposures are equal and replicate effects are zero. All three can have the same expected target count:
+
+```{python}
+#| label: revised-plot-setup
+#| include: false
+
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties, findfont
+from matplotlib.text import Text
+from matplotlib.ticker import MaxNLocator, ScalarFormatter, NullFormatter
+from plotnine import theme_minimal
+from scipy.stats import halfnorm, nbinom, poisson
+
+# Match the typography and minimal theme used in the original article.
+PLOT_RC = theme_minimal().rcParams
+BASE_SIZE = PLOT_RC["font.size"]
+with plt.rc_context(PLOT_RC):
+    PLOT_FONT = FontProperties(
+        fname=findfont(FontProperties(family=["sans-serif"]))
+    ).get_name()
+
+COLORS = {"library": "#b48ead", "matrix": "#5e81ac", "target": "#d08770",
+          "prior": "#277F8E", "poisson": "#65758B",
+          "median": "#8B6BA8", "upper": "#C58B47"}
+
+def new_figure(*args, **kwargs):
+    with plt.rc_context(PLOT_RC):
+        return plt.subplots(*args, layout="constrained", **kwargs)
+
+def style_axis(ax):
+    ax.set_facecolor("white")
+    ax.set_axisbelow(True)
+    ax.spines[:].set_visible(False)
+    ax.grid(which="major", color="#E5E5E5", linewidth=1)
+    ax.grid(which="minor", color="#FAFAFA", linewidth=0.5)
+    ax.tick_params(which="both", length=0, colors="#4D4D4D",
+                   labelsize=0.8 * BASE_SIZE)
+    for label in (ax.xaxis.label, ax.yaxis.label):
+        label.set_color("black")
+        label.set_fontsize(BASE_SIZE)
+
+def panel_title(ax, title):
+    ax.set_title(title, loc="left", fontsize=BASE_SIZE,
+                 color="black", weight="bold", pad=12)
+
+def show_figure(fig):
+    # Apply the same resolved font to annotations and tick labels as well.
+    fig.canvas.draw()
+    for item in fig.findobj(Text):
+        item.set_fontfamily(PLOT_FONT)
+    plt.show()
+```
+
+```{python}
+#| label: fig-revised-three-compounds
+#| fig-cap: "Three illustrative compounds with the same expected target count. Equal sequencing exposures make the comparison direct. These are chosen expected counts, not observations or fitted estimates; their different patterns reveal why all three measurement types are useful."
+#| fig-width: 9
+#| fig-height: 3.3
+
+example_means = np.array([[300, 300, 300], [100, 300, 300], [100, 100, 300]])
+fig, axes = new_figure(1, 3, figsize=(9, 3.3), sharey=True)
+for ax, values, title in zip(axes, example_means,
+                           ["A: abundant input", "B: matrix retention",
+                            "C: target enrichment"]):
+    style_axis(ax)
+    ax.plot(range(3), values, color=COLORS["poisson"], linewidth=1.3)
+    ax.scatter(range(3), values, c=[COLORS[k] for k in ("library", "matrix", "target")],
+               s=55, zorder=3)
+    for x, y in enumerate(values):
+        ax.annotate(str(y), (x, y), xytext=(0, 10), textcoords="offset points",
+                    ha="center", fontsize=8, color="black")
+    ax.set(xticks=range(3), xticklabels=["Library", "Matrix", "Target"],
+           ylim=(0, 370), xlim=(-0.3, 2.3), yticks=[0, 100, 200, 300])
+    panel_title(ax, title)
+axes[0].set_ylabel("Expected count (reads)")
+show_figure(fig)
+```
+
+A target count near 300 would not distinguish these explanations. The library and matrix measurements provide the context. In real data, every count fluctuates, so we estimate all effects jointly and retain uncertainty rather than subtracting counts in a fixed sequence.
+
+Shared causes also explain dependence. Matrix and target counts for the same compound share $a_i$ and $b_i$; counts within a replicate share its replicate effect. The model assumes independent count draws **after conditioning on all latent effects and parameters**. Marginally, those shared quantities can make the counts dependent. In the posterior, observing a target count can also couple its possible explanations: a larger background contribution can leave less enrichment needed to explain it. Such posterior dependence is expected in joint inference. The measurement DAG does not imply that the inferred effects will be independent.
+
+## From latent effects to expected counts
+
+### Account for sequencing depth
+
+A sample with twice as many usable reads offers roughly twice as much opportunity to observe each compound. Let $K_l$, $K_{m,r}$, and $K_{t,r}$ be the usable read totals and $N$ the number of compounds. Define known exposure offsets:
+
+$$E_l=K_l/N,\qquad E_{m,r}=K_{m,r}/N,\qquad E_{t,r}=K_{t,r}/N.$$
+
+An exposure of 100 reads means that a uniform allocation would give each compound 100 reads. It supplies a reference, while the latent effects allow compounds to depart from uniform abundance. For example, doubling $E$ doubles the expected count when the other parameters remain fixed.
+
+These offsets treat the measured sequencing depths as given. The independent count likelihood below is a working model conditional on those exposures; it does not force simulated sample totals to equal $K$ exactly. That distinction matters when checking simulations or when exact allocation of a fixed total is central to the analysis.
+
+### Combine the contributions on the log scale
+
+We use a log link so that additive effects become multiplicative changes in positive expected counts:
+
+$$\begin{aligned}
+\eta_{l,i}=\log\mu_{l,i}
+ &=\log E_l+\alpha_l+\textcolor{#a3be8c}{a_i},\\
+\eta_{m,i,r}=\log\mu_{m,i,r}
+ &=\log E_{m,r}+\alpha_m+\textcolor{#a3be8c}{a_i}
+   +\textcolor{#88c0d0}{b_i}+\gamma_{m,r},\\
+\eta_{t,i,r}=\log\mu_{t,i,r}
+ &=\log E_{t,r}+\alpha_t+\textcolor{#a3be8c}{a_i}
+   +\textcolor{#88c0d0}{b_i}+\textcolor{#bf616a}{s_i}+\gamma_{t,r}.
+\end{aligned}$$
+
+The condition intercept $\alpha_c$ describes the overall baseline after accounting for exposure. The replicate effect $\gamma_{c,r}$ shifts all compounds in one matrix or target sample. We have one library measurement here, so there is no separate library-replicate term.
+
+Exponentiating gives, for example, $\mu_{t,i,r}=E_{t,r}e^{\alpha_t}e^{a_i}e^{b_i}e^{s_i}e^{\gamma_{t,r}}$. Thus a log effect of $\log 2\approx0.69$ multiplies the mean by two; a log effect of $-\log 2$ halves it. Expected counts can be fractional: $\mu=0.1$ describes an average of one read per ten repetitions, although every observed count is an integer.
+
+The target-versus-matrix comparison is especially informative. For target replicate $r$ and matrix replicate $q$,
+
+$$\log\frac{\mu_{t,i,r}/E_{t,r}}{\mu_{m,i,q}/E_{m,q}}
+=(\alpha_t-\alpha_m)+s_i+(\gamma_{t,r}-\gamma_{m,q}).$$
+
+Abundance and background cancel because their coefficients are the same. The remaining contrast includes condition and replicate differences as well as $s_i$. Comparing this contrast between compounds $i$ and $j$ removes the shared terms, leaving $s_i-s_j$. Consequently, $e^{s_i-s_j}$ compares their target-specific enrichment multipliers. This is a statement about the model's expected counts; raw ratios of noisy observations, particularly zeros, do not have the same precision or interpretation.
+
+### Give zero an unambiguous meaning
+
+Without a constraint, increasing every $s_i$ by one and decreasing $\alpha_t$ by one leaves every expected count unchanged. Similar shifts exist for abundance, background, and replicate effects. We remove this arbitrary choice of origin by requiring
+
+$$\sum_i a_i=\sum_i b_i=\sum_i s_i=0,
+\qquad \sum_r\gamma_{m,r}=\sum_r\gamma_{t,r}=0.$$
+
+The intercepts then capture average log baselines, and the effects describe deviations from those averages. This convention makes the parameterisation interpretable, but does not create information for compounds with few reads.
+
+Returning to @fig-revised-three-compounds, C's target-to-matrix multiplier is three while A's and B's are one. In this three-compound example, centring assigns C an $s_i$ of $\tfrac23\log3$ and the other two an $s_i$ of $-\tfrac13\log3$. C remains threefold higher than either comparator. The negative values for A and B reflect their position below the average log effect, without establishing anything about absolute binding.
+
+## Allow observed counts to vary around those means
+
+The mean model specifies the expected count; the likelihood specifies the spread of possible observations. We use the Negative Binomial in its NB2 parameterisation:
+
+$$\begin{aligned}
+C_{l,i}&\sim\operatorname{NB}_2(\mu_{l,i},\phi_l),\\
+C_{m,i,r}&\sim\operatorname{NB}_2(\mu_{m,i,r},\phi_m),\\
+C_{t,i,r}&\sim\operatorname{NB}_2(\mu_{t,i,r},\phi_t),
+\end{aligned}
+\qquad
+\mathbb E(C\mid\mu,\phi)=\mu,\quad
+\operatorname{Var}(C\mid\mu,\phi)=\mu+\frac{\mu^2}{\phi}.$$
+
+The first variance term is ordinary Poisson counting noise. The second allows additional variation, called **overdispersion**. This is the mean–variance convention used in the [Stan NB2 documentation](https://mc-stan.org/docs/functions-reference/unbounded_discrete_distributions.html#nbalt).
+
+We assign one dispersion parameter to each condition, shared across its compounds and replicates. It describes residual variation after the mean effects have been accounted for. Increasing dispersion does not systematically raise a compound's expected count; it makes observations around that expectation more variable.
+
+To make the amount of overdispersion easier to interpret, define
+
+$$\kappa_c=\phi_c^{-1/2},\qquad
+\operatorname{SD}(C\mid\mu,\kappa_c)=\sqrt{\mu+\mu^2\kappa_c^2}.$$
+
+Larger $\kappa_c$ means greater spread. The limit $\kappa_c=0$ is Poisson sampling. For $\mu=1000$ and $\kappa_c=0.5$, the standard deviation is about 501 reads, close to $1000\times0.5=500$. For $\mu=10$ with the same $\kappa_c$, it is about 5.9 reads, compared with $10\times0.5=5$. Poisson noise explains the difference. The approximation $\operatorname{SD}\approx\mu\kappa_c$ is useful when $\mu\kappa_c^2$ is much greater than one.
+
+::: {.callout-note collapse="true" icon="false"}
+## Why introduce $\kappa_c$ instead of putting a prior on $\phi_c$?
+
+A prior directly on $\phi_c$ is valid. Its interpretation is less convenient: smaller values mean more variation, and the Poisson limit occurs at infinity. The transformation puts that limit at zero and makes increasing values correspond to increasing overdispersion. It changes neither the likelihood family nor identifiability; choosing a prior on the transformed parameter is still a substantive modelling choice.
+
+The coefficient of variation expresses standard deviation as a fraction of the mean:
+
+$$\operatorname{CV}(C\mid\mu,\kappa_c)
+=\frac{\operatorname{SD}(C\mid\mu,\kappa_c)}{\mathbb E(C\mid\mu,\kappa_c)}
+=\frac{\sqrt{\mu+\mu^2\kappa_c^2}}{\mu}
+=\sqrt{\frac1\mu+\kappa_c^2}.$$
+
+The denominator is $\mu$ because this remains the Negative Binomial mean, whatever the dispersion. When $1/\mu$ is small compared with $\kappa_c^2$, the CV is close to $\kappa_c$. This gives a convenient interpretation of the prior, but the exact expression is needed for low counts. The two variance contributions are added inside the square root; their separate square roots are not added.
+:::
+
+## Priors: how much variation do we expect?
+
+### Baselines and partial pooling
+
+Each condition baseline receives $\alpha_c\sim\operatorname{Normal}(0,1)$, where the second argument is the standard deviation. On the count scale, $e^{\alpha_c}$ has median one and a central 95% interval of approximately 0.14 to 7.1. At exposure 100, that corresponds to a baseline mean between about 14 and 710 reads, before adding compound and replicate effects. These are prior intervals, not hard limits, and the baseline is a geometric reference rather than the arithmetic average across compounds.
+
+For the compound and replicate effects, we use shared population scales. For example,
+
+$$z_{a,i}\overset{\mathrm{iid}}{\sim}\operatorname{Normal}(0,1),
+\qquad a_i=\sigma_a(z_{a,i}-\bar z_a).$$
+
+We make the same construction separately for $b$, $s$, $\gamma_m$, and $\gamma_t$. Subtracting the group mean imposes the zero-sum constraint, and multiplying by $\sigma$ controls the size of departures from zero. All auxiliary $z$ variables are independent before these transformations.
+
+The scale is shared within a group and learned jointly from its members. This produces **partial pooling**: effects with weak information are regularised toward zero, while sufficiently informative measurements can support larger departures. For the illustrative compounds, a noisy target excess for C should receive less weight than a persistent excess supported by several replicates. The strength of that regularisation depends on both the likelihood and the inferred population scale.
+
+Our starting scale priors are:
+
+| Population scale | Prior | Assumption expressed |
+|:-----------------------|:-----------------------|:-----------------------|
+| $\sigma_a,\sigma_b$ | $\operatorname{HalfNormal}(0,0.75)$ | Broader abundance and background variation |
+| $\sigma_s$ | $\operatorname{HalfNormal}(0,0.50)$ | More concentrated target-specific effects |
+| $\sigma_{\gamma_m},\sigma_{\gamma_t}$ | $\operatorname{HalfNormal}(0,0.25)$ | Smaller replicate shifts |
+
+A Half-Normal is the positive half of a zero-centred Normal distribution. Its second argument controls its spread; it is not an upper bound. We draw each scale independently. The ordering above is a provisional assumption, not something implied by the DAG. In particular, using a narrower prior for target effects expresses more regularisation of that component and should be checked for sensitivity.
+
+```{python}
+#| label: fig-revised-population-priors
+#| fig-cap: "Left: priors for the population scales. Right: central 95% intervals and medians of a single centred effect's count multiplier, integrating over its scale prior (100,000 simulations, 500 compounds or three replicates). Abundance and background share one specification; matrix and target replicate effects share another. These are individual contributions to an expected count, not intervals for observed counts or fitted examples of shrinkage."
+#| fig-width: 9
+#| fig-height: 3.8
+
+fig, axes = new_figure(1, 2, figsize=(9, 3.8), gridspec_kw={"width_ratios": [1.2, 1]})
+scale_specs = [("Abundance / background", 0.75, 500, COLORS["matrix"]),
+               ("Target-specific", 0.50, 500, COLORS["target"]),
+               ("Replicate", 0.25, 3, COLORS["prior"])]
+prior_rng = np.random.default_rng(20260909)
+x = np.linspace(0, 2.5, 600)
+for row, (label, tau, group_size, color) in enumerate(scale_specs):
+    axes[0].plot(x, halfnorm.pdf(x, scale=tau), color=color, lw=2, label=label)
+    sigma = np.abs(prior_rng.normal(0, tau, 100_000))
+    # Exact marginal distribution of z_i - mean(z) for a group of this size.
+    effect = sigma * prior_rng.normal(0, np.sqrt(1 - 1 / group_size), sigma.size)
+    lower, median, upper = np.quantile(np.exp(effect), [0.025, 0.5, 0.975])
+    axes[1].plot([lower, upper], [row, row], color=color, lw=4, solid_capstyle="round")
+    axes[1].scatter(median, row, color=color, s=40, zorder=3)
+    axes[1].annotate(f"{lower:.2f}–{upper:.2f}×", (median, row),
+                     xytext=(0, 13), textcoords="offset points", ha="center",
+                     fontsize=8, color="black",
+                     bbox={"facecolor": "white", "edgecolor": "none", "pad": 1.5})
+axes[0].set(xlabel="Population scale σ", ylabel="Prior density", xlim=(0, 2.5), ylim=(0, None))
+axes[0].legend(frameon=False, fontsize=8, loc="upper right", labelcolor="black")
+axes[1].axvline(1, color=COLORS["poisson"], linestyle="--", linewidth=1)
+axes[1].set(xscale="log", xlabel="Multiplier of the expected count", yticks=range(3),
+            yticklabels=["Abundance /\nbackground", "Target-specific", "Replicate"],
+            ylim=(2.6, -0.7), xlim=(0.12, 8), xticks=[0.2, 0.5, 1, 2, 5])
+axes[1].xaxis.set_major_formatter(ScalarFormatter())
+axes[1].xaxis.set_minor_formatter(NullFormatter())
+for ax, title in zip(axes, ["Priors for shared scales", "What one effect does to the mean"]):
+    style_axis(ax)
+    panel_title(ax, title)
+show_figure(fig)
+```
+
+The right panel translates the hierarchy into quantities we can picture. A multiplier of two turns a baseline expectation of 100 reads into 200; a multiplier of one-half turns it into 50. In the full model, several multipliers act together. Checking each prior separately therefore cannot tell us whether their combined count predictions are sensible.
+
+::: {.callout-note collapse="true" icon="false"}
+## A detail about centring and the population scale
+
+For a group of $G$ effects constructed as $u_i=\sigma(z_i-\bar z)$,
+
+$$\operatorname{Var}(u_i\mid\sigma)=\sigma^2(1-1/G),
+\qquad \operatorname{Cov}(u_i,u_j\mid\sigma)=-\sigma^2/G\quad(i\ne j).$$
+
+Thus $\sigma$ controls the scale of the preliminary, unconstrained effects. A final centred effect has a slightly smaller standard deviation, particularly when there are few replicates. Centring also makes the effects dependent: they must sum to zero. The figure and simulation below use this construction without adding a variance correction, preserving the specification of the original article.
+:::
+
+### A prior for residual dispersion, interpreted through counts
+
+We give the three conditions separate, independent dispersion draws:
+
+$$\kappa_l,\kappa_m,\kappa_t
+\overset{\mathrm{ind}}{\sim}\operatorname{HalfNormal}(0,0.50),
+\qquad \phi_c=\kappa_c^{-2}.$$
+
+This prior gives greater density to smaller overdispersion, while allowing substantial variation. Its median is about 0.34 and its 95th percentile is about 0.98. The scale 0.50 does not mean every condition has $\kappa_c=0.50$, and it does not cap the possible values.
+
+```{python}
+#| label: fig-revised-dispersion-prior
+#| fig-cap: "Half-Normal prior for condition-specific dispersion. Shading contains 95% of the prior probability. Each condition receives its own draw from this distribution."
+#| fig-width: 8
+#| fig-height: 3.2
+
+kappa_median, kappa_p95 = halfnorm.ppf([0.5, 0.95], scale=0.5)
+x = np.linspace(0, 2, 600)
+y = halfnorm.pdf(x, scale=0.5)
+fig, ax = new_figure(figsize=(8, 3.2))
+ax.plot(x, y, color=COLORS["prior"], lw=2)
+ax.fill_between(x, y, where=x <= kappa_p95, color=COLORS["prior"], alpha=0.16)
+for value, text, color, position in [
+    (kappa_median, "Median: 0.34", COLORS["median"], (0.65, 1.25)),
+    (kappa_p95, "95th percentile: 0.98", COLORS["upper"], (1.12, 0.70)),
+]:
+    height = halfnorm.pdf(value, scale=0.5)
+    ax.vlines(value, 0, height, color=color, linestyle="--", lw=1.2)
+    ax.scatter(value, height, color=color, s=30, zorder=3)
+    ax.annotate(text, (value, height), xytext=position, fontsize=8, color="black",
+                arrowprops={"arrowstyle": "-", "color": color})
+ax.set(xlabel="Dispersion κ", ylabel="Prior density", xlim=(0, 2), ylim=(0, 1.75),
+       xticks=[0, 0.5, 1, 1.5, 2])
+style_axis(ax)
+panel_title(ax, "Prior for condition-specific dispersion")
+show_figure(fig)
+```
+
+To see what those values imply, hold the expected count fixed and change only $\kappa$. In @fig-revised-count-dispersion, each row uses the same horizontal range. Moving right increases overdispersion: more observations fall far below or above the mean, while the mean itself stays fixed. In particular, a mean of 1,000 reads need not imply observations concentrated near 1,000 when dispersion is large.
+
+```{python}
+#| label: fig-revised-count-dispersion
+#| fig-cap: "Observed-count distributions at the Poisson limit, prior-median dispersion, and the prior's 95th-percentile dispersion. Dashed lines mark the unchanged expected count. Horizontal axes match within each row; probability axes differ so all distributions remain visible. The range includes 99.5% of the broadest distribution in each row. Lines in the high-count panels connect integer probabilities for readability."
+#| fig-width: 9
+#| fig-height: 5.5
+
+fig, axes = new_figure(2, 3, figsize=(9, 5.5))
+for row, mu in enumerate([10, 1000]):
+    broadest = nbinom(1 / kappa_p95**2, 1 / (1 + mu * kappa_p95**2))
+    upper = int(broadest.ppf(0.995))
+    counts = np.arange(upper + 1)
+    for col, (kappa, color, label) in enumerate([
+        (0, COLORS["poisson"], "Poisson limit: κ = 0"),
+        (kappa_median, COLORS["median"], "Prior median: κ = 0.34"),
+        (kappa_p95, COLORS["upper"], "95th percentile: κ = 0.98"),
+    ]):
+        ax = axes[row, col]
+        distribution = poisson(mu) if kappa == 0 else nbinom(
+            1 / kappa**2, 1 / (1 + mu * kappa**2))
+        probabilities = distribution.pmf(counts)
+        if row == 0:
+            ax.vlines(counts, 0, probabilities, color=color, linewidth=1.5)
+        else:
+            ax.plot(counts, probabilities, color=color, linewidth=1.8)
+        ax.axvline(mu, color=COLORS["poisson"], linestyle="--", lw=1)
+        ax.set(xlim=(-0.5, upper), ylim=(0, probabilities.max() * 1.2),
+               xlabel="Observed count (reads)")
+        ax.xaxis.set_major_locator(MaxNLocator(4, integer=True))
+        ax.yaxis.set_major_locator(MaxNLocator(4))
+        if col == 0:
+            ax.set_ylabel("Probability")
+        style_axis(ax)
+        panel_title(ax, label if row == 0 else "")
+        ax.text(0.96, 0.9, f"Mean = {mu:,}\nSD = {np.sqrt(mu + mu**2 * kappa**2):,.1f}",
+                transform=ax.transAxes, ha="right", va="top", fontsize=8, color="black")
+show_figure(fig)
+```
+
+These are three fixed settings chosen to explain the dispersion prior. A full prior predictive check must draw $\kappa_c$ from its prior and also draw the unknown baselines, population scales, and effects. It must preserve which parameters are shared: drawing a new dispersion for every count would define a different model.
+
+## What does the complete model predict before seeing data?
+
+We now simulate complete experiments using all the priors above. For this demonstration, each experiment has 500 compounds, one library sample, three matrix replicates, and three target replicates. Every sample has exposure $E=10$, corresponding to a supplied sequencing depth of 5,000 reads. These dimensions and depths are illustrative; checks for an actual experiment should use its design and exposures.
+
+For each simulated experiment, we:
+
+1.  Draw three condition intercepts, five population scales, and three dispersion parameters from their independent priors.
+2.  Draw and centre the compound and replicate effects, sharing each scale within its group.
+3.  Calculate the expected library, matrix, and target counts from the log-linear equations.
+4.  Draw all observed counts from NB2, sharing the appropriate dispersion within each condition.
+
+This samples from the joint prior predictive distribution
+
+$$p(\mathbf C\mid\mathbf E)
+=\int p(\mathbf C\mid\boldsymbol\theta,\mathbf E)
+       p(\boldsymbol\theta)\,d\boldsymbol\theta,$$
+
+where $\boldsymbol\theta$ includes all unknown parameters and auxiliary latent variables. The code below implements that same generative order. It generates a Gamma-distributed Poisson rate and then a Poisson count, which is an equivalent way to sample NB2.
+
+```{python}
+#| label: revised-joint-prior-simulation
+
+def centred_effects(rng, sigma, size):
+    z = rng.normal(size=size)
+    return sigma * (z - z.mean())
+
+def nb2_counts(rng, mu, kappa):
+    if kappa == 0:
+        return rng.poisson(mu)
+    rate = rng.gamma(shape=1 / kappa**2, scale=mu * kappa**2)
+    return rng.poisson(rate)
+
+def simulate_experiment(rng, n=500, replicates=3, exposure=10.0):
+    alpha = rng.normal(0, 1, 3)
+    sigma = np.abs(rng.normal(0, [0.75, 0.75, 0.50, 0.25, 0.25]))
+    kappa = np.abs(rng.normal(0, 0.50, 3))
+    a, b, s = [centred_effects(rng, scale, n) for scale in sigma[:3]]
+    gm, gt = [centred_effects(rng, scale, replicates) for scale in sigma[3:]]
+    means = {
+        "library": exposure * np.exp(alpha[0] + a),
+        "matrix": exposure * np.exp(alpha[1] + a[:, None] + b[:, None] + gm),
+        "target": exposure * np.exp(alpha[2] + a[:, None] + b[:, None] + s[:, None] + gt),
+    }
+    counts = {condition: nb2_counts(rng, means[condition], kappa[j])
+              for j, condition in enumerate(means)}
+    return {"means": means, "counts": counts, "effects": (a, b, s, gm, gt),
+            "alpha": alpha, "sigma": sigma, "kappa": kappa}
+
+# Retain the first draw, without selecting it for visual appearance.
+simulation_rng = np.random.default_rng(9173)
+n_simulations = 1000
+conditions = ("library", "matrix", "target")
+zero_fraction = np.empty((n_simulations, 3))
+count_p99 = np.empty((n_simulations, 3))
+replicate_correlation = np.empty((n_simulations, 2))
+enrichment_p95 = np.empty(n_simulations)
+total_depth_ratio = np.empty((n_simulations, 3))
+
+for draw in range(n_simulations):
+    experiment = simulate_experiment(simulation_rng)
+    if draw == 0:
+        first_experiment = experiment
+    for col, condition in enumerate(conditions):
+        counts = experiment["counts"][condition]
+        zero_fraction[draw, col] = np.mean(counts == 0)
+        count_p99[draw, col] = np.quantile(counts, 0.99)
+        total_depth_ratio[draw, col] = np.mean(counts.sum(axis=0)) / 5000
+    for col, condition in enumerate(("matrix", "target")):
+        log_counts = np.log1p(experiment["counts"][condition])
+        # One pre-specified replicate pair, compared across all compounds.
+        replicate_correlation[draw, col] = np.corrcoef(log_counts[:, :2].T)[0, 1]
+    enrichment_p95[draw] = np.quantile(np.exp(experiment["effects"][2]), 0.95)
+```
+
+The first simulated experiment is shown in @fig-revised-one-experiment. Each point is a compound. Matrix replicates share their compound effects, so they can agree even though individual observations differ. Target and matrix measurements share abundance and background, with target-specific enrichment adding another source of differences. The final panel shows the simulated target effects that generated this dataset; in real data these would be unknown.
+
+```{python}
+#| label: fig-revised-one-experiment
+#| fig-cap: "The first experiment drawn from the complete prior, with no fitting or selection of an attractive example. Scatterplots use log(1 + count) axes to retain zeros. The diagonal marks equal counts, not a fitted relationship. The final panel shows the known generating target-specific effects, centred at zero; it is not a posterior distribution."
+#| fig-width: 9
+#| fig-height: 3.5
+
+fig, axes = new_figure(1, 3, figsize=(9, 3.5))
+sample = first_experiment["counts"]
+comparisons = [(sample["matrix"][:, 0], sample["matrix"][:, 1],
+                "Matrix replicate 1", "Matrix replicate 2", "Replicate agreement", COLORS["matrix"]),
+               (sample["matrix"][:, 0], sample["target"][:, 0],
+                "Matrix replicate 1", "Target replicate 1", "Matrix and target", COLORS["target"])]
+for ax, (x, y, xlabel, ylabel, title, color) in zip(axes[:2], comparisons):
+    x, y = np.log1p(x), np.log1p(y)
+    limit = max(x.max(), y.max()) * 1.04
+    ax.scatter(x, y, s=10, alpha=0.35, color=color, edgecolors="none")
+    ax.plot([0, limit], [0, limit], color=COLORS["poisson"], linestyle="--", linewidth=1)
+    ax.set(xlabel=xlabel + "\nlog(1 + count)", ylabel=ylabel + "\nlog(1 + count)",
+           xlim=(-0.1, limit), ylim=(-0.1, limit))
+    ax.xaxis.set_major_locator(MaxNLocator(4))
+    ax.yaxis.set_major_locator(MaxNLocator(4))
+    panel_title(ax, title)
+s = first_experiment["effects"][2]
+axes[2].hist(s, bins=25, color=COLORS["target"], alpha=0.8, edgecolor="white", linewidth=0.4)
+axes[2].axvline(0, color=COLORS["poisson"], linestyle="--", linewidth=1)
+axes[2].set(xlabel="Target-specific log effect s", ylabel="Number of compounds")
+panel_title(axes[2], "Generating target effects")
+for ax in axes:
+    style_axis(ax)
+show_figure(fig)
+```
+
+One dataset cannot represent the range of possibilities allowed by the priors. We therefore repeat the experiment 1,000 times and calculate four summaries. Zero fractions measure sparsity; the 99th percentile of counts measures the upper tail; correlation between the first two replicates measures agreement across compounds; and the 95th percentile of $e^{s_i}$ describes the upper tail of relative target-specific enrichment.
+
+```{python}
+#| label: fig-revised-predictive-checks
+#| fig-cap: "Variation across 1,000 complete prior predictive experiments. Points are medians and bars span the central 90% of each dataset-level summary. Count percentiles and zero fractions pool observations within a condition. Replicate agreement is Pearson correlation of log(1 + count) for a fixed pair, across compounds. The enrichment panel summarises generating relative multipliers, not noisy count ratios. Logarithmic axes are used for count and enrichment tails."
+#| fig-width: 9
+#| fig-height: 5.7
+
+fig, axes = new_figure(2, 2, figsize=(9, 5.7))
+def interval_panel(ax, samples, labels, colors, xlabel, title, log=False):
+    samples = np.asarray(samples)
+    if samples.ndim == 1:
+        samples = samples[:, None]
+    for row, (label, color) in enumerate(zip(labels, colors)):
+        lo, med, hi = np.quantile(samples[:, row], [0.05, 0.5, 0.95])
+        ax.plot([lo, hi], [row, row], color=color, lw=4, solid_capstyle="round")
+        ax.scatter(med, row, color=color, s=40, zorder=3)
+    ax.set(yticks=range(len(labels)), yticklabels=labels,
+           ylim=(len(labels) - 0.4, -0.6), xlabel=xlabel)
+    if log:
+        ax.set_xscale("log")
+        ax.xaxis.set_major_formatter(ScalarFormatter())
+        ax.xaxis.set_minor_formatter(NullFormatter())
+    style_axis(ax)
+    panel_title(ax, title)
+
+names = ["Library", "Matrix", "Target"]
+colors = [COLORS[k] for k in conditions]
+interval_panel(axes[0, 0], zero_fraction * 100, names, colors,
+               "Zero-count observations (%)", "How many zeros?")
+axes[0, 0].set_xlim(left=0)
+interval_panel(axes[0, 1], count_p99, names, colors,
+               "99th percentile of counts (reads)", "How large are the high counts?", log=True)
+interval_panel(axes[1, 0], replicate_correlation, names[1:], colors[1:],
+               "Correlation of log(1 + count)", "How similar are replicates?")
+axes[1, 0].set_xlim(-0.1, 1)
+interval_panel(axes[1, 1], enrichment_p95, ["Target-specific"], [COLORS["target"]],
+               "95th percentile of the multiplier exp(s)", "How strong is relative enrichment?", log=True)
+axes[1, 1].set_xticks([1, 2, 3, 4])
+show_figure(fig)
+```
+
+These intervals describe variation between hypothetical experiments. They are neither credible intervals from a fitted model nor evidence that the prior is appropriate. The useful question is whether their ranges match what experimental knowledge allows. If the model frequently generates almost no zeros when many compounds should be undetected, or allows implausibly large counts or enrichment multipliers, we should revisit its assumptions.
+
+For example, in these simulations the median target zero fraction is about 5%, but the central 90% range extends from 0% to 31%. The target count's 99th percentile has a median of about 120 reads, with a central 90% range of roughly 17 to 1,427 reads. These wide ranges show how much uncertainty the combined priors permit, even though every experiment uses the same exposure. Whether that is reasonable requires knowledge of the experimental system.
+
+The checks also reveal why individual prior plots are insufficient. Replicate agreement depends on the size of shared compound effects relative to residual noise. Large counts can arise from several log effects multiplying together, as well as from overdispersion. Changing only $\kappa_c$ may therefore fail to fix an implausible simulated dataset.
+
+We should additionally compare simulated sample totals with the supplied sequencing depths. Here, the total averaged over target replicates has a median of about 1.75 times the supplied depth, with a central 90% range of about 0.32 to 15.24 times that depth. This is a concrete reason to review the intercept priors and exposure convention before treating the specification as ready to fit. Positive and negative log effects do not cancel on the count scale, and the likelihood does not enforce a fixed total. An analysis requiring that constraint would need a model that explicitly conditions on the total.
+
+## What should we check next?
+
+The complete specification is a candidate model. Its numerical priors should be informed by previous experiments and revised when the simulations conflict with reasonable expectations. Use actual sample depths and replicate numbers for that check, because a prior that looks reasonable at one sequencing depth may give a very different fraction of zeros at another.
+
+Once fitted, posterior predictive checks ask whether the inferred model reproduces the observed count patterns. We should also examine whether the conclusions about $s_i$ survive plausible changes to the assumptions:
+
+- **Shared background:** if matrix background contributes differently in the target condition, consider a coefficient multiplying $b_i$ in the target predictor. Check whether the data can distinguish that coefficient from target-specific effects.
+- **Target-effect distribution:** if a small number of large enrichments are scientifically expected, compare the Normal hierarchy with a prior allowing more mass near zero and heavier tails.
+- **Residual variability:** if dispersion differs substantially among compounds, consider a more flexible dispersion model or another count likelihood, such as Poisson-lognormal.
+
+Each extension should address a specific scientific concern or predictive failure. Compare how it changes both simulated counts and the inferred enrichment effects. A model can reproduce some count summaries while still leaving the decomposition into background and target effects sensitive to assumptions.
+
+The eventual result is a posterior distribution for each compound's relative target-specific log effect. Its uncertainty should account jointly for abundance, background, replicate shifts, and count variation. The present article establishes how to generate the data under those assumptions; fitting and validation will determine how much the observed experiment can actually teach us about the effects.
+
+## Further detail
+
+The [original article](DEL_modelling_Part_2.qmd) retains the extended explanations of forks, pipes, colliders, latent-variable identifiability, and distributional derivations. They provide optional background without being prerequisites for this model-building sequence.
+
+For the likelihood convention, see the [Stan Negative Binomial reference](https://mc-stan.org/docs/functions-reference/unbounded_discrete_distributions.html#nbalt). For the broader sequence of model building, predictive checking, and revision, see [Gelman et al., *Bayesian Workflow*](https://arxiv.org/abs/2011.01808).

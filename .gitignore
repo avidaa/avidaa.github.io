@@ -25,6 +25,11 @@ blogs/ODE_Gen_AI/
 
 # Generated files for DEL Part 2 local renders
 blogs/DEL_Model/DEL_modelling_Part_2_files/
+blogs/DEL_Model/DEL_modelling_Part_2.html
+blogs/DEL_Model/DEL_modelling_Part_2_V2_files/
+blogs/DEL_Model/DEL_modelling_Part_2_V2.html
+blogs/DEL_Model/DEL_modelling_Part_2_revised_files/
+blogs/DEL_Model/DEL_modelling_Part_2_revised.html
 blogs/DEL_Model/img/*.pdf
 
 **/*.quarto_ipynb
