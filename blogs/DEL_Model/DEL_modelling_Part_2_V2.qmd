@@ -24,9 +24,9 @@ code-fold: true
 
 A high target count can have several explanations. A compound may have been abundant in the starting library, retained by the matrix, enriched specifically in the target experiment, or affected by technical variation. The count alone cannot tell us which explanation matters most.
 
-Building on the causal sketch from Part 1, we specify a Bayesian model that uses library, matrix, and target measurements together. 
+Building on the causal sketch from Part 1, we specify a Bayesian model that uses library, matrix, and target measurements together.
 
-![Causal sketch of DEL sequencing counts.](img/Causal_Sketch.png){#fig-causal-sketch width="50%"} 
+![Causal sketch of DEL sequencing counts.](img/Causal_Sketch.png){#fig-causal-sketch width="50%"}
 
 We will define the expected counts, account for residual variation, choose priors, and simulate complete experiments to see what those choices imply. Fitting the model and checking its posterior are subsequent steps. Molecular structure is reserved for the compound-aware extension in Part 3.
 
@@ -75,7 +75,7 @@ For each compound $i$, the measurements are a library count $C_{l,i}$, matrix co
 </style>
 ```
 
-::: {.del-effects}
+::: del-effects
 | Effect | What it represents | Where it contributes |
 |:-----------------------|:-----------------------|:-----------------------|
 | [$a_i$]{.effect-symbol style="--effect-color:#a3be8c; --effect-tint:#f0f5eb"} | Input abundance | Library, matrix, and target |
@@ -83,68 +83,26 @@ For each compound $i$, the measurements are a library count $C_{l,i}$, matrix co
 | [$s_i$]{.effect-symbol style="--effect-color:#bf616a; --effect-tint:#f9eef0"} | Target-specific enrichment | Target only |
 :::
 
-## A Bayesian workflow for modelling DEL counts
+### Our quantity of interest is $s_i$
+$s_i$ is the compound’s target-specific log effect relative to the average compound in this experiment. Its exponential, $e^{s_i}$, is a relative multiplier of the expected target count after accounting for the model’s other terms.
 
-A DAG makes the assumed causal structure explicit, but it does not uniquely determine a statistical model. It does not choose the likelihood, link function, priors, hierarchical structure, or dispersion model. These choices must be specified separately and then checked against both the scientific assumptions and the observed data.
+## How the three measurements separate the effects?
 
-For DEL counts, the workflow is:
+The model’s central structure is simple: 
 
-1.  **Define the scientific question and estimand.**\
-    Specify what we want to learn. For example, the target-binding propensity of each compound, and distinguish that latent quantity from the observed sequencing counts. Also define the observational units, replicate structure, and measurements available for inference.
+- library counts inform [$a_i$]{style="color:#a3be8c"}.
+- matrix counts inform [$a_i$]{style="color:#a3be8c"} $+$ [$b_i$]{style="color:#88c0d0"}.
+- target counts inform [$a_i$]{style="color:#a3be8c"} $+$ [$b_i$]{style="color:#88c0d0"} $+$ [$s_i$]{style="color:#bf616a"}.
 
-2.  **State the causal and measurement assumptions (DAG first).**\
-    Decide which processes generate the counts: input abundance, matrix background, target-specific enrichment, and replicate-level technical variation. Use the DAG to identify common causes, mediators, colliders, and assumed independencies before writing the statistical model.
+Comparing these measurements allows us to distinguish the contributions, subject to the assumptions below.
 
-3.  **Write the generative model and priors.**\
-    Translate the DAG into a likelihood, link function, relationships between latent quantities and observed counts and priors for the latent quantities and parameters. Several models may be compatible with the same DAG. For example, Negative Binomial and Poisson-lognormal likelihoods or different pooling and dispersion structures.
+![Measurement DAG for the DEL model. Abundance contributes to all three conditions; background contributes to matrix and target; the target-specific effect contributes only to target. Replicate effects are shared across compounds within a sample.](img/dag_with_latent_factors_and_replicates.png){#fig-revised-del-dag width="85%"}
 
-4.  **Run prior predictive checks.**\
-    Draw parameter values from the priors and simulate DEL counts before fitting the model. The simulated data should exhibit plausible count ranges, sparsity, dispersion, tail behaviour, matrix-target relationships, and replicate variation. Implausible simulations indicate that the model or priors need revision.
+The arrows encode a modelling assumption: **the same abundance and background effects enter the matrix and target predictors with the same coefficients**. This shared contribution is what allows the target-versus-matrix comparison to isolate target-specific enrichment. If background behaves differently in the target experiment, some of that difference could instead be attributed to $s_i$.
 
-5.  **Fit the model to the observed data.**\
-    Estimate the posterior distribution of the latent quantities and parameters using an inference method appropriate for the model and dataset.
+Library measurements distinguish abundance from background. They are valuable for understanding those separate contributions, although the shared $a_i+b_i$ term cancels from the model's target-versus-matrix contrast. Replicates help distinguish persistent compound effects from sample-level shifts and residual count variation.
 
-6.  **Check the computation.**\
-    Because the full DEL dataset will require variational inference, check that the evidence lower bound (ELBO) stabilises and that optimisation succeeds without numerical errors. Repeat the fit from several initialisations, confirm recovery of known parameters in simulated data, and compare posterior means and uncertainties with MCMC on a smaller representative subset. Pay particular attention to underestimated posterior variances and missed correlations, which are common limitations of variational approximations.
-
-7.  **Run posterior predictive checks.**\
-    Simulate replicated datasets from the posterior and ask whether the fitted model reproduces important features of the observed counts. A model can fit some summaries well while still missing dispersion, zero frequencies, tail behaviour, or dependence across conditions and replicates.
-
-8.  **Compare, revise, and assess sensitivity.**\
-    Revise models that fail computational or predictive checks. When several adequate models remain, compare them using scientifically relevant predictive checks and, where useful, LOO, WAIC, or stacking. Examine sensitivity to priors and structural assumptions rather than relying on a single specification.
-
-9.  **Interpret and report the target-binding signal.**\
-    Once the model is computationally reliable and predictively adequate, report the posterior target-binding propensity and its uncertainty. Interpret causal contrasts only when they are supported by the estimand, DAG, and identification assumptions.
-
-[Posterior predictive checks assess whether a fitted model can reproduce relevant features of the data; they do not, by themselves, validate the causal assumptions encoded in the DAG.]{.highlight-key-point}
-
-### Define the scientific question and estimand
-
-The scientific question is: **for each compound, how much of its target count reflects target-specific enrichment rather than starting abundance, non-specific matrix retention, or replicate-level technical variation?** We also want to quantify how uncertain that conclusion is.
-
-The unit of inference is compound $i$. For each compound, we observe:
-
-- A pre-selection library count [$C_{l,i}$]{style="color:#b48ead"},
-- Replicate-level matrix counts, [$C_{m,i,r}$]{style="color:#5e81ac"}, and
-- Replicate-level target counts, [$C_{t,i,r}$]{style="color:#d08770"}.
-
-These counts are noisy measurements generated by several overlapping latent processes; none is itself a direct measurement of binding.
-
-**The primary estimand is the compound-specific latent target-binding propensity** [$s_i$]{style="color:#bf616a"}. We define [$s_i$]{style="color:#bf616a"} as the contribution to the expected target count that remains after separating the effects of:
-
-- Input abundance [$a_i$]{style="color:#a3be8c"},
-- Matrix background [$b_i$]{style="color:#88c0d0"}, and
-- Target-replicate variation [$\gamma_{t,r}$]{style="color:#d08770"}.
-
-Its precise numerical scale, additive, multiplicative, or log-scale, will be determined when the link function and generative model are specified.
-
-In Bayesian terms, the inferential target is the joint posterior distribution:
-
-$$p\left(\textcolor{#bf616a}{s_i} \mid \mathbf{C}_l,\mathbf{C}_m,\mathbf{C}_t\right),$$
-
-from which we can report a posterior estimate and credible interval for each compound, as well as posterior probabilities or rankings defined by scientifically meaningful thresholds. The remaining latent quantities and dispersion parameters are necessary for the model, but they are secondary to the scientific target [$s_i$]{style="color:#bf616a"}.
-
-[The estimand is not a raw target-to-library or target-to-matrix count ratio. It is a model-based latent quantity whose interpretation depends on the assumed data-generating process and on whether the available counts can distinguish target-specific enrichment from abundance, background, and technical variation.]{.highlight-key-point}
+Consider three illustrative compounds. A has high input abundance, B has additional matrix retention, and C has additional target-specific enrichment. Suppose sequencing exposures are equal and replicate effects are zero. All three can have the same expected target count:
 
 ### State the causal and measurement assumptions (DAG first)
 
