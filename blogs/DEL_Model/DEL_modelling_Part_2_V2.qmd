@@ -170,7 +170,7 @@ def show_figure(fig):
 #| fig-width: 9
 #| fig-height: 3.3
 
-example_means = np.array([[300, 300, 300], [100, 300, 300], [100, 100, 300]])
+example_means = np.array([[10, 10, 10], [1, 10, 10], [1, 1, 10]])
 fig, axes = new_figure(1, 3, figsize=(9, 3.3), sharey=True)
 for ax, values, title in zip(axes, example_means,
                            ["A: abundant input", "B: matrix retention",
@@ -183,7 +183,7 @@ for ax, values, title in zip(axes, example_means,
         ax.annotate(str(y), (x, y), xytext=(0, 10), textcoords="offset points",
                     ha="center", fontsize=8, color="black")
     ax.set(xticks=range(3), xticklabels=["Library", "Matrix", "Target"],
-           ylim=(0, 370), xlim=(-0.3, 2.3), yticks=[0, 100, 200, 300])
+           ylim=(0, 13), xlim=(-0.3, 2.3), yticks=[0, 5, 10])
     panel_title(ax, title)
 axes[0].set_ylabel("Expected count (reads)")
 show_figure(fig)
