@@ -100,9 +100,100 @@ Comparing these measurements allows us to distinguish the contributions, subject
 
 The arrows encode a modelling assumption: **the same abundance and background effects enter the matrix and target predictors with the same coefficients**. This shared contribution is what allows the target-versus-matrix comparison to isolate target-specific enrichment. If background behaves differently in the target experiment, some of that difference could instead be attributed to $s_i$.
 
-Library measurements distinguish abundance from background. They are valuable for understanding those separate contributions, although the shared $a_i+b_i$ term cancels from the model's target-versus-matrix contrast. Replicates help distinguish persistent compound effects from sample-level shifts and residual count variation.
+Library measurements distinguish abundance from background. They are valuable for understanding those separate contributions, although the shared $a_i+b_i$ term cancels from the model's target-versus-matrix contrast:
+
+$$
+\underbrace{(a_i+b_i+s_i)}_{\text{target}}-\underbrace{(a_i+b_i)}_{\text{matrix}}
+=s_i.
+$$
+
+Replicates help distinguish persistent compound effects from sample-level shifts and residual count variation.
 
 Consider three illustrative compounds. A has high input abundance, B has additional matrix retention, and C has additional target-specific enrichment. Suppose sequencing exposures are equal and replicate effects are zero. All three can have the same expected target count:
+
+
+```{python}
+#| label: revised-plot-setup
+#| include: false
+
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties, findfont
+from matplotlib.text import Text
+from matplotlib.ticker import MaxNLocator, ScalarFormatter, NullFormatter
+from plotnine import theme_minimal
+from scipy.stats import halfnorm, nbinom, poisson
+
+# Match the typography and minimal theme used in the original article.
+PLOT_RC = theme_minimal().rcParams
+BASE_SIZE = PLOT_RC["font.size"]
+with plt.rc_context(PLOT_RC):
+    PLOT_FONT = FontProperties(
+        fname=findfont(FontProperties(family=["sans-serif"]))
+    ).get_name()
+
+COLORS = {"library": "#b48ead", "matrix": "#5e81ac", "target": "#d08770",
+          "prior": "#277F8E", "poisson": "#65758B",
+          "median": "#8B6BA8", "upper": "#C58B47"}
+
+def new_figure(*args, **kwargs):
+    with plt.rc_context(PLOT_RC):
+        return plt.subplots(*args, layout="constrained", **kwargs)
+
+def style_axis(ax):
+    ax.set_facecolor("white")
+    ax.set_axisbelow(True)
+    ax.spines[:].set_visible(False)
+    ax.grid(which="major", color="#E5E5E5", linewidth=1)
+    ax.grid(which="minor", color="#FAFAFA", linewidth=0.5)
+    ax.tick_params(which="both", length=0, colors="#4D4D4D",
+                   labelsize=0.8 * BASE_SIZE)
+    for label in (ax.xaxis.label, ax.yaxis.label):
+        label.set_color("black")
+        label.set_fontsize(BASE_SIZE)
+
+def panel_title(ax, title):
+    ax.set_title(title, loc="left", fontsize=BASE_SIZE,
+                 color="black", weight="bold", pad=12)
+
+def show_figure(fig):
+    # Apply the same resolved font to annotations and tick labels as well.
+    fig.canvas.draw()
+    for item in fig.findobj(Text):
+        item.set_fontfamily(PLOT_FONT)
+    plt.show()
+```
+
+```{python}
+#| label: fig-revised-three-compounds
+#| fig-cap: "Three illustrative compounds with the same expected target count. Equal sequencing exposures make the comparison direct. These are chosen expected counts, not observations or fitted estimates; their different patterns reveal why all three measurement types are useful."
+#| fig-width: 9
+#| fig-height: 3.3
+
+example_means = np.array([[300, 300, 300], [100, 300, 300], [100, 100, 300]])
+fig, axes = new_figure(1, 3, figsize=(9, 3.3), sharey=True)
+for ax, values, title in zip(axes, example_means,
+                           ["A: abundant input", "B: matrix retention",
+                            "C: target enrichment"]):
+    style_axis(ax)
+    ax.plot(range(3), values, color=COLORS["poisson"], linewidth=1.3)
+    ax.scatter(range(3), values, c=[COLORS[k] for k in ("library", "matrix", "target")],
+               s=55, zorder=3)
+    for x, y in enumerate(values):
+        ax.annotate(str(y), (x, y), xytext=(0, 10), textcoords="offset points",
+                    ha="center", fontsize=8, color="black")
+    ax.set(xticks=range(3), xticklabels=["Library", "Matrix", "Target"],
+           ylim=(0, 370), xlim=(-0.3, 2.3), yticks=[0, 100, 200, 300])
+    panel_title(ax, title)
+axes[0].set_ylabel("Expected count (reads)")
+show_figure(fig)
+```
+
+
+
+
+
+
 
 ### State the causal and measurement assumptions (DAG first)
 
