@@ -189,11 +189,15 @@ axes[0].set_ylabel("Expected count (reads)")
 show_figure(fig)
 ```
 
+A target count near 10 would not distinguish these explanations. The library and matrix measurements provide the context. In real data, every count fluctuates, so we estimate all effects jointly and retain uncertainty rather than subtracting counts in a fixed sequence.
 
+The counts can be related because they share some of the same causes. For example, greater input abundance [$a_i$]{style="color:#a3be8c"} can raise both the matrix and target counts for a compound. Greater background retention [$b_i$]{style="color:#88c0d0"} can do the same. A replicate effect can also raise or lower the expected counts of all compounds in that sample.
 
+If we knew all the effects and model parameters, the model assumes that the remaining random fluctuations in the counts would be independent. This is **conditional independence**. But those quantities are uncertain, and the counts can be related through that shared uncertainty.
 
+Our estimates of the effects can also be linked. Suppose a compound has a high target count. Holding abundance and the sample-level terms fixed, we could explain that count with more background [$b_i$]{style="color:#88c0d0"} and less enrichment [$s_i$]{style="color:#bf616a"}, or with less background and more enrichment. The target measurement informs their sum, $b_i+s_i$, so increasing one can leave less of the other needed to explain the same count. Matrix measurements help narrow down the background contribution, but their own uncertainty means this trade-off can remain.
 
-
+This link between plausible effect values after seeing the data is called **posterior dependence**. It is expected when we estimate the effects together. The DAG describes how the effects contribute to the measurements; it does not imply that our estimates of those effects will be independent.
 
 ### State the causal and measurement assumptions (DAG first)
 
