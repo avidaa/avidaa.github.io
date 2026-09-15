@@ -208,11 +208,11 @@ axes[0].set_ylabel("Expected count (reads)", labelpad=10, color="#3b4252")
 show_figure(fig)
 ```
 
-A target count near 10 would not distinguish these explanations. The library and matrix measurements provide the context. In real data, every count fluctuates, so we estimate all effects jointly and retain uncertainty rather than subtracting counts in a fixed sequence.
+A target count near 10 would not distinguish these explanations. The measurements share several causes: input abundance [$a_i$]{style="color:#a3be8c"} contributes to all three conditions, and background retention [$b_i$]{style="color:#88c0d0"} contributes to both matrix and target counts. A replicate effect can also raise or lower the expected counts of all compounds in that sample. These shared causes can make the counts related.
 
-The counts can be related because they share some of the same causes. For example, greater input abundance [$a_i$]{style="color:#a3be8c"} can raise both the matrix and target counts for a compound. Greater background retention [$b_i$]{style="color:#88c0d0"} can do the same. A replicate effect can also raise or lower the expected counts of all compounds in that sample.
+Using the measurements together helps us separate these contributions. Library measurements inform input abundance; matrix measurements provide additional information about background retention. Together, they help us assess how much of the target count requires target-specific enrichment [$s_i$]{style="color:#bf616a"} after accounting for sample-level effects.
 
-We estimate the effects together because each measurement provides only part of the explanation. After accounting for input abundance and sample-level effects, a high target count could reflect greater background retention [$b_i$]{style="color:#88c0d0"}, greater target-specific enrichment [$s_i$]{style="color:#bf616a"}, or both. Matrix measurements help us estimate the background contribution, but they are noisy. Uncertainty about background therefore carries through to our estimate of target-specific enrichment.
+In real data, however, every count fluctuates, so none of these measurements gives an exact answer. If the background contribution is uncertain, the enrichment needed to explain a target count is uncertain too: more background can leave less enrichment needed, and vice versa. We therefore estimate all effects jointly, allowing uncertainty about abundance, background, and sample-level effects to carry through to our estimate of enrichment.
 
 ## From latent effects to expected counts
 
