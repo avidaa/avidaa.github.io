@@ -226,7 +226,7 @@ Define known exposure offsets:
 
 $$E_l=K_l/N,\qquad E_{m,r}=K_{m,r}/N,\qquad E_{t,r}=K_{t,r}/N.$$
 
-For example, if a sample has $K=10{,}000$ usable reads and the library contains $N=100$ compounds, then $E=K/N=100$. Each compound would receive 100 reads if the reads were shared equally. This is a reference value, not the actual count for every compound. The model adjusts it using the condition baseline and the abundance [$a_i$]{style="color:#a3be8c"}, background [$b_i$]{style="color:#88c0d0"}, enrichment [$s_i$]{style="color:#bf616a"}, and replicate effects ($\gamma_{m,r}$ for matrix or $\gamma_{t,r}$ for target) that apply to each measurement. Doubling $E$ while keeping all these terms fixed doubles each compound's expected count.
+For example, if a sample has $K=10{,}000$ usable reads and the library contains $N=100$ compounds, then $E=K/N=100$. Each compound would receive 100 reads if the reads were shared equally. This is a reference value, not the actual count for every compound. The model adjusts it using the condition baseline and the abundance [$a_i$]{style="color:#a3be8c"}, background [$b_i$]{style="color:#88c0d0"}, enrichment [$s_i$]{style="color:#bf616a"}, and replicate effects ($\gamma_{m,r}$ for matrix or $\gamma_{t,r}$ for target) that apply to each measurement.
 
 
 ## Clean up these sections.
