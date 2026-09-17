@@ -228,6 +228,25 @@ $$E_l=K_l/N,\qquad E_{m,r}=K_{m,r}/N,\qquad E_{t,r}=K_{t,r}/N.$$
 
 For example, if a sample has $K=10{,}000$ usable reads and the library contains $N=100$ compounds, then $E=K/N=100$. Each compound would receive 100 reads if the reads were shared equally. This is a reference value, not the actual count for every compound. The model adjusts it using the condition baseline and the abundance [$a_i$]{style="color:#a3be8c"}, background [$b_i$]{style="color:#88c0d0"}, enrichment [$s_i$]{style="color:#bf616a"}, and replicate effects ($\gamma_{m,r}$ for matrix or $\gamma_{t,r}$ for target) that apply to each measurement.
 
+### Combine the contributions on the log scale
+
+We add the contributions on the log scale, then exponentiate the result to obtain the expected count, $\mu$. We call the sum $\eta$, so $\eta=\log\mu$ and $\mu=e^\eta$. This keeps the expected count positive, even when some effects are negative. For the three conditions, the sums are:
+
+$$\begin{aligned}
+\eta_{l,i}=\log\mu_{l,i}
+ &=\log E_l+\alpha_l+\textcolor{#a3be8c}{a_i},\\
+\eta_{m,i,r}=\log\mu_{m,i,r}
+ &=\log E_{m,r}+\alpha_m+\textcolor{#a3be8c}{a_i}
+   +\textcolor{#88c0d0}{b_i}+\gamma_{m,r},\\
+\eta_{t,i,r}=\log\mu_{t,i,r}
+ &=\log E_{t,r}+\alpha_t+\textcolor{#a3be8c}{a_i}
+   +\textcolor{#88c0d0}{b_i}+\textcolor{#bf616a}{s_i}+\gamma_{t,r}.
+\end{aligned}$$
+
+
+The condition intercept $\alpha_c \\ (c \in \{l, m, t\})$ describes the overall baseline after accounting for exposure $E_c \\ (c \in \{l, m, t\})$. The replicate effect $\gamma_{c,r} \\ (c \in \{m, t\})$ shifts all compounds in one matrix or target sample. We have one library measurement here, so there is no separate library-replicate term.
+
+
 
 ## Clean up these sections.
 ##### Identifying the four path structures in the DEL DAG
