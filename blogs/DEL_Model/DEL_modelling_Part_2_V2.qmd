@@ -246,6 +246,7 @@ $$\begin{aligned}
 
 The condition intercept $\alpha_c \\ (c \in \{l, m, t\})$ describes the overall baseline after accounting for exposure $E_c \\ (c \in \{l, m, t\})$. The replicate effect $\gamma_{c,r} \\ (c \in \{m, t\})$ shifts all compounds in one matrix or target sample. We have one library measurement here, so there is no separate library-replicate term.
 
+### Give zero an unambiguous meaning
 
 
 ## Clean up these sections.
