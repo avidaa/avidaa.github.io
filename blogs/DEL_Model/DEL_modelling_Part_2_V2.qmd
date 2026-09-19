@@ -248,6 +248,12 @@ The condition intercept $\alpha_c \\ (c \in \{l, m, t\})$ describes the overall 
 
 ### Give zero an unambiguous meaning
 
+Without a constraint, increasing every [$s_i$]{style="color:#bf616a"} by one and decreasing $\alpha_t$ by one leaves every expected count unchanged. Similar shifts exist for abundance, background, and replicate effects. We remove this arbitrary choice of origin by requiring:
+
+$$\sum_i a_i=\sum_i b_i=\sum_i s_i=0,
+\qquad \sum_r\gamma_{m,r}=\sum_r\gamma_{t,r}=0.$$
+
+
 
 ## Clean up these sections.
 ##### Identifying the four path structures in the DEL DAG
