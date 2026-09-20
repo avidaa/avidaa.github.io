@@ -248,12 +248,25 @@ The condition intercept $\alpha_c \\ (c \in \{l, m, t\})$ describes the overall 
 
 ### Give zero an unambiguous meaning
 
-Without a constraint, increasing every [$s_i$]{style="color:#bf616a"} by one and decreasing $\alpha_t$ by one leaves every expected count unchanged. Similar shifts exist for abundance, background, and replicate effects. We remove this arbitrary choice of origin by requiring:
+Without a constraint, increasing every [$s_i$]{style="color:#bf616a"} by one and decreasing $\alpha_t$ by one leaves every expected count unchanged. Similar shifts exist for abundance ([$a_i$]{style="color:#a3be8c"}), background ([$b_i$]{style="color:#88c0d0"}), and replicate effects ($\gamma_{m,r}$ for matrix or $\gamma_{t,r}$ for target). We remove this arbitrary choice of origin by requiring:
 
 $$\sum_i a_i=\sum_i b_i=\sum_i s_i=0,
 \qquad \sum_r\gamma_{m,r}=\sum_r\gamma_{t,r}=0.$$
 
+The intercepts $\alpha_l$, $\alpha_m$, and $\alpha_t$ then capture average log baselines, and the effects describe deviations from those averages.
 
+## Allow observed counts to vary around those means, $\mu_{c,i,r}$
+
+The mean model specifies the expected count; the likelihood specifies the spread of possible observations. We use the Negative Binomial in its NB2 parameterisation:
+
+$$\begin{aligned}
+C_{l,i}&\sim\operatorname{NB}_2(\mu_{l,i},\phi_l),\\
+C_{m,i,r}&\sim\operatorname{NB}_2(\mu_{m,i,r},\phi_m),\\
+C_{t,i,r}&\sim\operatorname{NB}_2(\mu_{t,i,r},\phi_t),
+\end{aligned}
+\qquad
+\mathbb E(C\mid\mu,\phi)=\mu,\quad
+\operatorname{Var}(C\mid\mu,\phi)=\mu+\frac{\mu^2}{\phi}.$$
 
 ## Clean up these sections.
 ##### Identifying the four path structures in the DEL DAG
