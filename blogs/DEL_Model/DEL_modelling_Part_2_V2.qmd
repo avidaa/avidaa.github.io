@@ -4,6 +4,7 @@ title: "Modelling DNA Encoded Libraries (DELs) - Part 2"
 format:
   html:
     theme: default
+    css: styles.css
     mermaid: {}
 
 jupyter:
@@ -260,13 +261,48 @@ The intercepts $\alpha_l$, $\alpha_m$, and $\alpha_t$ then capture average log b
 The mean model specifies the expected count; the likelihood specifies the spread of possible observations. We use the Negative Binomial in its NB2 parameterisation:
 
 $$\begin{aligned}
-C_{l,i}&\sim\operatorname{NB}_2(\mu_{l,i},\phi_l),\\
-C_{m,i,r}&\sim\operatorname{NB}_2(\mu_{m,i,r},\phi_m),\\
-C_{t,i,r}&\sim\operatorname{NB}_2(\mu_{t,i,r},\phi_t),
-\end{aligned}
+Count_{l,i}&\sim\operatorname{NB}_2(\mu_{l,i},\phi_l),\\
+Count_{m,i,r}&\sim\operatorname{NB}_2(\mu_{m,i,r},\phi_m),\\
+Count_{t,i,r}&\sim\operatorname{NB}_2(\mu_{t,i,r},\phi_t).
+\end{aligned}$$
+
+$$
+\mathbb E(Count\mid\mu,\phi)=\mu,
 \qquad
-\mathbb E(C\mid\mu,\phi)=\mu,\quad
-\operatorname{Var}(C\mid\mu,\phi)=\mu+\frac{\mu^2}{\phi}.$$
+\operatorname{Var}(Count\mid\mu,\phi)
+=\underbrace{\mu}_{\text{Poisson noise}}
++\underbrace{\frac{\mu^2}{\phi}}_{\text{additional variation}}.
+$$
+
+The first variance term is ordinary Poisson counting noise. The second allows additional variation, beyond Poisson noise. The inverse of parameter $\phi_c$ controls the **overdispersion** for condition $c$.
+
+This is the mean–variance convention used in the [Stan NB2 documentation](https://mc-stan.org/docs/functions-reference/unbounded_discrete_distributions.html#nbalt).
+
+We assign one dispersion parameter, $\phi_c$, to each condition $c \in \{l, m, t\}$, shared across its compounds and replicates. It describes residual variation after the mean effects have been accounted for. 
+
+[Increasing dispersion does not systematically raise a compound's expected count; it makes observations around that expectation more variable.]{.highlight-key-point}
+
+To make the amount of overdispersion easier to interpret, define
+
+$$\kappa_c=\phi_c^{-1/2},\qquad
+\operatorname{SD}(C\mid\mu,\kappa_c)=\sqrt{\mu+\mu^2\kappa_c^2}.$$
+
+Larger $\kappa_c$ means greater spread. The limit $\kappa_c=0$ is Poisson sampling.
+
+::: {.callout-note collapse="true" icon="false"}
+## Why introduce $\kappa_c$ instead of putting a prior on $\phi_c$?
+
+A prior directly on $\phi_c$ is valid. Its interpretation is less convenient: smaller values mean more variation, and the Poisson limit occurs at infinity. The transformation puts that limit at zero and makes increasing values correspond to increasing overdispersion. It changes neither the likelihood family nor identifiability; choosing a prior on the transformed parameter is still a substantive modelling choice.
+
+The coefficient of variation expresses standard deviation as a fraction of the mean:
+
+$$\operatorname{CV}(C\mid\mu,\kappa_c)
+=\frac{\operatorname{SD}(C\mid\mu,\kappa_c)}{\mathbb E(C\mid\mu,\kappa_c)}
+=\frac{\sqrt{\mu+\mu^2\kappa_c^2}}{\mu}
+=\sqrt{\frac1\mu+\kappa_c^2}.$$
+
+The denominator is $\mu$ because this remains the Negative Binomial mean, whatever the dispersion. When $1/\mu$ is small compared with $\kappa_c^2$, the CV is close to $\kappa_c$. This gives a convenient interpretation of the prior, but the exact expression is needed for low counts. The two variance contributions are added inside the square root; their separate square roots are not added.
+:::
 
 ## Clean up these sections.
 ##### Identifying the four path structures in the DEL DAG
