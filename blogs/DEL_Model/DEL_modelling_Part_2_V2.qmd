@@ -294,14 +294,15 @@ Larger $\kappa_c$ means greater spread. The limit $\kappa_c=0$ is Poisson sampli
 
 A prior directly on $\phi_c$ is valid. Its interpretation is less convenient: smaller values mean more variation, and the Poisson limit occurs at infinity. The transformation puts that limit at zero and makes increasing values correspond to increasing overdispersion. It changes neither the likelihood family nor identifiability; choosing a prior on the transformed parameter is still a substantive modelling choice.
 
-The coefficient of variation expresses standard deviation as a fraction of the mean:
+We use the **coefficient of variation (CV)** to express count variation relative to the expected count. This helps us interpret the range of variation allowed by a prior on $\kappa_c$. For example, a standard deviation of 20 reads is 20% of an expected count of 100, but only 2% of an expected count of 1,000. The CV makes this comparison by dividing the standard deviation by the mean:
 
 $$\operatorname{CV}(C\mid\mu,\kappa_c)
 =\frac{\operatorname{SD}(C\mid\mu,\kappa_c)}{\mathbb E(C\mid\mu,\kappa_c)}
 =\frac{\sqrt{\mu+\mu^2\kappa_c^2}}{\mu}
 =\sqrt{\frac1\mu+\kappa_c^2}.$$
 
-The denominator is $\mu$ because this remains the Negative Binomial mean, whatever the dispersion. When $1/\mu$ is small compared with $\kappa_c^2$, the CV is close to $\kappa_c$. This gives a convenient interpretation of the prior, but the exact expression is needed for low counts. The two variance contributions are added inside the square root; their separate square roots are not added.
+When the expected count, $\mu$, is large enough then $1/\mu$ is small compared with $\kappa_c^2$, the CV is close to $\kappa_c$. When $\mu$ is small, the $1/\mu$ term contributes more, so the CV can be much larger than $\kappa_c$. This means that low counts can show large fluctuations relative to their mean, even when overdispersion is small.
+
 :::
 
 ## Clean up these sections.
