@@ -85,11 +85,12 @@ For each compound $i$, the measurements are a library count $C_{l,i}$, matrix co
 :::
 
 ### Our quantity of interest is $s_i$
+
 $s_i$ is the compound’s target-specific log effect relative to the average compound in this experiment. Its exponential, $e^{s_i}$, is a relative multiplier of the expected target count after accounting for the model’s other terms.
 
 ## How the three measurements separate the effects?
 
-The model’s central structure is simple: 
+The model’s central structure is simple:
 
 - library counts inform [$a_i$]{style="color:#a3be8c"}.
 - matrix counts inform [$a_i$]{style="color:#a3be8c"} $+$ [$b_i$]{style="color:#88c0d0"}.
@@ -103,15 +104,12 @@ The arrows encode a modelling assumption: **the same abundance and background ef
 
 Library measurements distinguish abundance from background. They are valuable for understanding those separate contributions, although the shared $a_i+b_i$ term cancels from the model's target-versus-matrix contrast:
 
-$$
-\underbrace{(a_i+b_i+s_i)}_{\text{target}}-\underbrace{(a_i+b_i)}_{\text{matrix}}
-=s_i.
-$$
+$$\underbrace{(a_i+b_i+s_i)}_{\text{target}}-\underbrace{(a_i+b_i)}_{\text{matrix}}
+=s_i.$$
 
 Replicates help distinguish persistent compound effects from sample-level shifts and residual count variation.
 
 Consider three illustrative compounds. A has high input abundance, B has additional matrix retention, and C has additional target-specific enrichment. Suppose sequencing exposures are equal and replicate effects are zero. All three can have the same expected target count:
-
 
 ```{python}
 #| label: revised-plot-setup
@@ -219,9 +217,9 @@ In real data, however, every count fluctuates, so none of these measurements giv
 
 ### Account for sequencing depth
 
-A sample with twice as many usable reads offers roughly twice as much opportunity to observe each compound. 
+A sample with twice as many usable reads offers roughly twice as much opportunity to observe each compound.
 
-Let $K_l$, $K_{m,r}$, and $K_{t,r}$ be the usable read totals and $N$ the number of compounds. 
+Let $K_l$, $K_{m,r}$, and $K_{t,r}$ be the usable read totals and $N$ the number of compounds.
 
 Define known exposure offsets:
 
@@ -244,7 +242,6 @@ $$\begin{aligned}
    +\textcolor{#88c0d0}{b_i}+\textcolor{#bf616a}{s_i}+\gamma_{t,r}.
 \end{aligned}$$
 
-
 The condition intercept $\alpha_c \\ (c \in \{l, m, t\})$ describes the overall baseline after accounting for exposure $E_c \\ (c \in \{l, m, t\})$. The replicate effect $\gamma_{c,r} \\ (c \in \{m, t\})$ shifts all compounds in one matrix or target sample. We have one library measurement here, so there is no separate library-replicate term.
 
 ### Give zero an unambiguous meaning
@@ -266,19 +263,17 @@ Count_{m,i,r}&\sim\operatorname{NB}_2(\mu_{m,i,r},\phi_m),\\
 Count_{t,i,r}&\sim\operatorname{NB}_2(\mu_{t,i,r},\phi_t).
 \end{aligned}$$
 
-$$
-\mathbb E(Count\mid\mu,\phi)=\mu,
+$$\mathbb E(Count\mid\mu,\phi)=\mu,
 \qquad
 \operatorname{Var}(Count\mid\mu,\phi)
 =\underbrace{\mu}_{\text{Poisson noise}}
-+\underbrace{\frac{\mu^2}{\phi}}_{\text{additional variation}}.
-$$
++\underbrace{\frac{\mu^2}{\phi}}_{\text{additional variation}}.$$
 
 The first variance term is ordinary Poisson counting noise. The second allows additional variation, beyond Poisson noise. The inverse of parameter $\phi_c$ controls the **overdispersion** for condition $c$.
 
 This is the mean–variance convention used in the [Stan NB2 documentation](https://mc-stan.org/docs/functions-reference/unbounded_discrete_distributions.html#nbalt).
 
-We assign one dispersion parameter, $\phi_c$, to each condition $c \in \{l, m, t\}$, shared across its compounds and replicates. It describes residual variation after the mean effects have been accounted for. 
+We assign one dispersion parameter, $\phi_c$, to each condition $c \in \{l, m, t\}$, shared across its compounds and replicates. It describes residual variation after the mean effects have been accounted for.
 
 [Increasing dispersion does not systematically raise a compound's expected count; it makes observations around that expectation more variable.]{.highlight-key-point}
 
@@ -303,9 +298,83 @@ $$\operatorname{CV}(C\mid\mu,\kappa_c)
 
 When the expected count, $\mu$, is large enough then $1/\mu$ is small compared with $\kappa_c^2$, the CV is close to $\kappa_c$. When $\mu$ is small, the $1/\mu$ term contributes more, so the CV can be much larger than $\kappa_c$. This means that low counts can show large fluctuations relative to their mean, even when overdispersion is small.
 
+With no overdispersion, $\kappa_c=0$, so:
+
+$$SD = \sqrt{\mu} \quad \text{and} \quad CV = \frac{\sqrt{\mu}}{\mu} = \frac{1}{\sqrt{\mu}}$$
+
+This is the Poisson sampling noise. For example:
+
+- if $\mu = 1$, then $SD = 1$ read. That is 100% of the expected count.
+- if $\mu = 100$, then $SD = 10$ reads. That is 10% of the expected count.
+
+[Low expected counts can be proportionally noisy without needing any extra variation beyond ordinary counting noise, that is ordinary Poisson counting noise.]{.highlight-key-point}
 :::
 
+## Priors: how much variation do we expect?
+
+### Baselines and partial pooling
+
+Each condition baseline receives $\alpha_c\sim\operatorname{Normal}(0,1)$.
+
+```{python}
+#| label: fig-baseline-count-interpretation
+#| fig-cap: "Count-scale interpretation of the condition baseline prior. With exposure E = 100 and compound and replicate effects set to zero, the baseline expected count is 100 exp(α). Shading contains the central 95% of prior probability; the median is 100 reads. The tails continue beyond this interval. This is a prior for the baseline expected count, not a prediction interval for observed counts or the arithmetic average across compounds."
+#| fig-width: 9
+#| fig-height: 3.8
+#| fig-dpi: 180
+
+from scipy.stats import norm, lognorm
+
+baseline_exposure = 100
+baseline_prior = lognorm(s=1, scale=baseline_exposure)
+baseline_lower, baseline_median, baseline_upper = baseline_prior.ppf([0.025, 0.5, 0.975])
+baseline_grid = np.linspace(0.1, 1000, 2000)
+baseline_density = baseline_prior.pdf(baseline_grid)
+alpha_grid = np.linspace(-3.5, 3.5, 800)
+alpha_bounds = norm.ppf([0.025, 0.975])
+
+fig, axes = new_figure(1, 2, figsize=(9, 3.8))
+for ax in axes:
+    style_axis(ax)
+    ax.grid(False, axis="x")
+    ax.set_ylim(bottom=0)
+
+axes[0].plot(alpha_grid, norm.pdf(alpha_grid), color=COLORS["matrix"], lw=2)
+axes[0].fill_between(alpha_grid, norm.pdf(alpha_grid),
+                     where=(alpha_grid >= alpha_bounds[0]) & (alpha_grid <= alpha_bounds[1]),
+                     color=COLORS["matrix"], alpha=0.2)
+axes[0].axvline(0, color=COLORS["median"], ls="--", lw=1.3)
+axes[0].set(xlabel=r"Condition baseline $\alpha_c$", ylabel="Prior density",
+            xlim=(-3.5, 3.5), ylim=(0, 0.49))
+panel_title(axes[0], r"Log scale: $\alpha_c \sim \mathrm{Normal}(0,1)$")
+axes[0].text(0.5, 0.95, "Median 0 · Central 95%: −1.96 to 1.96",
+              transform=axes[0].transAxes, ha="center", va="top",
+              fontsize=0.8 * BASE_SIZE, color="#3b4252",
+              bbox={"facecolor": "white", "edgecolor": "none", "pad": 3})
+
+axes[1].plot(baseline_grid, baseline_density, color=COLORS["prior"], lw=2)
+axes[1].fill_between(baseline_grid, baseline_density,
+                     where=(baseline_grid >= baseline_lower) & (baseline_grid <= baseline_upper),
+                     color=COLORS["prior"], alpha=0.2)
+axes[1].axvline(baseline_median, color=COLORS["median"], ls="--", lw=1.3)
+for bound in (baseline_lower, baseline_upper):
+    axes[1].vlines(bound, 0, baseline_prior.pdf(bound),
+                   color=COLORS["prior"], lw=1, alpha=0.6)
+axes[1].set(xlabel="Baseline expected count (reads)", ylabel="Prior density",
+            xlim=(0, 1000), ylim=(0, baseline_density.max() * 1.15))
+panel_title(axes[1], r"Count scale: $\mu_{\mathrm{baseline}}=100e^{\alpha_c}$")
+axes[1].text(0.96, 0.93,
+              f"Exposure: {baseline_exposure} reads\n"
+              f"Median: {baseline_median:.0f} reads\n"
+              f"Central 95%: {baseline_lower:.0f}–{baseline_upper:.0f} reads",
+              transform=axes[1].transAxes, ha="right", va="top",
+              fontsize=0.85 * BASE_SIZE, linespacing=1.6, color="#3b4252",
+              bbox={"facecolor": "white", "edgecolor": "none", "pad": 3})
+show_figure(fig)
+```
+
 ## Clean up these sections.
+
 ##### Identifying the four path structures in the DEL DAG
 
 Before writing the statistical model, we can use the four elemental path structures to describe the causal assumptions in @fig-dag-with-latent-factors-and-replicates.
