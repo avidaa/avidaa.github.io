@@ -373,6 +373,20 @@ axes[1].text(0.96, 0.93,
 show_figure(fig)
 ```
 
+
+The compound and replicate effects are not given independent fixed-width priors. Each group shares a population scale, so the amount of variation among compounds or among replicates is learned from the data. We place Half-Normal priors on those scales:
+
+$$\begin{aligned}
+\sigma_a,\sigma_b
+    &\sim \operatorname{HalfNormal}(0,0.75), \\
+\sigma_s
+    &\sim \operatorname{HalfNormal}(0,0.50), \\
+\sigma_{\gamma_m},\sigma_{\gamma_t}
+    &\sim \operatorname{HalfNormal}(0,0.25).
+\end{aligned}$$
+
+Each $\sigma$ is a non-negative population standard deviation on the log scale.
+
 ## Clean up these sections.
 
 ##### Identifying the four path structures in the DEL DAG
