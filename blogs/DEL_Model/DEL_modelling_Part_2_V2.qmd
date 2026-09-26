@@ -312,7 +312,7 @@ This is the Poisson sampling noise. For example:
 
 ## Priors: how much variation do we expect?
 
-### Baselines and partial pooling
+### Condition baselines
 
 Each condition baseline receives $\alpha_c\sim\operatorname{Normal}(0,1)$.
 
@@ -374,9 +374,92 @@ show_figure(fig)
 ```
 
 
-Each type of effect has its own shared scale. For example, $\sigma_a$ controls how much input abundance varies between compounds, while $\sigma_{\gamma_m}$ controls how much matrix replicate effects vary between samples.
+### Compound and replicate effects
 
-**A small scale keeps the effects close to zero; a large scale allows greater differences.** We do not fix these scales in advance. We estimate them from the data, using the following priors to describe plausible values:
+#### 1. Start with a shared population scale
+
+For input abundance, we describe variation between compounds in two levels:
+
+$$\begin{aligned}
+\sigma_a
+    &\sim\operatorname{HalfNormal}(0,0.75),
+    &&\text{population level},\\
+a_i^*\mid\sigma_a
+    &\sim\operatorname{Normal}(0,\sigma_a^2),
+    &&\text{compound level}.
+\end{aligned}$$
+
+First, we draw one scale $\sigma_a$ for the whole group. Given that scale, we draw a preliminary effect $a_i^*$ independently for each compound. Here, $\operatorname{Normal}(0,\sigma_a^2)$ denotes a Normal distribution with mean zero and **variance** $\sigma_a^2$, so its standard deviation is $\sigma_a$.
+
+**A small $\sigma_a$ keeps the preliminary effects close to zero; a large $\sigma_a$ allows greater differences between compounds.** We do not fix this scale in advance. The Half-Normal prior describes plausible values, and the data update our knowledge of the scale and the individual effects together. Sharing a scale allows compounds with little information to be pulled towards the group centre, while compounds with stronger evidence can depart further from it. This is called **partial pooling**.
+
+The star in $a_i^*$ marks a preliminary effect, not the final [$a_i$]{style="color:#a3be8c"}. Although each preliminary effect is drawn from a distribution centred at zero, their realised average will generally not be exactly zero. The final effects must satisfy the zero-sum constraint introduced above.
+
+#### 2. Apply the zero-sum constraint {#abundance-zero-sum-construction}
+
+After drawing one preliminary effect for each compound, we calculate their arithmetic mean:
+
+$$\bar a^*=\frac{1}{N}\sum_{i=1}^{N}a_i^*.$$
+
+We then subtract this common mean from every preliminary effect:
+
+$$\textcolor{#a3be8c}{a_i}=a_i^*-\bar a^*.$$
+
+The final effects sum to zero because:
+
+$$\begin{aligned}
+\sum_{i=1}^{N}\textcolor{#a3be8c}{a_i}
+&=\sum_{i=1}^{N}(a_i^*-\bar a^*)\\
+&=\sum_{i=1}^{N}a_i^*-N\bar a^*\\
+&=\sum_{i=1}^{N}a_i^*
+  -N\left(\frac{1}{N}\sum_{i=1}^{N}a_i^*\right)\\
+&=0.
+\end{aligned}$$
+
+For example, suppose three preliminary effects are $(-0.2,\,0.4,\,0.7)$. Their mean is $0.3$, so the final effects are:
+
+$$(-0.2,\,0.4,\,0.7)-0.3=(-0.5,\,0.1,\,0.4),$$
+
+which sum to zero. Subtracting the same mean preserves the differences between compounds and gives their effects a common reference point.
+
+#### 3. Use a non-centred implementation {#abundance-non-centred-construction}
+
+We implement the same prior by separating standard Normal variation from the unknown scale. This is called a **non-centred parameterisation**. First, we draw an independent standard Normal variable for each compound:
+
+$$z_{a,i}\sim\operatorname{Normal}(0,1),
+\qquad i=1,\ldots,N.$$
+
+Multiplying by $\sigma_a$ gives the preliminary effect:
+
+$$a_i^*=\sigma_a z_{a,i},
+\qquad
+a_i^*\mid\sigma_a\sim\operatorname{Normal}(0,\sigma_a^2).$$
+
+These preliminary effects still need to be centred. Their mean is:
+
+$$\begin{aligned}
+\bar a^*
+&=\frac{1}{N}\sum_{i=1}^{N}\sigma_a z_{a,i}\\
+&=\sigma_a\bar z_a,
+\qquad \bar z_a=\frac{1}{N}\sum_{i=1}^{N}z_{a,i}.
+\end{aligned}$$
+
+Substituting into the zero-sum transformation gives:
+
+$$\begin{aligned}
+\textcolor{#a3be8c}{a_i}
+&=a_i^*-\bar a^*\\
+&=\sigma_a z_{a,i}-\sigma_a\bar z_a\\
+&=\sigma_a\left(z_{a,i}-\bar z_a\right).
+\end{aligned}$$
+
+This construction gives final effects whose spread is controlled by $\sigma_a$ and whose sum is exactly zero. The centring step links the final effects: if one changes, the others must still balance it so that their sum stays zero.
+
+#### 4. Apply the same construction to the other effects
+
+We repeat this calculation separately for background [$b_i$]{style="color:#88c0d0"}, enrichment [$s_i$]{style="color:#bf616a"}, and the matrix and target replicate effects $\gamma_{m,r}$ and $\gamma_{t,r}$. Each group has its own scale and its own standard Normal variables. We subtract the mean across compounds for each compound-effect group, and across replicates within each condition for the replicate effects.
+
+We use the following priors for the scales:
 
 $$\begin{aligned}
 \sigma_a,\sigma_b
@@ -389,7 +472,9 @@ $$\begin{aligned}
 
 Each $\sigma$ controls the spread of its group's effects on the log scale. The Half-Normal prior keeps it non-negative. Its second argument sets the prior's spread: **$0.75$ is neither a fixed value of $\sigma$ nor an upper limit.** These choices allow broader variation in abundance and background, less in target-specific enrichment, and still less in replicate effects.
 
-To see what this means for counts, start with a baseline expected count of 100 and apply one effect $x$:
+#### What do these priors imply for counts?
+
+To see what this means for counts, start with a baseline expected count of 100 and apply one final, centred effect $x$:
 
 $$\mu=100e^x.$$
 
