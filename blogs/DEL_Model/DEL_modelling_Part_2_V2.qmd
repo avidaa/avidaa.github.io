@@ -376,43 +376,47 @@ show_figure(fig)
 
 ### Compound and replicate effects
 
+We use the same three steps for every group of effects. Let $g$ identify the group, $j$ identify a member of that group, and $n_g$ be the number of members. A member is a compound for abundance, background, or enrichment, and a sample for replicate effects. We write $x_{g,j}$ for a generic effect.
+
 #### 1. Start with a shared population scale
 
-For input abundance, we describe variation between compounds in two levels:
+We describe each group at two levels:
 
 $$\begin{aligned}
-\sigma_a
-    &\sim\operatorname{HalfNormal}(0,0.75),
+\sigma_g
+    &\sim\operatorname{HalfNormal}(0,\tau_g),
     &&\text{population level},\\
-a_i^*\mid\sigma_a
-    &\sim\operatorname{Normal}(0,\sigma_a^2),
-    &&\text{compound level}.
+x_{g,j}^*\mid\sigma_g
+    &\sim\operatorname{Normal}(0,\sigma_g^2),
+    &&\text{individual-effect level}.
 \end{aligned}$$
 
-First, we draw one scale $\sigma_a$ for the whole group. Given that scale, we draw a preliminary effect $a_i^*$ independently for each compound. Here, $\operatorname{Normal}(0,\sigma_a^2)$ denotes a Normal distribution with mean zero and **variance** $\sigma_a^2$, so its standard deviation is $\sigma_a$.
+Here, $\tau_g$ expresses our prior belief about how much variation is plausible within group $g$. We choose $\tau_g$; the model then learns the unknown scale $\sigma_g$ from the data. A smaller $\tau_g$ favours smaller scales, while a larger $\tau_g$ allows broader variation. It is neither a fixed value of $\sigma_g$ nor an upper limit.
 
-**A small $\sigma_a$ keeps the preliminary effects close to zero; a large $\sigma_a$ allows greater differences between compounds.** We do not fix this scale in advance. The Half-Normal prior describes plausible values, and the data update our knowledge of the scale and the individual effects together. Sharing a scale allows compounds with little information to be pulled towards the group centre, while compounds with stronger evidence can depart further from it. This is called **partial pooling**.
+First, we draw one $\sigma_g$ for the whole group. Given that scale, we draw a preliminary effect $x_{g,j}^*$ independently for each member. In the Normal distribution above, $\sigma_g^2$ is the **variance**, so the standard deviation is $\sigma_g$. A small $\sigma_g$ keeps the effects close to zero; a large $\sigma_g$ allows greater differences between members.
 
-The star in $a_i^*$ marks a preliminary effect, not the final [$a_i$]{style="color:#a3be8c"}. Although each preliminary effect is drawn from a distribution centred at zero, their realised average will generally not be exactly zero. The final effects must satisfy the zero-sum constraint introduced above.
+Because the members share a scale, they contribute information about how much variation the group contains. Effects with little information are pulled towards zero, while effects with stronger evidence can depart further from it. This is called **partial pooling**.
 
-#### 2. Apply the zero-sum constraint {#abundance-zero-sum-construction}
+The star marks a preliminary effect, not the final $x_{g,j}$. Although the preliminary effects come from a distribution centred at zero, their realised average will generally not be exactly zero. We therefore apply the zero-sum constraint next.
 
-After drawing one preliminary effect for each compound, we calculate their arithmetic mean:
+#### 2. Apply the zero-sum constraint {#group-zero-sum-construction}
 
-$$\bar a^*=\frac{1}{N}\sum_{i=1}^{N}a_i^*.$$
+Calculate the mean of the preliminary effects within the group:
 
-We then subtract this common mean from every preliminary effect:
+$$\bar x_g^*=\frac{1}{n_g}\sum_{j=1}^{n_g}x_{g,j}^*.$$
 
-$$\textcolor{#a3be8c}{a_i}=a_i^*-\bar a^*.$$
+Subtract this common mean from every preliminary effect to obtain the final effects:
 
-The final effects sum to zero because:
+$$x_{g,j}=x_{g,j}^*-\bar x_g^*.$$
+
+Their sum is then exactly zero:
 
 $$\begin{aligned}
-\sum_{i=1}^{N}\textcolor{#a3be8c}{a_i}
-&=\sum_{i=1}^{N}(a_i^*-\bar a^*)\\
-&=\sum_{i=1}^{N}a_i^*-N\bar a^*\\
-&=\sum_{i=1}^{N}a_i^*
-  -N\left(\frac{1}{N}\sum_{i=1}^{N}a_i^*\right)\\
+\sum_{j=1}^{n_g}x_{g,j}
+&=\sum_{j=1}^{n_g}(x_{g,j}^*-\bar x_g^*)\\
+&=\sum_{j=1}^{n_g}x_{g,j}^*-n_g\bar x_g^*\\
+&=\sum_{j=1}^{n_g}x_{g,j}^*
+  -n_g\left(\frac{1}{n_g}\sum_{j=1}^{n_g}x_{g,j}^*\right)\\
 &=0.
 \end{aligned}$$
 
@@ -420,57 +424,51 @@ For example, suppose three preliminary effects are $(-0.2,\,0.4,\,0.7)$. Their m
 
 $$(-0.2,\,0.4,\,0.7)-0.3=(-0.5,\,0.1,\,0.4),$$
 
-which sum to zero. Subtracting the same mean preserves the differences between compounds and gives their effects a common reference point.
+which sum to zero. Subtracting the same mean preserves the differences between members and gives their effects a common reference point.
 
-#### 3. Use a non-centred implementation {#abundance-non-centred-construction}
+#### 3. Use a non-centred implementation {#group-non-centred-construction}
 
-We implement the same prior by separating standard Normal variation from the unknown scale. This is called a **non-centred parameterisation**. First, we draw an independent standard Normal variable for each compound:
+We implement the same prior by separating standard Normal variation from the unknown scale. This is called a **non-centred parameterisation**. First, draw an independent standard Normal variable for each member:
 
-$$z_{a,i}\sim\operatorname{Normal}(0,1),
-\qquad i=1,\ldots,N.$$
+$$z_{g,j}\sim\operatorname{Normal}(0,1),
+\qquad j=1,\ldots,n_g.$$
 
-Multiplying by $\sigma_a$ gives the preliminary effect:
+Multiplying by $\sigma_g$ gives the preliminary effect:
 
-$$a_i^*=\sigma_a z_{a,i},
+$$x_{g,j}^*=\sigma_g z_{g,j},
 \qquad
-a_i^*\mid\sigma_a\sim\operatorname{Normal}(0,\sigma_a^2).$$
+x_{g,j}^*\mid\sigma_g\sim\operatorname{Normal}(0,\sigma_g^2).$$
 
-These preliminary effects still need to be centred. Their mean is:
-
-$$\begin{aligned}
-\bar a^*
-&=\frac{1}{N}\sum_{i=1}^{N}\sigma_a z_{a,i}\\
-&=\sigma_a\bar z_a,
-\qquad \bar z_a=\frac{1}{N}\sum_{i=1}^{N}z_{a,i}.
-\end{aligned}$$
-
-Substituting into the zero-sum transformation gives:
+The mean of these preliminary effects is $\bar x_g^*=\sigma_g\bar z_g$, where $\bar z_g=\frac{1}{n_g}\sum_j z_{g,j}$. Substituting into the zero-sum transformation gives:
 
 $$\begin{aligned}
-\textcolor{#a3be8c}{a_i}
-&=a_i^*-\bar a^*\\
-&=\sigma_a z_{a,i}-\sigma_a\bar z_a\\
-&=\sigma_a\left(z_{a,i}-\bar z_a\right).
+x_{g,j}
+&=x_{g,j}^*-\bar x_g^*\\
+&=\sigma_g z_{g,j}-\sigma_g\bar z_g\\
+&=\sigma_g\left(z_{g,j}-\bar z_g\right).
 \end{aligned}$$
 
-This construction gives final effects whose spread is controlled by $\sigma_a$ and whose sum is exactly zero. The centring step links the final effects: if one changes, the others must still balance it so that their sum stays zero.
+This gives final effects whose spread is controlled by $\sigma_g$ and whose sum is zero. Centring links the final effects: if one changes, the others must still balance it so that the sum stays zero.
 
-#### 4. Apply the same construction to the other effects
+#### Choose the prior scale for each effect group
 
-We repeat this calculation separately for background [$b_i$]{style="color:#88c0d0"}, enrichment [$s_i$]{style="color:#bf616a"}, and the matrix and target replicate effects $\gamma_{m,r}$ and $\gamma_{t,r}$. Each group has its own scale and its own standard Normal variables. We subtract the mean across compounds for each compound-effect group, and across replicates within each condition for the replicate effects.
+We now apply these three steps to each group in the DEL model. The table gives our chosen $\tau_g$ values and the assumptions they express:
 
-We use the following priors for the scales:
+| Effect group | Shared scale | Prior spread $\tau_g$ | Assumption before seeing the data |
+|:-------------|:-------------|:---------------------|:---------------------------------|
+| Input abundance [$a_i$]{style="color:#a3be8c"} | $\sigma_a$ | $0.75$ | Allow relatively broad differences in starting abundance between compounds. |
+| Matrix background [$b_i$]{style="color:#88c0d0"} | $\sigma_b$ | $0.75$ | Allow relatively broad differences in background retention between compounds. |
+| Target-specific enrichment [$s_i$]{style="color:#bf616a"} | $\sigma_s$ | $0.50$ | Favour smaller departures from zero than for abundance or background, while allowing larger enrichment effects. |
+| Matrix replicate effects $\gamma_{m,r}$ | $\sigma_{\gamma_m}$ | $0.25$ | Expect smaller shifts between matrix samples than between compounds. |
+| Target replicate effects $\gamma_{t,r}$ | $\sigma_{\gamma_t}$ | $0.25$ | Expect smaller shifts between target samples than between compounds. |
 
-$$\begin{aligned}
-\sigma_a,\sigma_b
-    &\sim \operatorname{HalfNormal}(0,0.75), \\
-\sigma_s
-    &\sim \operatorname{HalfNormal}(0,0.50), \\
-\sigma_{\gamma_m},\sigma_{\gamma_t}
-    &\sim \operatorname{HalfNormal}(0,0.25).
-\end{aligned}$$
+In each row, $\sigma_g\sim\operatorname{HalfNormal}(0,\tau_g)$. For example, the abundance row gives $\sigma_a\sim\operatorname{HalfNormal}(0,0.75)$ and the final effects [$a_i$]{style="color:#a3be8c"} are constructed as:
 
-Each $\sigma$ controls the spread of its group's effects on the log scale. The Half-Normal prior keeps it non-negative. Its second argument sets the prior's spread: **$0.75$ is neither a fixed value of $\sigma$ nor an upper limit.** These choices allow broader variation in abundance and background, less in target-specific enrichment, and still less in replicate effects.
+$$\textcolor{#a3be8c}{a_i}=\sigma_a(z_{a,i}-\bar z_a).$$
+
+We centre abundance, background, and enrichment separately across the $N$ compounds. We centre matrix and target replicate effects separately across their respective samples. Each group has its own scale and standard Normal variables; using the same prior spread for two groups does not make their scales equal.
+
+These numerical choices express starting assumptions about variation on the log scale. They do not force the fitted scales to follow this ordering, and they should be checked using prior predictive simulations and revised if they imply implausible counts.
 
 #### What do these priors imply for counts?
 
