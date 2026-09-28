@@ -376,7 +376,7 @@ show_figure(fig)
 
 ### Compound and replicate effects
 
-We use the same three steps for every group of effects. Let $g$ identify the group, $j$ identify a member of that group, and $n_g$ be the number of members. A member is a compound for abundance, background, or enrichment, and a sample for replicate effects. We write $x_{g,j}$ for a generic effect.
+We use the same three steps for every group of effects. Let $g \in \{a, b, s, \gamma_m, \gamma_t\}$ identify the group, $j$ identify a member of that group, and $n_g$ be the number of members. A member is a compound for abundance, background, or enrichment, and a sample for replicate effects. We write $x_{g,j}$ for a generic effect.
 
 #### 1. Start with a shared population scale
 
