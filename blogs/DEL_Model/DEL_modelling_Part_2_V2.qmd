@@ -376,7 +376,7 @@ show_figure(fig)
 
 ### Compound and replicate effects
 
-We use the same three steps for every group of effects. Let $g \in \{a, b, s, \gamma_m, \gamma_t\}$ identify the group, $j$ identify a member of that group, and $n_g$ be the number of members. A member is a compound for abundance, background, or enrichment, and a sample for replicate effects. We write $x_{g,j}$ for a generic effect.
+We use the same three steps for every group of effects. Let $g \in \{a, b, s, \gamma_m, \gamma_t\}$ identify the group, $j$ identify a member of that group, and $n_g$ be the number of members. We write $x_{g,j}$ for a generic effect.
 
 #### 1. Start with a shared population scale
 
@@ -391,11 +391,11 @@ x_{g,j}^*\mid\sigma_g
     &&\text{individual-effect level}.
 \end{aligned}$$
 
-Here, $\tau_g$ expresses our prior belief about how much variation is plausible within group $g$. We choose $\tau_g$; the model then learns the unknown scale $\sigma_g$ from the data. A smaller $\tau_g$ favours smaller scales, while a larger $\tau_g$ allows broader variation. It is neither a fixed value of $\sigma_g$ nor an upper limit.
+Here, $\tau_g$ expresses our prior belief about how much variation is plausible within group $g$. We choose $\tau_g$; the model then learns the unknown scale $\sigma_g$ from the data.
 
-First, we draw one $\sigma_g$ for the whole group. Given that scale, we draw a preliminary effect $x_{g,j}^*$ independently for each member. In the Normal distribution above, $\sigma_g^2$ is the **variance**, so the standard deviation is $\sigma_g$. A small $\sigma_g$ keeps the effects close to zero; a large $\sigma_g$ allows greater differences between members.
+First, we draw one $\sigma_g$ for the whole group. Given that scale, we draw a preliminary effect $x_{g,j}^*$ independently for each member.
 
-Because the members share a scale, they contribute information about how much variation the group contains. Effects with little information are pulled towards zero, while effects with stronger evidence can depart further from it. This is called **partial pooling**.
+Because the members, $x_{g,j}^*$, share a scale, $\sigma_g$, they contribute information about how much variation the group contains. Effects with little information are pulled towards zero, while effects with stronger evidence can depart further from it. This is called **partial pooling**.
 
 The star marks a preliminary effect, not the final $x_{g,j}$. Although the preliminary effects come from a distribution centred at zero, their realised average will generally not be exactly zero. We therefore apply the zero-sum constraint next.
 
@@ -428,7 +428,7 @@ which sum to zero. Subtracting the same mean preserves the differences between m
 
 #### 3. Use a non-centred implementation {#group-non-centred-construction}
 
-We implement the same prior by separating standard Normal variation from the unknown scale. This is called a **non-centred parameterisation**. First, draw an independent standard Normal variable for each member:
+We implement the same prior by separating standard Normal variation from the unknown scale. This is called a [**non-centred parameterisation**](https://betanalpha.github.io/assets/case_studies/hierarchical_modeling.html). First, draw an independent standard Normal variable for each member:
 
 $$z_{g,j}\sim\operatorname{Normal}(0,1),
 \qquad j=1,\ldots,n_g.$$
