@@ -521,7 +521,11 @@ The narrower replicate prior keeps expected counts closer to 100, while the broa
 
 ### A prior for residual dispersion, interpreted through counts
 
+We give the three conditions separate, independent dispersion draws:
 
+$$\kappa_l,\kappa_m,\kappa_t
+\overset{\mathrm{ind}}{\sim}\operatorname{HalfNormal}(0,0.50),
+\qquad \phi_c=\kappa_c^{-2}.$$
 
 
 ## Clean up these sections.
