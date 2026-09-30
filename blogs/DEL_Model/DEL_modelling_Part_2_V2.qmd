@@ -466,9 +466,8 @@ In each row, $\sigma_g\sim\operatorname{HalfNormal}(0,\tau_g)$. For example, the
 
 $$\textcolor{#a3be8c}{a_i}=\sigma_a(z_{a,i}-\bar z_a).$$
 
-We centre abundance, background, and enrichment separately across the $N$ compounds. We centre matrix and target replicate effects separately across their respective samples. Each group has its own scale and standard Normal variables; using the same prior spread for two groups does not make their scales equal.
+We apply the zero-sum transformation separately within each effect group. Each group also has its own scale. For example, abundance and background share the same prior specification, but their scales $\sigma_a$ and $\sigma_b$ are estimated separately.
 
-These numerical choices express starting assumptions about variation on the log scale. They do not force the fitted scales to follow this ordering, and they should be checked using prior predictive simulations and revised if they imply implausible counts.
 
 #### What do these priors imply for counts?
 
@@ -476,59 +475,54 @@ To see what this means for counts, start with a baseline expected count of 100 a
 
 $$\mu=100e^x.$$
 
-An effect of zero leaves the expected count at 100; positive effects increase it and negative effects decrease it. The figure below shows the range of expected counts allowed by each prior. For each simulation, we draw the group's scale, draw and centre its effects so they sum to zero, and convert one effect to an expected count. This includes uncertainty about both the scale and the individual effect.
+An effect of zero leaves the expected count at 100; positive effects increase it and negative effects decrease it. The left panel below shows our priors for the shared scales. The right panel shows the expected counts after applying a single final, centred effect to the baseline of 100 reads: each line spans the central 95% prior interval, and the point marks the median. The dashed line marks the baseline of 100 reads. The simulations include uncertainty about both the shared scale and the individual effect.
 
 ```{python}
-#| label: fig-shared-scale-count-interpretation
-#| fig-cap: "Prior distributions of expected counts when one effect acts on a baseline of 100 reads and all other effects are zero. Each panel uses 60,000 simulations, with 100 compounds or four replicates per simulated group. Darker shading marks the central 95% prior interval; the dashed line marks the baseline of 100. Abundance and background have the same prior specification, as do matrix and target replicate effects. The tails extend beyond the displayed range. Observed counts would have additional sampling variation."
-#| fig-width: 10
+#| label: fig-revised-population-priors
+#| fig-cap: "Left: priors for the population scales. Right: central 95% intervals and medians of expected counts, calculated as 100 exp(effect) for a single centred effect, integrating over its scale prior (100,000 simulations, 500 compounds or three replicates). Abundance and background share one specification; matrix and target replicate effects share another. All other effects are held at zero. These are prior intervals for expected counts, not intervals for observed counts or fitted examples of shrinkage."
+#| fig-width: 9
 #| fig-height: 3.8
 #| fig-dpi: 180
 
-scale_count_rng = np.random.default_rng(20260925)
-scale_count_draws = 60_000
-scale_count_specs = [
-    ("Abundance / background", 0.75, 100, "#5e81ac"),
-    ("Target-specific enrichment", 0.50, 100, "#bf616a"),
-    ("Replicate effects", 0.25, 4, "#277F8E"),
-]
-scale_count_bins = np.linspace(0, 600, 121)
-scale_count_centres = (scale_count_bins[:-1] + scale_count_bins[1:]) / 2
-fig, axes = new_figure(1, 3, figsize=(10, 3.8), sharex=True, sharey=True)
-
-for ax, (title, tau, group_size, color) in zip(axes, scale_count_specs):
-    scales = np.abs(scale_count_rng.normal(0, tau, scale_count_draws))
-    z = scale_count_rng.normal(size=(scale_count_draws, group_size))
-    # A single member of each group, after imposing the zero-sum constraint.
-    effect = scales * (z[:, 0] - z.mean(axis=1))
-    expected_counts = 100 * np.exp(effect)
-    lower, upper = np.quantile(expected_counts, [0.025, 0.975])
-    frequencies, _ = np.histogram(expected_counts, bins=scale_count_bins)
-    # Divide by all simulations, including draws beyond the displayed range.
-    density = frequencies / (scale_count_draws * np.diff(scale_count_bins))
-    central_density = np.where(
-        (scale_count_centres >= lower) & (scale_count_centres <= upper), density, 0
-    )
+fig, axes = new_figure(1, 2, figsize=(9, 3.8), gridspec_kw={"width_ratios": [1.2, 1]})
+scale_specs = [("Abundance / background", 0.75, 500, COLORS["matrix"]),
+               ("Target-specific", 0.50, 500, COLORS["target"]),
+               ("Replicate", 0.25, 3, COLORS["prior"])]
+count_baseline = 100
+prior_rng = np.random.default_rng(20260909)
+x = np.linspace(0, 2.5, 600)
+for row, (label, tau, group_size, color) in enumerate(scale_specs):
+    axes[0].plot(x, halfnorm.pdf(x, scale=tau), color=color, lw=2, label=label)
+    sigma = np.abs(prior_rng.normal(0, tau, 100_000))
+    # Exact marginal distribution of z_i - mean(z) for a group of this size.
+    effect = sigma * prior_rng.normal(0, np.sqrt(1 - 1 / group_size), sigma.size)
+    expected_counts = count_baseline * np.exp(effect)
+    lower, median, upper = np.quantile(expected_counts, [0.025, 0.5, 0.975])
+    axes[1].plot([lower, upper], [row, row], color=color, lw=4, solid_capstyle="round")
+    axes[1].scatter(median, row, color=color, s=40, zorder=3)
+    axes[1].annotate(f"{lower:.0f}–{upper:.0f} reads", ((lower + upper) / 2, row),
+                     xytext=(0, 13), textcoords="offset points", ha="center",
+                     fontsize=8, color="black",
+                     bbox={"facecolor": "white", "edgecolor": "none", "pad": 1.5})
+axes[0].set(xlabel="Population scale σ", ylabel="Prior density", xlim=(0, 2.5), ylim=(0, None))
+axes[0].legend(frameon=False, fontsize=8, loc="upper right", labelcolor="black")
+axes[1].axvline(count_baseline, color=COLORS["poisson"], linestyle="--", linewidth=1)
+axes[1].set(xlabel="Expected count (reads)", yticks=range(3),
+            yticklabels=["Abundance /\nbackground", "Target-specific", "Replicate"],
+            ylim=(2.6, -0.7), xlim=(0, 600), xticks=[0, 100, 200, 400, 600])
+for ax, title in zip(axes, ["Priors for shared scales", "What one effect does to the mean"]):
     style_axis(ax)
-    ax.grid(False, axis="x")
-    ax.stairs(density, scale_count_bins, fill=True, color=color, alpha=0.12)
-    ax.stairs(central_density, scale_count_bins, fill=True, color=color, alpha=0.3)
-    ax.stairs(density, scale_count_bins, color=color, linewidth=1.2)
-    ax.axvline(100, color="#4c566a", linestyle="--", linewidth=1.2)
-    ax.set(xlim=(0, 600), xticks=[0, 100, 300, 600],
-           xlabel="Expected count (reads)")
     panel_title(ax, title)
-    ax.text(0.97, 0.95, f"Central 95%\n{lower:.0f}–{upper:.0f} reads",
-            transform=ax.transAxes, ha="right", va="top",
-            fontsize=0.85 * BASE_SIZE, color="#3b4252", linespacing=1.5,
-            bbox={"facecolor": "white", "edgecolor": "none", "pad": 3})
-
-axes[0].set_ylabel("Prior density")
-axes[0].set_ylim(0, axes[0].get_ylim()[1] * 1.12)
 show_figure(fig)
 ```
 
-The narrower replicate prior keeps expected counts closer to 100, while the broader abundance and background priors allow larger departures. These are prior distributions of expected counts; they do not include the additional count variation described by the Negative Binomial likelihood.
+The narrower replicate prior keeps expected counts closer to 100, while the broader abundance and background priors allow larger changes in the expected count. These intervals describe one effect at a time; they do not include the additional count variation described by the Negative Binomial likelihood.
+
+
+### A prior for residual dispersion, interpreted through counts
+
+
+
 
 ## Clean up these sections.
 
