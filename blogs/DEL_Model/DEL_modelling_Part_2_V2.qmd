@@ -314,7 +314,7 @@ This is the Poisson sampling noise. For example:
 
 ### Condition baselines
 
-Each condition baseline receives $\alpha_c\sim\operatorname{Normal}(0,1)$.
+Each condition baseline receives $\alpha_{c \in \{l, m, t\}}\sim\operatorname{Normal}(0,1)$.
 
 ```{python}
 #| label: fig-baseline-count-interpretation
