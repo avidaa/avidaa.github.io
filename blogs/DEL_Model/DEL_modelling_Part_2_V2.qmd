@@ -318,22 +318,16 @@ Each condition baseline receives $\alpha_{c \in \{l, m, t\}}\sim\operatorname{No
 
 ```{python}
 #| label: fig-baseline-count-interpretation
-#| fig-cap: "Count-scale interpretation of the condition baseline prior. With exposure E = 100 and compound and replicate effects set to zero, the baseline expected count is 100 exp(α). Shading contains the central 95% of prior probability; the median is 100 reads. The tails continue beyond this interval. This is a prior for the baseline expected count, not a prediction interval for observed counts or the arithmetic average across compounds."
-#| fig-width: 9
+#| fig-cap: 'Condition baseline prior and its count-scale interpretation. Left: α_c ~ Normal(0, 1). Middle: $\mu_{\mathrm{baseline}}=100e^{\alpha_c}$ at exposure E = 100. Right: $\mu_{\mathrm{baseline}}=3e^{\alpha_c}$ at exposure E = 3. Compound and replicate effects are set to zero. Shading marks central 95% prior intervals; dashed lines mark the medians. The count intervals are approximately 14–710 and 0.4–21.3 reads, respectively. These are priors for baseline expected counts, not prediction intervals for observed counts or arithmetic averages across compounds. Tails continue beyond the shaded intervals.'
+#| fig-width: 13
 #| fig-height: 3.8
 #| fig-dpi: 180
 
 from scipy.stats import norm, lognorm
 
-baseline_exposure = 100
-baseline_prior = lognorm(s=1, scale=baseline_exposure)
-baseline_lower, baseline_median, baseline_upper = baseline_prior.ppf([0.025, 0.5, 0.975])
-baseline_grid = np.linspace(0.1, 1000, 2000)
-baseline_density = baseline_prior.pdf(baseline_grid)
 alpha_grid = np.linspace(-3.5, 3.5, 800)
 alpha_bounds = norm.ppf([0.025, 0.975])
-
-fig, axes = new_figure(1, 2, figsize=(9, 3.8))
+fig, axes = new_figure(1, 3, figsize=(13, 3.8))
 for ax in axes:
     style_axis(ax)
     ax.grid(False, axis="x")
@@ -352,24 +346,29 @@ axes[0].text(0.5, 0.95, "Median 0 · Central 95%: −1.96 to 1.96",
               fontsize=0.8 * BASE_SIZE, color="#3b4252",
               bbox={"facecolor": "white", "edgecolor": "none", "pad": 3})
 
-axes[1].plot(baseline_grid, baseline_density, color=COLORS["prior"], lw=2)
-axes[1].fill_between(baseline_grid, baseline_density,
+for ax, baseline_exposure in zip(axes[1:], (100, 3)):
+    baseline_prior = lognorm(s=1, scale=baseline_exposure)
+    baseline_lower, baseline_median, baseline_upper = baseline_prior.ppf([0.025, 0.5, 0.975])
+    baseline_grid = np.linspace(0.001 * baseline_exposure, 10 * baseline_exposure, 2000)
+    baseline_density = baseline_prior.pdf(baseline_grid)
+    ax.plot(baseline_grid, baseline_density, color=COLORS["prior"], lw=2)
+    ax.fill_between(baseline_grid, baseline_density,
                      where=(baseline_grid >= baseline_lower) & (baseline_grid <= baseline_upper),
                      color=COLORS["prior"], alpha=0.2)
-axes[1].axvline(baseline_median, color=COLORS["median"], ls="--", lw=1.3)
-for bound in (baseline_lower, baseline_upper):
-    axes[1].vlines(bound, 0, baseline_prior.pdf(bound),
-                   color=COLORS["prior"], lw=1, alpha=0.6)
-axes[1].set(xlabel="Baseline expected count (reads)", ylabel="Prior density",
-            xlim=(0, 1000), ylim=(0, baseline_density.max() * 1.15))
-panel_title(axes[1], r"Count scale: $\mu_{\mathrm{baseline}}=100e^{\alpha_c}$")
-axes[1].text(0.96, 0.93,
-              f"Exposure: {baseline_exposure} reads\n"
-              f"Median: {baseline_median:.0f} reads\n"
-              f"Central 95%: {baseline_lower:.0f}–{baseline_upper:.0f} reads",
-              transform=axes[1].transAxes, ha="right", va="top",
-              fontsize=0.85 * BASE_SIZE, linespacing=1.6, color="#3b4252",
-              bbox={"facecolor": "white", "edgecolor": "none", "pad": 3})
+    ax.axvline(baseline_median, color=COLORS["median"], ls="--", lw=1.3)
+    for bound in (baseline_lower, baseline_upper):
+        ax.vlines(bound, 0, baseline_prior.pdf(bound), color=COLORS["prior"], lw=1, alpha=0.6)
+    ax.set(xlabel="Baseline expected count (reads)", ylabel="Prior density",
+            xlim=(0, 10 * baseline_exposure), ylim=(0, baseline_density.max() * 1.15))
+    panel_title(ax, rf"Count scale: $\mu_{{\mathrm{{baseline}}}}={baseline_exposure}e^{{\alpha_c}}$")
+    precision = 0 if baseline_exposure == 100 else 1
+    ax.text(0.96, 0.93,
+             f"Exposure: {baseline_exposure} reads\n"
+             f"Median: {baseline_median:.0f} reads\n"
+             f"Central 95%: {baseline_lower:.{precision}f}–{baseline_upper:.{precision}f} reads",
+             transform=ax.transAxes, ha="right", va="top",
+             fontsize=0.85 * BASE_SIZE, linespacing=1.6, color="#3b4252",
+             bbox={"facecolor": "white", "edgecolor": "none", "pad": 3})
 show_figure(fig)
 ```
 
@@ -471,52 +470,94 @@ We apply the zero-sum transformation separately within each effect group. Each g
 
 #### What do these priors imply for counts?
 
-To see what this means for counts, start with a baseline expected count of 100 and apply one final, centred effect $x$:
+We consider two baseline expected counts: 100 reads and 3 reads. The lower baseline illustrates a very large library relative to the available sequencing depth. For example, 3 million usable reads across 1 million compounds gives an equal-share exposure of $E=3$; with the condition intercept and all effects set to zero, this gives a baseline expected count of 3.
 
-$$\mu=100e^x.$$
+We apply one final, centred effect $x$ to each baseline, holding all other effects at zero:
 
-An effect of zero leaves the expected count at 100; positive effects increase it and negative effects decrease it. The left panel below shows our priors for the shared scales. The right panel shows the expected counts after applying a single final, centred effect to the baseline of 100 reads: each line spans the central 95% prior interval, and the point marks the median. The dashed line marks the baseline of 100 reads. The simulations include uncertainty about both the shared scale and the individual effect.
+$$\mu=100e^x
+\qquad\text{or}\qquad
+\mu=3e^x.$$
+
+An effect of zero leaves either baseline unchanged; positive effects increase the expected count and negative effects decrease it. The left panel shows the priors for the shared scales. The middle and right panels show their implications for baseline expected counts of 100 and 3, respectively. Each distribution is shown on its own row, so its shape can be seen without other distributions covering it. Darker shading marks its central 95% prior interval, with the bounds labelled beside the curve. The curves are scaled to equal peak heights for readability. Dashed lines mark the corresponding baselines. Both count panels use the same scale and effect draws, so they express the same beliefs about relative changes at different count levels.
 
 ```{python}
 #| label: fig-revised-population-priors
-#| fig-cap: "Left: priors for the population scales. Right: central 95% intervals and medians of expected counts, calculated as 100 exp(effect) for a single centred effect, integrating over its scale prior (100,000 simulations, 500 compounds or three replicates). Abundance and background share one specification; matrix and target replicate effects share another. All other effects are held at zero. These are prior intervals for expected counts, not intervals for observed counts or fitted examples of shrinkage."
-#| fig-width: 9
-#| fig-height: 3.8
+#| fig-cap: 'Ridgeline plots of the group priors. Left: population-scale priors. Middle and right: histograms of expected counts $\mu=100e^x$ and $\mu=3e^x$, using the same 100,000 draws of one centred effect and its scale (500 compounds or three replicates). Each distribution has its own row and is scaled to the same peak height for readability; heights are not comparable probability densities across rows. Darker count shading marks the central 95% prior interval, labelled in reads; lighter shading shows the remaining visible tails. Dashed lines mark the baselines. Probabilities and quantiles are calculated before height scaling, including draws outside the displayed range. All other effects are zero; observed-count sampling variation is excluded.'
+#| fig-width: 13
+#| fig-height: 4.6
 #| fig-dpi: 180
 
-fig, axes = new_figure(1, 2, figsize=(9, 3.8), gridspec_kw={"width_ratios": [1.2, 1]})
+def draw_count_ridge(ax, edges, density, central_density, row, color, interval_text):
+    # Separate rows and equal peak heights make every distribution readable.
+    # The probability calculations use the original, unscaled densities.
+    height_scale = 0.75 / density.max()
+    ax.axhline(row, color="#d8dee6", linewidth=0.7, zorder=0)
+    ax.stairs(row + density * height_scale, edges, baseline=row,
+               fill=True, color=color, alpha=0.10)
+    ax.stairs(row + central_density * height_scale, edges, baseline=row,
+               fill=True, color=color, alpha=0.40)
+    ax.stairs(row + density * height_scale, edges, baseline=row,
+               color=color, linewidth=1.4)
+    ax.text(0.98, row + 0.52, interval_text, transform=ax.get_yaxis_transform(),
+             ha="right", va="center", fontsize=8, color=color,
+             bbox={"facecolor": "white", "edgecolor": "none", "pad": 1.5})
+
+def style_ridge_axis(ax, labels, title):
+    style_axis(ax)
+    ax.grid(False, which="both")
+    ax.grid(axis="x", color="#e5e5e5", linewidth=0.7)
+    ax.set(yticks=[2, 1, 0], yticklabels=labels, ylim=(-0.12, 2.95), ylabel="")
+    ax.tick_params(axis="y", pad=8)
+    panel_title(ax, title)
+
+fig, axes = new_figure(1, 3, figsize=(13, 4.6))
 scale_specs = [("Abundance / background", 0.75, 500, COLORS["matrix"]),
                ("Target-specific", 0.50, 500, COLORS["target"]),
                ("Replicate", 0.25, 3, COLORS["prior"])]
-count_baseline = 100
+group_ridge_labels = ["Abundance /\nbackground", "Target-specific", "Replicate"]
 prior_rng = np.random.default_rng(20260909)
 x = np.linspace(0, 2.5, 600)
-for row, (label, tau, group_size, color) in enumerate(scale_specs):
-    axes[0].plot(x, halfnorm.pdf(x, scale=tau), color=color, lw=2, label=label)
+group_count_intervals = {100: [], 3: []}
+group_shaded_masses = []
+for index, (label, tau, group_size, color) in enumerate(scale_specs):
+    row = 2 - index
+    scale_density = halfnorm.pdf(x, scale=tau)
+    scale_height = row + 0.75 * scale_density / scale_density.max()
+    axes[0].axhline(row, color="#d8dee6", linewidth=0.7, zorder=0)
+    axes[0].fill_between(x, row, scale_height, color=color, alpha=0.3)
+    axes[0].plot(x, scale_height, color=color, lw=1.5)
+    axes[0].text(0.98, row + 0.52, f"τ = {tau:.2f}",
+                  transform=axes[0].get_yaxis_transform(), ha="right", va="center",
+                  fontsize=8, color=color)
     sigma = np.abs(prior_rng.normal(0, tau, 100_000))
     # Exact marginal distribution of z_i - mean(z) for a group of this size.
     effect = sigma * prior_rng.normal(0, np.sqrt(1 - 1 / group_size), sigma.size)
-    expected_counts = count_baseline * np.exp(effect)
-    lower, median, upper = np.quantile(expected_counts, [0.025, 0.5, 0.975])
-    axes[1].plot([lower, upper], [row, row], color=color, lw=4, solid_capstyle="round")
-    axes[1].scatter(median, row, color=color, s=40, zorder=3)
-    axes[1].annotate(f"{lower:.0f}–{upper:.0f} reads", ((lower + upper) / 2, row),
-                     xytext=(0, 13), textcoords="offset points", ha="center",
-                     fontsize=8, color="black",
-                     bbox={"facecolor": "white", "edgecolor": "none", "pad": 1.5})
-axes[0].set(xlabel="Population scale σ", ylabel="Prior density", xlim=(0, 2.5), ylim=(0, None))
-axes[0].legend(frameon=False, fontsize=8, loc="upper right", labelcolor="black")
-axes[1].axvline(count_baseline, color=COLORS["poisson"], linestyle="--", linewidth=1)
-axes[1].set(xlabel="Expected count (reads)", yticks=range(3),
-            yticklabels=["Abundance /\nbackground", "Target-specific", "Replicate"],
-            ylim=(2.6, -0.7), xlim=(0, 600), xticks=[0, 100, 200, 400, 600])
-for ax, title in zip(axes, ["Priors for shared scales", "What one effect does to the mean"]):
-    style_axis(ax)
-    panel_title(ax, title)
+    for ax, count_baseline in zip(axes[1:], (100, 3)):
+        expected_counts = count_baseline * np.exp(effect)
+        lower, median, upper = np.quantile(expected_counts, [0.025, 0.5, 0.975])
+        group_count_intervals[count_baseline].append([lower, median, upper])
+        edges = np.linspace(0, 6 * count_baseline, 151)
+        widths = np.diff(edges)
+        frequencies = np.histogram(expected_counts, bins=edges)[0]
+        central_counts = expected_counts[(expected_counts >= lower) & (expected_counts <= upper)]
+        central_frequencies = np.histogram(central_counts, bins=edges)[0]
+        density = frequencies / (expected_counts.size * widths)
+        central_density = central_frequencies / (expected_counts.size * widths)
+        group_shaded_masses.append(np.sum(central_density * widths))
+        precision = 0 if count_baseline == 100 else 1
+        draw_count_ridge(ax, edges, density, central_density, row, color,
+                          f"95%: {lower:.{precision}f}–{upper:.{precision}f} reads")
+axes[0].set(xlabel="Population scale σ", xlim=(0, 2.5))
+for ax, count_baseline in zip(axes[1:], (100, 3)):
+    ax.axvline(count_baseline, color=COLORS["poisson"], linestyle="--", linewidth=1, alpha=0.7)
+    ax.set(xlabel="Expected count (reads)", xlim=(0, 6 * count_baseline),
+            xticks=np.array([0, 1, 2, 4, 6]) * count_baseline)
+for ax, title in zip(axes, ["Priors for shared scales", r"Count scale: $\mu=100e^x$", r"Count scale: $\mu=3e^x$"]):
+    style_ridge_axis(ax, group_ridge_labels, title)
 show_figure(fig)
 ```
 
-The narrower replicate prior keeps expected counts closer to 100, while the broader abundance and background priors allow larger changes in the expected count. These intervals describe one effect at a time; they do not include the additional count variation described by the Negative Binomial likelihood.
+The narrower replicate prior keeps expected counts closer to their baseline, while the broader abundance and background priors allow larger departures. Moving from a baseline of 100 to 3 scales every interval by $3/100$ without changing the underlying prior. These intervals describe one effect at a time; they do not include the additional count variation described by the Negative Binomial likelihood.
 
 
 ### A prior for residual dispersion, interpreted through counts
@@ -527,6 +568,79 @@ $$\kappa_l,\kappa_m,\kappa_t
 \overset{\mathrm{ind}}{\sim}\operatorname{HalfNormal}(0,0.50),
 \qquad \phi_c=\kappa_c^{-2}.$$
 
+The prior has a median of about $0.34$ and a 95th percentile of about $0.98$. Thus, 95% of its probability lies between $0$ and $0.98$, but larger values remain possible. The value $0.50$ controls the prior's spread; it is not an upper limit.
+
+Unlike the compound and replicate effects, $\kappa_c$ changes the spread of observed counts without changing their expected count. We compare means of $\mu=100$ and $\mu=3$, using the latter as a low-count example relevant to a large library with limited sequencing depth. The left panel shows the prior for $\kappa_c$. The middle and right panels compare the Poisson limit ($\kappa_c=0$), the prior median, and the prior 95th percentile at each mean. Each row shows the shape of a distribution of possible **observed counts**, scaled to the same peak height so the distributions remain visible. Darker shading marks its central 95% count interval, with the bounds labelled beside the curve. Dashed lines mark the fixed mean of 100 or 3.
+
+```{python}
+#| label: fig-kappa-prior-counts
+#| fig-cap: 'Left: Half-Normal(0, 0.50) prior for κ, with 95% of its probability shaded and its median and 95th percentile marked. Middle and right: ridgelines of exact Poisson or NB2 probabilities at means of 100 and 3, drawn as one-read-wide steps. Each row has its own baseline and is scaled to the same peak height; heights are not comparable probabilities across rows. Darker shading marks central 95% count intervals; integer quantiles can give coverage above 95%. Dashed lines mark the fixed means. Each count axis extends to the 99.5th percentile of its broadest distribution. Quantiles and probabilities are computed before height scaling, without renormalizing omitted tails. These are conditional distributions at selected κ values, not posterior credible intervals or predictions averaged over the full prior.'
+#| fig-width: 13
+#| fig-height: 4.6
+#| fig-dpi: 180
+
+kappa_plot_prior = halfnorm(scale=0.50)
+kappa_plot_median, kappa_plot_p95 = kappa_plot_prior.ppf([0.5, 0.95])
+kappa_plot_grid = np.linspace(0, 1.8, 600)
+kappa_plot_specs = [
+    ("Poisson", 0.0, COLORS["poisson"]),
+    (f"κ = {kappa_plot_median:.2f}", kappa_plot_median, COLORS["median"]),
+    (f"κ = {kappa_plot_p95:.2f}", kappa_plot_p95, COLORS["upper"]),
+]
+fig, axes = new_figure(1, 3, figsize=(13, 4.6))
+axes[0].plot(kappa_plot_grid, kappa_plot_prior.pdf(kappa_plot_grid),
+             color=COLORS["prior"], lw=2)
+axes[0].fill_between(kappa_plot_grid, kappa_plot_prior.pdf(kappa_plot_grid),
+                     where=kappa_plot_grid <= kappa_plot_p95,
+                     color=COLORS["prior"], alpha=0.15, label="95% of prior probability")
+for value, label, color in [
+    (kappa_plot_median, "Median", COLORS["median"]),
+    (kappa_plot_p95, "95th percentile", COLORS["upper"]),
+]:
+    axes[0].axvline(value, color=color, linestyle="--", linewidth=1.3,
+                    label=f"{label}: {value:.2f}")
+    axes[0].scatter(value, kappa_plot_prior.pdf(value), color=color, s=35, zorder=3)
+axes[0].set(xlabel="Dispersion κ", ylabel="Prior density",
+            xlim=(0, 1.8), ylim=(0, 1.8))
+axes[0].legend(frameon=False, fontsize=8, loc="upper right", labelcolor="black")
+
+kappa_count_intervals = {100: [], 3: []}
+kappa_shaded_masses = []
+for ax, kappa_plot_mean in zip(axes[1:], (100, 3)):
+    broad_phi = kappa_plot_p95 ** -2
+    broad_distribution = nbinom(n=broad_phi, p=broad_phi / (broad_phi + kappa_plot_mean))
+    max_count = int(broad_distribution.ppf(0.995))
+    counts = np.arange(max_count + 1)
+    edges = np.arange(max_count + 2) - 0.5
+    for index, (label, kappa, color) in enumerate(kappa_plot_specs):
+        row = 2 - index
+        if kappa == 0:
+            distribution = poisson(mu=kappa_plot_mean)
+        else:
+            phi = kappa ** -2
+            distribution = nbinom(n=phi, p=phi / (phi + kappa_plot_mean))
+        lower, upper = distribution.ppf([0.025, 0.975])
+        kappa_count_intervals[kappa_plot_mean].append([lower, upper])
+        mass = distribution.pmf(counts)
+        central_mass = np.where((counts >= lower) & (counts <= upper), mass, 0)
+        kappa_shaded_masses.append(central_mass.sum())
+        draw_count_ridge(ax, edges, mass, central_mass, row, color,
+                          f"95%: {lower:.0f}–{upper:.0f} reads")
+    ax.axvline(kappa_plot_mean, color=COLORS["poisson"], linestyle="--", linewidth=1)
+    ax.set(xlabel="Observed count (reads)", xlim=(-0.5, max_count + 0.5))
+    ax.xaxis.set_major_locator(MaxNLocator(nbins=5, integer=True))
+style_axis(axes[0])
+axes[0].grid(False, axis="x")
+panel_title(axes[0], "Prior for dispersion")
+kappa_ridge_labels = ["Poisson limit\nκ = 0",
+                       f"Prior median\nκ = {kappa_plot_median:.2f}",
+                       f"Prior 95th percentile\nκ = {kappa_plot_p95:.2f}"]
+for ax, title in zip(axes[1:], [r"Count variation: $\mu=100$", r"Count variation: $\mu=3$"]):
+    style_ridge_axis(ax, kappa_ridge_labels, title)
+show_figure(fig)
+```
+
+Larger $\kappa_c$ allows a wider range of observed counts around the same mean. At $\mu=100$, the standard deviation is about 10, 35, and 99 reads for the three dispersion values; at $\mu=3$, it is about 1.7, 2.0, and 3.4 reads. The low-count intervals are recalculated from the count distributions, not obtained by rescaling the 100-read intervals. Even without overdispersion, ordinary Poisson noise has a standard deviation of about 58% of the mean at $\mu=3$, compared with 10% at $\mu=100$.
 
 ## Clean up these sections.
 
