@@ -656,3 +656,17 @@ For each simulated experiment, we:
 3. Calculate the expected library, matrix, and target counts from the log-linear equations.
 
 4. Draw all observed counts from NB2, sharing the appropriate dispersion within each condition.
+
+Repeating these steps gives samples from the **joint prior predictive distribution**: the distribution of possible complete datasets implied by our priors and count model, before using the observed counts to estimate the effects.
+
+Let $\widetilde{\mathbf C}$ represent the complete collection of simulated counts, $\mathbf E$ the fixed exposures, and $\theta$ all the random quantities drawn from the priors: the condition baselines, population scales, standard Normal variables used to construct the centred effects, and dispersion parameters. Then:
+
+$$
+\underbrace{p(\widetilde{\mathbf C}\mid\mathbf E)}_{\text{joint prior predictive distribution}}
+=\int
+\underbrace{p(\widetilde{\mathbf C}\mid\theta,\mathbf E)}_{\text{count model}}
+\underbrace{p(\theta)}_{\text{joint prior}}
+\,d\theta.
+$$
+
+The purpose of the check is to ask whether these combined assumptions produce plausible experiments. For example, do we get a reasonable fraction of zero counts, a plausible range of large counts, and believable differences between replicates? If the simulations routinely look implausible, we revisit the priors or model assumptions before fitting the data.
