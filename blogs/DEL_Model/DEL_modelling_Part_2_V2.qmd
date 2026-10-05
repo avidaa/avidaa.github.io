@@ -762,4 +762,4 @@ show_figure(fig)
 
 The wide total-count ranges highlight a modelling issue: independent NB2 counts do not preserve a fixed read budget, and centring effects on the log scale does not fix their arithmetic mean after exponentiation. If the modelled compounds account for all $K$ reads, persistent discrepancies call for reconsidering the baseline priors or a likelihood that conditions on the total.
 
-For an observed comparison, use matching compound sets and depths. [KiNDEL's `ddr1_1M.parquet`](https://github.com/insitro/kindel#datasets) is already a selected top-million subset; the training split reduces it further. Their count sums are subset totals, not full-screen sequencing depths. Observed counts provide a reference for plausibility; they are not needed to generate prior predictions.
+
