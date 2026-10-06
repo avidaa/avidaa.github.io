@@ -221,6 +221,8 @@ A sample with twice as many usable reads offers roughly twice as much opportunit
 
 Let $K_l$, $K_{m,r}$, and $K_{t,r}$ be the usable read totals and $N$ the number of compounds.
 
+For the read-budget check below, each $K$ must cover the same $N$ compounds as the simulated counts. If we analyse only a training subset, its count sums are subset totals, not full-screen sequencing depths.
+
 Define known exposure offsets:
 
 $$E_l=K_l/N,\qquad E_{m,r}=K_{m,r}/N,\qquad E_{t,r}=K_{t,r}/N.$$
@@ -682,18 +684,20 @@ We assess these patterns across simulated experiments at realistic library sizes
 
 First, we check the read budget and how it is distributed. For each simulated sample, we calculate:
 
-- **Total-count ratio:** the sum of simulated counts divided by the supplied sequencing depth. A ratio of one means the totals agree.
+- **Total-count ratio:** the sum of simulated counts divided by the supplied sequencing depth for the same set of compounds. A ratio of one means the totals agree.
 - **Top-1% read share:** the fraction of simulated reads assigned to the highest-count 1% of compounds. This shows whether a few compounds dominate the sample.
 
-@fig-prior-read-counts summarises these checks for our illustrative experiment. The intervals describe what the model predicts, not acceptable ranges.
+@fig-prior-read-counts shows the distributions for our illustrative experiment. Dark shading marks central 95% prior predictive intervals, with their bounds labelled; short dashed lines mark medians. These intervals describe what the model predicts, not acceptable ranges.
 
 ```{python}
 #| label: fig-prior-read-counts
 #| code-summary: "Simulate complete experiments and summarise read counts"
-#| fig-cap: 'Read-count checks across 2,000 prior predictive experiments, each with 500 compounds and a supplied depth of 5,000 reads per sample. Points mark medians; bars show central 95% intervals for each sample. The dashed line marks agreement with the supplied depth. The top 1% consists of five compounds per sample. These simulations use all the priors and NB2 sampling; no observed KiNDEL counts are used.'
+#| fig-cap: 'Read-count distributions across 2,000 prior predictive experiments with 500 compounds and a supplied depth of 5,000 reads per sample. Curves are smoothed densities on the log10-ratio scale (left) and percentage scale (right), scaled to equal peak heights for readability. Dark shading and labels mark empirical central 95% prior predictive intervals; short dashed lines mark medians. The vertical reference at one marks agreement with the supplied depth. The top 1% consists of five compounds. No observed KiNDEL counts are used.'
 #| fig-width: 11
-#| fig-height: 4.2
+#| fig-height: 6
 #| fig-dpi: 180
+
+from scipy.stats import gaussian_kde
 
 read_rng = np.random.default_rng(20261004)
 n_experiments, n_compounds, supplied_depth = 2_000, 500, 5_000
@@ -740,18 +744,51 @@ for draw in range(n_experiments):
         top_totals, totals, out=np.full(7, np.nan), where=totals > 0
     )
 
-fig, axes = new_figure(1, 2, figsize=(11, 4.2), sharey=True)
-for ax, values in zip(axes, (total_ratios, 100 * top_read_shares)):
+fig, axes = new_figure(1, 2, figsize=(11, 6), sharey=True)
+# Show the central 99.8% of log ratios; interval bounds use all draws.
+log_bounds = np.quantile(np.log10(total_ratios), [0.001, 0.999])
+log_grid = np.linspace(log_bounds[0] - 0.1, log_bounds[1] + 0.1, 900)
+ratio_grid = 10**log_grid
+share_grid = np.linspace(100 * n_top / n_compounds, 100, 900)
+for panel, (ax, values) in enumerate(zip(axes, (total_ratios, 100 * top_read_shares))):
     style_axis(ax)
+    ax.grid(False, which="both")
+    ax.grid(axis="x", color="#e5e5e5", linewidth=0.7)
     lower, median, upper = np.nanquantile(values, [0.025, 0.5, 0.975], axis=0)
-    for row, condition in enumerate(sample_conditions):
-        ax.errorbar(median[row], row,
-                    xerr=[[median[row] - lower[row]], [upper[row] - median[row]]],
-                    fmt="o", color=COLORS[condition], capsize=3, lw=2)
-    ax.set_yticks(range(7), sample_names)
-axes[0].invert_yaxis()
+    for sample, condition in enumerate(sample_conditions):
+        row = 6 - sample
+        color = COLORS[condition]
+        draws = values[:, sample]
+        draws = draws[np.isfinite(draws)]
+        if panel == 0:
+            grid = ratio_grid
+            density = gaussian_kde(np.log10(draws))(log_grid)
+        else:
+            grid = share_grid
+            kde = gaussian_kde(draws)
+            # Reflect the smoother at the minimum possible share and at 100%.
+            density = kde(grid) + kde(2 * grid[0] - grid) + kde(200 - grid)
+        height = row + 0.68 * density / density.max()
+        central = (grid >= lower[sample]) & (grid <= upper[sample])
+        ax.axhline(row, color="#d8dee6", linewidth=0.7, zorder=0)
+        ax.fill_between(grid, row, height, color=color, alpha=0.12)
+        ax.fill_between(grid, row, height, where=central,
+                        interpolate=True, color=color, alpha=0.45)
+        ax.plot(grid, height, color=color, lw=1.4)
+        median_height = np.interp(median[sample], grid, height)
+        ax.vlines(median[sample], row, median_height, color=color,
+                  linestyle="--", linewidth=1.3)
+        bounds = (f"95%: {lower[sample]:.2f}–{upper[sample]:.2f}" if panel == 0
+                  else f"95%: {lower[sample]:.1f}–{upper[sample]:.1f}%")
+        ax.text(0.98, row + 0.58, bounds, transform=ax.get_yaxis_transform(),
+                ha="right", va="center", fontsize=8, color=color,
+                bbox={"facecolor": "white", "edgecolor": "none", "pad": 1.5})
+    ax.set(yticks=np.arange(6, -1, -1), yticklabels=sample_names,
+           ylim=(-0.12, 6.9), ylabel="")
+    ax.tick_params(axis="y", pad=8)
 axes[0].set_xscale("log")
-axes[0].axvline(1, color=COLORS["poisson"], ls="--", lw=1.2)
+axes[0].axvline(1, color=COLORS["poisson"], ls=":", lw=1.2)
+axes[0].set_xlim(ratio_grid[0], ratio_grid[-1])
 axes[0].set_xlabel("Simulated total / supplied depth (log scale)")
 axes[1].set_xlabel("Reads assigned to the top 1% of compounds (%)")
 axes[1].set_xlim(0, 100)
@@ -761,5 +798,3 @@ show_figure(fig)
 ```
 
 The wide total-count ranges highlight a modelling issue: independent NB2 counts do not preserve a fixed read budget, and centring effects on the log scale does not fix their arithmetic mean after exponentiation. If the modelled compounds account for all $K$ reads, persistent discrepancies call for reconsidering the baseline priors or a likelihood that conditions on the total.
-
-
