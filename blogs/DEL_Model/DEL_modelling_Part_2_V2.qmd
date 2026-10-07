@@ -221,7 +221,7 @@ A sample with twice as many usable reads offers roughly twice as much opportunit
 
 Let $K_l$, $K_{m,r}$, and $K_{t,r}$ be the usable read totals and $N$ the number of compounds.
 
-For the read-budget check below, each $K$ must cover the same $N$ compounds as the simulated counts. If we analyse only a training subset, its count sums are subset totals, not full-screen sequencing depths.
+In the prior simulations, these totals supply reference exposures; the NB2 model does not constrain simulated counts to sum to $K$.
 
 Define known exposure offsets:
 
@@ -673,7 +673,7 @@ $$
 
 The purpose is to ask whether these combined assumptions produce plausible experiments. In this DEL model, we prioritise four checks:
 
-1. **Read counts:** Are sample totals compatible with the supplied sequencing depths, and do a few compounds dominate the reads? Independent NB2 draws do not enforce those totals.
+1. **Read counts:** Are sample totals plausible at the chosen exposures, and do a few compounds dominate the reads?
 2. **Apparent enrichment:** After accounting for exposure, are the magnitude and frequency of target-versus-matrix differences believable?
 3. **Detection and dropout:** Is the fraction of zero counts plausible, and how often are compounds absent from all replicates or detected only in target samples?
 4. **Replicate agreement:** Are differences between replicates reasonable, and do the same compounds repeatedly appear enriched?
@@ -682,9 +682,14 @@ We assess these patterns across simulated experiments at realistic library sizes
 
 ### Read counts: totals and concentration
 
-First, we check the read budget and how it is distributed. For each simulated sample, we calculate:
+First, we check the overall count scale and how reads are distributed. For each simulated sample, we calculate:
 
-- **Total-count ratio:** the sum of simulated counts divided by the supplied sequencing depth for the same set of compounds. A ratio of one means the totals agree.
+- **Total-count ratio:** the sum of simulated counts divided by the reference $K$ used to set the exposure:
+
+  $$R=\frac{\sum_{i=1}^{N}\widetilde C_i}{K}.$$
+
+  Here, $\widetilde C_i$ is the simulated count for compound $i$ in that sample. $R=1$ means the simulated total equals $K$; this is a reference value, not a requirement of NB2.
+
 - **Top-1% read share:** the fraction of simulated reads assigned to the highest-count 1% of compounds. This shows whether a few compounds dominate the sample.
 
 @fig-prior-read-counts shows the distributions for our illustrative experiment. Dark shading marks central 95% prior predictive intervals, with their bounds labelled; short dashed lines mark medians. These intervals describe what the model predicts, not acceptable ranges.
@@ -692,7 +697,7 @@ First, we check the read budget and how it is distributed. For each simulated sa
 ```{python}
 #| label: fig-prior-read-counts
 #| code-summary: "Simulate complete experiments and summarise read counts"
-#| fig-cap: 'Read-count distributions across 2,000 prior predictive experiments with 500 compounds and a supplied depth of 5,000 reads per sample. Curves are smoothed densities on the log10-ratio scale (left) and percentage scale (right), scaled to equal peak heights for readability. Dark shading and labels mark empirical central 95% prior predictive intervals; short dashed lines mark medians. The vertical reference at one marks agreement with the supplied depth. The top 1% consists of five compounds. No observed KiNDEL counts are used.'
+#| fig-cap: 'Read-count distributions across 2,000 prior predictive experiments with 500 compounds and reference K = 5,000 reads per sample. Curves are smoothed densities on the log10-ratio scale (left) and percentage scale (right), scaled to equal peak heights for readability. Dark shading and labels mark empirical central 95% prior predictive intervals; short dashed lines mark medians. The vertical reference at one corresponds to the expected total with all intercepts and effects zero; NB2 does not enforce it. The top 1% consists of five compounds. No observed KiNDEL counts are used.'
 #| fig-width: 11
 #| fig-height: 6
 #| fig-dpi: 180
@@ -789,12 +794,21 @@ for panel, (ax, values) in enumerate(zip(axes, (total_ratios, 100 * top_read_sha
 axes[0].set_xscale("log")
 axes[0].axvline(1, color=COLORS["poisson"], ls=":", lw=1.2)
 axes[0].set_xlim(ratio_grid[0], ratio_grid[-1])
-axes[0].set_xlabel("Simulated total / supplied depth (log scale)")
+axes[0].set_xlabel("Simulated total / reference K (log scale)")
 axes[1].set_xlabel("Reads assigned to the top 1% of compounds (%)")
 axes[1].set_xlim(0, 100)
-panel_title(axes[0], "Does the read budget agree?")
+panel_title(axes[0], "What total counts do the priors imply?")
 panel_title(axes[1], "Do a few compounds dominate?")
 show_figure(fig)
 ```
 
-The wide total-count ranges highlight a modelling issue: independent NB2 counts do not preserve a fixed read budget, and centring effects on the log scale does not fix their arithmetic mean after exponentiation. If the modelled compounds account for all $K$ reads, persistent discrepancies call for reconsidering the baseline priors or a likelihood that conditions on the total.
+Here, $K=5{,}000$ is the supplied reference that sets $E=K/N=10$, whereas $\sum_i\widetilde C_i$ is the total generated by the model. For example:
+
+$$R=20\quad\Longrightarrow\quad\sum_{i=1}^{N}\widetilde C_i=RK=20\times5{,}000=100{,}000\text{ reads}.$$
+
+The upper ends of the target samples' 95% intervals are around this scale: roughly twenty times the reference depth. The large simulated totals have two main sources:
+
+1. The baseline prior $\alpha_c\sim\mathrm{Normal}(0,1)$ permits substantial shifts in all compounds' expected counts.
+2. Compound effects add further variation; centring them on the log scale does not preserve the total after exponentiation.
+
+Replicate effects and NB2 sampling also contribute to the spread. This rate-based simulation does not allocate a fixed budget of 5,000 reads. We ask whether its predicted totals are scientifically plausible at the supplied exposure; departures from $R=1$ alone do not establish a model failure.
