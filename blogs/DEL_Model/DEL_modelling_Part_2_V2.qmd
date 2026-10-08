@@ -673,142 +673,124 @@ $$
 
 The purpose is to ask whether these combined assumptions produce plausible experiments. In this DEL model, we prioritise four checks:
 
-1. **Read counts:** Are sample totals plausible at the chosen exposures, and do a few compounds dominate the reads?
+1. **Read counts:** Are sample totals plausible at the chosen exposures?
 2. **Apparent enrichment:** After accounting for exposure, are the magnitude and frequency of target-versus-matrix differences believable?
 3. **Detection and dropout:** Is the fraction of zero counts plausible, and how often are compounds absent from all replicates or detected only in target samples?
 4. **Replicate agreement:** Are differences between replicates reasonable, and do the same compounds repeatedly appear enriched?
 
 We assess these patterns across simulated experiments at realistic library sizes and sequencing depths. If they routinely look implausible, we revisit the priors or model assumptions before fitting the data.
 
-### Read counts: totals and concentration
+### Check the total-count scale
 
-First, we check the overall count scale and how reads are distributed. For each simulated sample, we calculate:
+For each simulated sample, we calculate the **total-count ratio**:
 
-- **Total-count ratio:** the sum of simulated counts divided by the reference $K$ used to set the exposure:
+$$R=\frac{\sum_{i=1}^{N}\widetilde C_i}{K}.$$
 
-  $$R=\frac{\sum_{i=1}^{N}\widetilde C_i}{K}.$$
+Here, $K=5{,}000$ sets the reference exposure $E=K/N=10$, while $\sum_i\widetilde C_i$ is the simulated total. Thus, $R=20$ means **100,000 simulated reads**, twenty times the reference depth. Our rate-based NB2 model does not require $R=1$.
 
-  Here, $\widetilde C_i$ is the simulated count for compound $i$ in that sample. $R=1$ means the simulated total equals $K$; this is a reference value, not a requirement of NB2.
+The default priors allow large totals: the baseline shifts all compounds' expected counts, and centring compound effects on the log scale does not preserve the total after exponentiation. @fig-prior-read-counts shows the default check followed by three cumulative adjustments:
 
-- **Top-1% read share:** the fraction of simulated reads assigned to the highest-count 1% of compounds. This shows whether a few compounds dominate the sample.
+1. **Baseline:** reduce the prior SD of $\alpha_c$ from 1 to **0.25** to limit shared shifts.
+2. **Abundance:** because $a_i$ affects **every condition**, reduce its scale-prior spread $\tau_a$ from 0.75 to **0.50**.
+3. **Background:** because $b_i$ adds variation to **matrix and target counts**, also reduce $\tau_b$ from 0.75 to **0.50**.
 
-@fig-prior-read-counts shows the distributions for our illustrative experiment. Dark shading marks central 95% prior predictive intervals, with their bounds labelled; short dashed lines mark medians. These intervals describe what the model predicts, not acceptable ranges.
+The remaining priors stay unchanged.
 
 ```{python}
 #| label: fig-prior-read-counts
-#| code-summary: "Simulate complete experiments and summarise read counts"
-#| fig-cap: 'Read-count distributions across 2,000 prior predictive experiments with 500 compounds and reference K = 5,000 reads per sample. Curves are smoothed densities on the log10-ratio scale (left) and percentage scale (right), scaled to equal peak heights for readability. Dark shading and labels mark empirical central 95% prior predictive intervals; short dashed lines mark medians. The vertical reference at one corresponds to the expected total with all intercepts and effects zero; NB2 does not enforce it. The top 1% consists of five compounds. No observed KiNDEL counts are used.'
-#| fig-width: 11
-#| fig-height: 6
+#| code-summary: "Compare priors using simulated total-count ratios"
+#| fig-cap: 'Default priors and three cumulative adjustments (5,000 experiments each; N = 500, K = 5,000). τ_a and τ_b are the abundance/background Half-Normal spreads. Library and first matrix/target replicates are shown. Dark shading: empirical central 95% intervals; dashed: medians; dotted: R = 1. Curves are densities on the log10-ratio scale, scaled to equal peak heights.'
+#| fig-width: 13
+#| fig-height: 3.9
 #| fig-dpi: 180
 
 from scipy.stats import gaussian_kde
 
-read_rng = np.random.default_rng(20261004)
-n_experiments, n_compounds, supplied_depth = 2_000, 500, 5_000
-sample_names = ["Library", "Matrix 1", "Matrix 2", "Matrix 3",
-                "Target 1", "Target 2", "Target 3"]
-sample_conditions = ["library"] + ["matrix"] * 3 + ["target"] * 3
-total_ratios = np.empty((n_experiments, 7))
-top_read_shares = np.empty_like(total_ratios)
-n_top = int(np.ceil(0.01 * n_compounds))
+n_compounds, reference_depth, n_experiments = 500, 5_000, 5_000
+prior_scenarios = [("Default priors", 1.00, 0.75, 0.75),
+                   ("Tighter baseline", 0.25, 0.75, 0.75),
+                   ("Then abundance", 0.25, 0.50, 0.75),
+                   ("Then background", 0.25, 0.50, 0.50)]
+parameter_rng = np.random.default_rng(20261008)
+gamma_rng = np.random.default_rng(20261009)
+poisson_rngs = [np.random.default_rng(20261011 + i) for i in range(4)]
+read_ratios = np.empty((4, n_experiments, 7))
 
-def draw_centred_effect(tau, size):
-    scale = abs(read_rng.normal(0, tau))
-    effect = scale * read_rng.normal(size=size)
+def unit_centred_effect(size):
+    # Multiplying by tau gives the hierarchical Half-Normal scale prior.
+    unit_scale = abs(parameter_rng.normal())
+    effect = unit_scale * parameter_rng.normal(size=size)
     return effect - effect.mean()
 
 for draw in range(n_experiments):
-    alpha = read_rng.normal(0, 1, 3)
-    a = draw_centred_effect(0.75, n_compounds)
-    b = draw_centred_effect(0.75, n_compounds)
-    s = draw_centred_effect(0.50, n_compounds)
-    gamma_m = draw_centred_effect(0.25, 3)
-    gamma_t = draw_centred_effect(0.25, 3)
-    kappa = abs(read_rng.normal(0, 0.50, 3))
-    log_mu = np.column_stack([
-        alpha[0] + a,
-        alpha[1] + (a + b)[:, None] + gamma_m,
-        alpha[2] + (a + b + s)[:, None] + gamma_t,
-    ]) + np.log(supplied_depth / n_compounds)
-    mu = np.exp(log_mu)
-    counts = np.empty_like(mu, dtype=np.int64)
+    # Reuse latent draws across scenarios to isolate the prior changes.
+    alpha_unit = parameter_rng.normal(size=3)
+    a_unit = unit_centred_effect(n_compounds)
+    b_unit = unit_centred_effect(n_compounds)
+    s = 0.50 * unit_centred_effect(n_compounds)
+    gamma_m = 0.25 * unit_centred_effect(3)
+    gamma_t = 0.25 * unit_centred_effect(3)
+    kappa = abs(parameter_rng.normal(0, 0.50, 3))
+    gamma_multipliers = np.empty((n_compounds, 7))
     for condition, columns in enumerate(([0], [1, 2, 3], [4, 5, 6])):
-        # Gamma-Poisson sampling is NB2 with variance mu + kappa**2 * mu**2.
-        if kappa[condition] < 1e-6:
-            counts[:, columns] = read_rng.poisson(mu[:, columns])
-        else:
-            phi = 1 / kappa[condition]**2
-            rate = read_rng.gamma(phi, mu[:, columns] / phi)
-            counts[:, columns] = read_rng.poisson(rate)
-    totals = counts.sum(axis=0)
-    top_totals = np.partition(counts, n_compounds - n_top, axis=0)[-n_top:].sum(axis=0)
-    total_ratios[draw] = totals / supplied_depth
-    # Concentration is undefined for a sample with no reads.
-    top_read_shares[draw] = np.divide(
-        top_totals, totals, out=np.full(7, np.nan), where=totals > 0
-    )
+        phi = 1 / kappa[condition]**2
+        gamma_multipliers[:, columns] = gamma_rng.gamma(
+            phi, 1 / phi, size=(n_compounds, len(columns))
+        )
+    library_cache = {}
+    for scenario, (_, alpha_sd, tau_a, tau_b) in enumerate(prior_scenarios):
+        alpha = alpha_sd * alpha_unit
+        a, b = tau_a * a_unit, tau_b * b_unit
+        log_mu = np.column_stack([
+            alpha[0] + a,
+            alpha[1] + (a + b)[:, None] + gamma_m,
+            alpha[2] + (a + b + s)[:, None] + gamma_t,
+        ]) + np.log(reference_depth / n_compounds)
+        # Gamma-Poisson sampling gives the same NB2 likelihood as above.
+        rates = np.exp(log_mu) * gamma_multipliers
+        counts = np.empty((n_compounds, 7), dtype=np.int64)
+        library_key = (alpha_sd, tau_a)
+        if library_key not in library_cache:
+            library_cache[library_key] = poisson_rngs[scenario].poisson(rates[:, 0])
+        counts[:, 0] = library_cache[library_key]
+        counts[:, 1:] = poisson_rngs[scenario].poisson(rates[:, 1:])
+        read_ratios[scenario, draw] = counts.sum(axis=0) / reference_depth
 
-fig, axes = new_figure(1, 2, figsize=(11, 6), sharey=True)
-# Show the central 99.8% of log ratios; interval bounds use all draws.
-log_bounds = np.quantile(np.log10(total_ratios), [0.001, 0.999])
+log_bounds = np.quantile(np.log10(read_ratios), [0.001, 0.999])
 log_grid = np.linspace(log_bounds[0] - 0.1, log_bounds[1] + 0.1, 900)
 ratio_grid = 10**log_grid
-share_grid = np.linspace(100 * n_top / n_compounds, 100, 900)
-for panel, (ax, values) in enumerate(zip(axes, (total_ratios, 100 * top_read_shares))):
+fig, axes = new_figure(1, 4, figsize=(13, 3.9), sharex=True, sharey=True)
+for scenario, (ax, (title, alpha_sd, tau_a, tau_b)) in enumerate(zip(axes, prior_scenarios)):
     style_axis(ax)
     ax.grid(False, which="both")
     ax.grid(axis="x", color="#e5e5e5", linewidth=0.7)
-    lower, median, upper = np.nanquantile(values, [0.025, 0.5, 0.975], axis=0)
-    for sample, condition in enumerate(sample_conditions):
-        row = 6 - sample
-        color = COLORS[condition]
-        draws = values[:, sample]
-        draws = draws[np.isfinite(draws)]
-        if panel == 0:
-            grid = ratio_grid
-            density = gaussian_kde(np.log10(draws))(log_grid)
-        else:
-            grid = share_grid
-            kde = gaussian_kde(draws)
-            # Reflect the smoother at the minimum possible share and at 100%.
-            density = kde(grid) + kde(2 * grid[0] - grid) + kde(200 - grid)
+    ax.axvline(1, color=COLORS["poisson"], linestyle=":", linewidth=1.2)
+    for row, sample, condition in [(2, 0, "library"), (1, 1, "matrix"), (0, 4, "target")]:
+        draws = read_ratios[scenario, :, sample]
+        lower, median, upper = np.quantile(draws, [0.025, 0.5, 0.975])
+        density = gaussian_kde(np.log10(draws))(log_grid)
         height = row + 0.68 * density / density.max()
-        central = (grid >= lower[sample]) & (grid <= upper[sample])
+        color = COLORS[condition]
         ax.axhline(row, color="#d8dee6", linewidth=0.7, zorder=0)
-        ax.fill_between(grid, row, height, color=color, alpha=0.12)
-        ax.fill_between(grid, row, height, where=central,
+        ax.fill_between(ratio_grid, row, height, color=color, alpha=0.12)
+        ax.fill_between(ratio_grid, row, height,
+                        where=(ratio_grid >= lower) & (ratio_grid <= upper),
                         interpolate=True, color=color, alpha=0.45)
-        ax.plot(grid, height, color=color, lw=1.4)
-        median_height = np.interp(median[sample], grid, height)
-        ax.vlines(median[sample], row, median_height, color=color,
-                  linestyle="--", linewidth=1.3)
-        bounds = (f"95%: {lower[sample]:.2f}–{upper[sample]:.2f}" if panel == 0
-                  else f"95%: {lower[sample]:.1f}–{upper[sample]:.1f}%")
-        ax.text(0.98, row + 0.58, bounds, transform=ax.get_yaxis_transform(),
-                ha="right", va="center", fontsize=8, color=color,
+        ax.plot(ratio_grid, height, color=color, lw=1.4)
+        ax.vlines(median, row, np.interp(median, ratio_grid, height),
+                  color=color, linestyle="--", linewidth=1.3)
+        ax.text(0.98, row + 0.58, f"95%: {lower:.2f}–{upper:.2f}",
+                transform=ax.get_yaxis_transform(), ha="right", va="center",
+                fontsize=8, color=color,
                 bbox={"facecolor": "white", "edgecolor": "none", "pad": 1.5})
-    ax.set(yticks=np.arange(6, -1, -1), yticklabels=sample_names,
-           ylim=(-0.12, 6.9), ylabel="")
+    ax.set(xscale="log", xlim=(ratio_grid[0], ratio_grid[-1]),
+           ylim=(-0.12, 2.95), yticks=[2, 1, 0],
+           yticklabels=["Library", "Matrix 1", "Target 1"],
+           xlabel=r"Total / reference $K$", ylabel="")
     ax.tick_params(axis="y", pad=8)
-axes[0].set_xscale("log")
-axes[0].axvline(1, color=COLORS["poisson"], ls=":", lw=1.2)
-axes[0].set_xlim(ratio_grid[0], ratio_grid[-1])
-axes[0].set_xlabel("Simulated total / reference K (log scale)")
-axes[1].set_xlabel("Reads assigned to the top 1% of compounds (%)")
-axes[1].set_xlim(0, 100)
-panel_title(axes[0], "What total counts do the priors imply?")
-panel_title(axes[1], "Do a few compounds dominate?")
+    panel_title(ax, title + "\n" +
+                rf"$\mathrm{{SD}}(\alpha_c)={alpha_sd:g},\ \tau_a={tau_a:g},\ \tau_b={tau_b:g}$")
 show_figure(fig)
 ```
 
-Here, $K=5{,}000$ is the supplied reference that sets $E=K/N=10$, whereas $\sum_i\widetilde C_i$ is the total generated by the model. For example:
-
-$$R=20\quad\Longrightarrow\quad\sum_{i=1}^{N}\widetilde C_i=RK=20\times5{,}000=100{,}000\text{ reads}.$$
-
-The upper ends of the target samples' 95% intervals are around this scale: roughly twenty times the reference depth. The large simulated totals have two main sources:
-
-1. The baseline prior $\alpha_c\sim\mathrm{Normal}(0,1)$ permits substantial shifts in all compounds' expected counts.
-2. Compound effects add further variation; centring them on the log scale does not preserve the total after exponentiation.
-
-Replicate effects and NB2 sampling also contribute to the spread. This rate-based simulation does not allocate a fixed budget of 5,000 reads. We ask whether its predicted totals are scientifically plausible at the supplied exposure; departures from $R=1$ alone do not establish a model failure.
+Each step reduces the upper tails; tightening background leaves the library unchanged. These are candidate revisions to assess against experimentally plausible ranges and the other predictive checks.
