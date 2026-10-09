@@ -686,9 +686,9 @@ For each simulated sample, we calculate the **total-count ratio**:
 
 $$R=\frac{\sum_{i=1}^{N}\widetilde C_i}{K}.$$
 
-Here, $K=5{,}000$ sets the reference exposure $E=K/N=10$, while $\sum_i\widetilde C_i$ is the simulated total. Thus, $R=20$ means **100,000 simulated reads**, twenty times the reference depth. Our rate-based NB2 model does not require $R=1$.
+Here, $K=5{,}000$ sets the reference exposure $E=K/N=10$, while $\sum_i\widetilde C_i$ is the simulated total. Thus, $R=20$ means **100,000 simulated reads**, twenty times the reference depth. 
 
-The default priors allow large totals: the baseline shifts all compounds' expected counts, and centring compound effects on the log scale does not preserve the total after exponentiation. @fig-prior-read-counts shows the default check followed by three cumulative adjustments:
+Our rate-based NB2 model does not require $R=1$, however, the default priors allow large totals: the baseline shifts all compounds' expected counts, and centring compound effects on the log scale does not preserve the total after exponentiation. @fig-prior-read-counts shows the default check followed by three cumulative adjustments:
 
 1. **Baseline:** reduce the prior SD of $\alpha_c$ from 1 to **0.25** to limit shared shifts.
 2. **Abundance:** because $a_i$ affects **every condition**, reduce its scale-prior spread $\tau_a$ from 0.75 to **0.50**.
