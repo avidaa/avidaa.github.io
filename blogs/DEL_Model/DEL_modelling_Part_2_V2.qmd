@@ -715,6 +715,9 @@ parameter_rng = np.random.default_rng(20261008)
 gamma_rng = np.random.default_rng(20261009)
 poisson_rngs = [np.random.default_rng(20261011 + i) for i in range(4)]
 read_ratios = np.empty((4, n_experiments, 7))
+# Retain the final candidate's compound contrasts for the next check.
+apparent_enrichment = np.empty((n_experiments, n_compounds))
+expected_enrichment = np.empty_like(apparent_enrichment)
 
 def unit_centred_effect(size):
     # Multiplying by tau gives the hierarchical Half-Normal scale prior.
@@ -747,7 +750,8 @@ for draw in range(n_experiments):
             alpha[2] + (a + b + s)[:, None] + gamma_t,
         ]) + np.log(reference_depth / n_compounds)
         # Gamma-Poisson sampling gives the same NB2 likelihood as above.
-        rates = np.exp(log_mu) * gamma_multipliers
+        mu = np.exp(log_mu)
+        rates = mu * gamma_multipliers
         counts = np.empty((n_compounds, 7), dtype=np.int64)
         library_key = (alpha_sd, tau_a)
         if library_key not in library_cache:
@@ -755,6 +759,12 @@ for draw in range(n_experiments):
         counts[:, 0] = library_cache[library_key]
         counts[:, 1:] = poisson_rngs[scenario].poisson(rates[:, 1:])
         read_ratios[scenario, draw] = counts.sum(axis=0) / reference_depth
+        if scenario == len(prior_scenarios) - 1:
+            # Both conditions have three replicates at the same exposure.
+            target_total = counts[:, 4:].sum(axis=1)
+            matrix_total = counts[:, 1:4].sum(axis=1)
+            apparent_enrichment[draw] = (target_total + 1) / (matrix_total + 1)
+            expected_enrichment[draw] = mu[:, 4:].sum(axis=1) / mu[:, 1:4].sum(axis=1)
 
 log_bounds = np.quantile(np.log10(read_ratios), [0.001, 0.999])
 log_grid = np.linspace(log_bounds[0] - 0.1, log_bounds[1] + 0.1, 900)
@@ -794,3 +804,96 @@ show_figure(fig)
 ```
 
 Each step reduces the upper tails; tightening background leaves the library unchanged. These are candidate revisions to assess against experimentally plausible ranges and the other predictive checks.
+
+### Check apparent enrichment
+
+For each compound, pool the replicate counts and calculate an exposure-adjusted **apparent fold change**:
+
+$$\widetilde F_i=\frac{(\widetilde T_i+1)/E_t^+}{(\widetilde M_i+1)/E_m^+}.$$
+
+Here, $\widetilde T_i$ and $\widetilde M_i$ are target and matrix count totals; $E_t^+$ and $E_m^+$ are their summed exposures. Adding one keeps ratios defined when counts are zero.
+
+Using the previous candidate priors (baseline SD 0.25; $\tau_a=\tau_b=0.50$), @fig-prior-apparent-enrichment shows **how large the ratios become** and **how many compounds exceed fourfold**. We compare ratios of expected counts with ratios of simulated counts to see the additional impact of sampling and the zero-count correction.
+
+```{python}
+#| label: fig-prior-apparent-enrichment
+#| code-summary: "Plot the magnitude and frequency of apparent enrichment"
+#| fig-cap: 'Candidate priors, 5,000 experiments with 500 compounds each. Left: pooled compound-level fold changes; right: the percentage exceeding fourfold in each experiment. Expected-count ratios include condition and replicate shifts. Dark shading and labels mark empirical central 95% prior predictive intervals; dashed lines mark medians. Densities are smoothed and scaled to equal peak heights. Intervals use all draws, including tails outside the displayed ranges.'
+#| fig-width: 11
+#| fig-height: 3.5
+#| fig-dpi: 180
+
+enrichment_specs = [
+    ("Expected-count\nratio", expected_enrichment, COLORS["prior"]),
+    ("Simulated-count\nratio", apparent_enrichment, COLORS["target"]),
+]
+enrichment_plot_rng = np.random.default_rng(20261010)
+fold_bounds = np.quantile(np.concatenate([
+    np.log2(expected_enrichment).ravel(),
+    np.log2(apparent_enrichment).ravel(),
+]), [0.0025, 0.9975])
+fold_log_grid = np.linspace(fold_bounds[0] - 0.2, fold_bounds[1] + 0.2, 900)
+fold_grid = 2**fold_log_grid
+enrichment_threshold = 4
+enrichment_fractions = [100 * (values >= enrichment_threshold).mean(axis=1)
+                        for _, values, _ in enrichment_specs]
+fraction_limit = min(100, max(10, np.ceil(
+    np.quantile(np.concatenate(enrichment_fractions), 0.995) / 5
+) * 5))
+fraction_grid = np.linspace(0, fraction_limit, 900)
+enrichment_intervals = []
+fig, axes = new_figure(1, 2, figsize=(11, 3.5), sharey=True)
+for index, (label, values, color) in enumerate(enrichment_specs):
+    row = 1 - index
+    pooled = values.ravel()
+    fold_lower, fold_median, fold_upper = np.quantile(pooled, [0.025, 0.5, 0.975])
+    # Subsample only for density smoothing; interval bounds use every compound.
+    density_draws = enrichment_plot_rng.choice(pooled, 50_000, replace=False)
+    fold_density = gaussian_kde(np.log2(density_draws))(fold_log_grid)
+    fractions = enrichment_fractions[index]
+    fraction_lower, fraction_median, fraction_upper = np.quantile(fractions, [0.025, 0.5, 0.975])
+    fraction_kde = gaussian_kde(fractions)
+    # Reflect at the physical boundaries of a percentage.
+    fraction_density = (fraction_kde(fraction_grid) + fraction_kde(-fraction_grid)
+                        + fraction_kde(200 - fraction_grid))
+    enrichment_intervals.append({"ratio": label.replace("\n", " "),
+                                 "fold_change": [fold_lower, fold_median, fold_upper],
+                                 "percent_above_fourfold": [fraction_lower, fraction_median, fraction_upper]})
+    panels = [
+        (axes[0], fold_grid, fold_density, fold_lower, fold_median, fold_upper,
+         f"95%: {fold_lower:.2f}–{fold_upper:.2f}×"),
+        (axes[1], fraction_grid, fraction_density, fraction_lower, fraction_median, fraction_upper,
+         f"95%: {fraction_lower:.1f}–{fraction_upper:.1f}%"),
+    ]
+    for ax, grid, density, lower, median, upper, bounds_text in panels:
+        height = row + 0.68 * density / density.max()
+        ax.axhline(row, color="#d8dee6", linewidth=0.7, zorder=0)
+        ax.fill_between(grid, row, height, color=color, alpha=0.12)
+        ax.fill_between(grid, row, height, where=(grid >= lower) & (grid <= upper),
+                        interpolate=True, color=color, alpha=0.45)
+        ax.plot(grid, height, color=color, lw=1.4)
+        ax.vlines(median, row, np.interp(median, grid, height),
+                  color=color, linestyle="--", linewidth=1.3)
+        ax.text(0.98, row + 0.58, bounds_text, transform=ax.get_yaxis_transform(),
+                ha="right", va="center", fontsize=8, color=color,
+                bbox={"facecolor": "white", "edgecolor": "none", "pad": 1.5})
+for ax in axes:
+    style_axis(ax)
+    ax.grid(False, which="both")
+    ax.grid(axis="x", color="#e5e5e5", linewidth=0.7)
+    ax.set(ylim=(-0.12, 1.95), yticks=[1, 0],
+           yticklabels=[spec[0] for spec in enrichment_specs], ylabel="")
+    ax.tick_params(axis="y", pad=8)
+axes[0].set_xscale("log", base=2)
+fold_ticks = np.array([0.125, 0.25, 0.5, 1, 2, 4, 8, 16])
+fold_ticks = fold_ticks[(fold_ticks >= fold_grid[0]) & (fold_ticks <= fold_grid[-1])]
+axes[0].set(xticks=fold_ticks, xticklabels=[f"{tick:g}×" for tick in fold_ticks],
+            xlim=(fold_grid[0], fold_grid[-1]), xlabel="Target / matrix fold change")
+axes[0].axvline(1, color=COLORS["poisson"], linestyle=":", linewidth=1.2)
+axes[1].set(xlim=(0, fraction_limit), xlabel="Compounds with fold change ≥ 4 (%)")
+panel_title(axes[0], "How large are the contrasts?")
+panel_title(axes[1], "How frequent are fourfold contrasts?")
+show_figure(fig)
+```
+
+The median fraction above fourfold is **0% for expected-count ratios and 1.6% for simulated-count ratios**. Baseline and replicate shifts also affect both ratios. We assess these predictions against assay knowledge; fourfold is illustrative, and an apparent excess alone does not establish target-specific binding.
