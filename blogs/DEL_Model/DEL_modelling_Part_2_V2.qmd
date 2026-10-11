@@ -811,7 +811,13 @@ For each compound, pool the replicate counts and calculate an exposure-adjusted 
 
 $$\widetilde F_i=\frac{(\widetilde T_i+1)/E_t^+}{(\widetilde M_i+1)/E_m^+}.$$
 
-Here, $\widetilde T_i$ and $\widetilde M_i$ are target and matrix count totals; $E_t^+$ and $E_m^+$ are their summed exposures. Adding one keeps ratios defined when counts are zero.
+Here,
+
+- $\widetilde T_i$ is the
+simulated target-count total for compound \(i\), summed across replicates.
+- $\widetilde M_i$ is the simulated matrix-count total for compound \(i\), summed across replicates.
+- $E_t^+$ and $E_m^+$ are their summed exposures. 
+- Adding one keeps ratios defined when counts are zero.
 
 Using the previous candidate priors (baseline SD 0.25; $\tau_a=\tau_b=0.50$), @fig-prior-apparent-enrichment shows **how large the ratios become** and **how many compounds exceed fourfold**. We compare ratios of expected counts with ratios of simulated counts to see the additional impact of sampling and the zero-count correction.
 
