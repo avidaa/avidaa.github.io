@@ -819,12 +819,17 @@ simulated target-count total for compound \(i\), summed across replicates.
 - $E_t^+$ and $E_m^+$ are their summed exposures. 
 - Adding one keeps ratios defined when counts are zero.
 
-Using the previous candidate priors (baseline SD 0.25; $\tau_a=\tau_b=0.50$), @fig-prior-apparent-enrichment shows **how large the ratios become** and **how many compounds exceed fourfold**. We compare ratios of expected counts with ratios of simulated counts to see the additional impact of sampling and the zero-count correction.
+Using the previous candidate priors (baseline SD 0.25; $\tau_a=\tau_b=0.50$), the two panels in @fig-prior-apparent-enrichment ask:
+
+- **Magnitude (left):** How large can target-versus-matrix ratios become?
+- **Frequency (right):** Does the model predict a few compounds with large ratios, or many? Here, fourfold is our illustrative threshold for "large".
+
+We compare ratios of expected counts with ratios of simulated counts to see the additional impact of sampling and the zero-count correction.
 
 ```{python}
 #| label: fig-prior-apparent-enrichment
 #| code-summary: "Plot the magnitude and frequency of apparent enrichment"
-#| fig-cap: 'Candidate priors, 5,000 experiments with 500 compounds each. Left: pooled compound-level fold changes; right: the percentage exceeding fourfold in each experiment. Expected-count ratios include condition and replicate shifts. Dark shading and labels mark empirical central 95% prior predictive intervals; dashed lines mark medians. Densities are smoothed and scaled to equal peak heights. Intervals use all draws, including tails outside the displayed ranges.'
+#| fig-cap: 'Candidate priors, 5,000 experiments with 500 compounds each. Magnitude (left): pooled compound-level fold changes. Frequency (right): the percentage exceeding fourfold in each experiment. Expected-count ratios include condition and replicate shifts. Dark shading and labels mark empirical central 95% prior predictive intervals; dashed lines mark medians. Densities are smoothed and scaled to equal peak heights. Intervals use all draws, including tails outside the displayed ranges.'
 #| fig-width: 11
 #| fig-height: 3.5
 #| fig-dpi: 180
@@ -897,8 +902,8 @@ axes[0].set(xticks=fold_ticks, xticklabels=[f"{tick:g}×" for tick in fold_ticks
             xlim=(fold_grid[0], fold_grid[-1]), xlabel="Target / matrix fold change")
 axes[0].axvline(1, color=COLORS["poisson"], linestyle=":", linewidth=1.2)
 axes[1].set(xlim=(0, fraction_limit), xlabel="Compounds with fold change ≥ 4 (%)")
-panel_title(axes[0], "How large are the contrasts?")
-panel_title(axes[1], "How frequent are fourfold contrasts?")
+panel_title(axes[0], "Magnitude: how large are the ratios?")
+panel_title(axes[1], "Frequency: how many exceed fourfold?")
 show_figure(fig)
 ```
 
