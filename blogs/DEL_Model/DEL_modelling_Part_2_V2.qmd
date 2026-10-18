@@ -907,4 +907,8 @@ panel_title(axes[1], "Frequency: how many exceed fourfold?")
 show_figure(fig)
 ```
 
-The median fraction above fourfold is **0% for expected-count ratios and 1.6% for simulated-count ratios**. Baseline and replicate shifts also affect both ratios. We assess these predictions against assay knowledge; fourfold is illustrative, and an apparent excess alone does not establish target-specific binding.
+**Magnitude (left):** The candidate priors favour ratios near one but allow substantial variation: the central 95% of simulated-count ratios spans **0.20–5.00×**.
+
+**Frequency (right):** The median fraction reaching fourfold is **1.6%**, with an upper 95% endpoint of **20.8%**. Thus, the priors permit some experiments with many large apparent contrasts.
+
+**We retain these priors provisionally.** This check does not establish that they are too wide or too narrow; that requires assay-based expectations for believable contrast sizes and frequencies. These ratios combine enrichment, sample shifts, and count noise; fourfold is illustrative, not a binding cutoff.
